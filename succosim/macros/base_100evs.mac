@@ -1,0 +1,5 @@
+# initialise the simulation
+/run/initialize
+
+# shot 100 events
+/run/beamOn 100

@@ -1,0 +1,10 @@
+# initialise the simulation
+/run/initialize
+
+# graphical settings
+/vis/open OGLSQt
+/vis/drawVolume
+/vis/scene/add/trajectories smooth
+/vis/scene/endOfEventAction accumulate
+
+# don't shot anything --> waiting for manual input from the GUI
