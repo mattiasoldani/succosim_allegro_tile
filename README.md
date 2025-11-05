@@ -1,6 +1,6 @@
 # succosim
 
-This is **succosim**, a [Geant4](http://www.geant4.org/geant4/) blank template meant to be used as a starting point to create beamtest software simulations. It has been developed, starting from the material made available at the [VII International Geant4 School, Krakow](http://geant4.lngs.infn.it/krakow2019/), with a focus on the typical experimental configurations of the INSULAb group beamtests &mdash; see, for example, [here](https://indico.cern.ch/event/731649/contributions/3237202/) and [here](http://cds.cern.ch/record/2672249). The aim of the project is twofold:
+This is **succosim**, a [Geant4](http://www.geant4.org/geant4/) blank template meant to be used as a starting point to create beamtest software simulations. It has been developed, starting from the material made available at the [VII International Geant4 School, Krakow](https://www.ptfm.org/wp-content/uploads/2019/03/School_Krakow.pdf), with a focus on the typical experimental configurations of the INSULAb group beamtests &mdash; see, for example, [here](https://indico.cern.ch/event/731649/contributions/3237202/) and [here](http://cds.cern.ch/record/2672249). The aim of the project is twofold:
 
 - to provide a tool to validate the experimental results by comparing them with simulated data that are as similar as possible to the real ones;
 - to provide a tool to easily reproduce the beamtest experimental condition in the simulations without the need for a developer-level knowledge of C++ and Geant4.
@@ -9,7 +9,7 @@ Nevertheless, a basic, user-level understanding of how a Geant4 simulation works
 
 Tested with:
 
-[![Geant4](https://img.shields.io/badge/Geant4-10.05.p01-blue.svg)](http://www.geant4.org/geant4/) [![CMake](https://img.shields.io/badge/CMake-3.18.2-blue.svg)](https://cmake.org/)
+[![Geant4](https://img.shields.io/badge/Geant4-11.3.2-blue.svg)](http://www.geant4.org/geant4/) [![CMake](https://img.shields.io/badge/CMake-3.30.6-blue.svg)](https://cmake.org/)
 
 The succosim source code can be downloaded either as a ZIP archive, from the Code drop-down menu [here](https://github.com/mattiasoldani/succosim), or directly from the terminal (open in your project working directory) via
 ```shell
@@ -60,7 +60,7 @@ lie downstream. Such a configuration has been chosen to imitate the typical INSU
 
 succosim is optimised for an ntuple-based output, in which data from sensitive detectors are written on a periodic basis, e.g. step by step or event by event. The default output file format is the [ROOT](https://root.cern/) [file](https://root.cern/manual/storing_root_objects/) (`.root`), which contains the ntuples as [tree objects](https://root.cern.ch/doc/master/classTTree.html). The output file is saved in `out_data/` (in the build path) at the end of the program execution; its name can be set in `src/RunAction.cc`. Alternatively, different file formats can be chosen, e.g. the CSV, with the proper directive in `include/Analysis.hh`; note, however, that in general the custom file name (and path) will not be used to save output files that differ from the default ROOT one.
 
-The list of variables (or columns) to be written in the ntuple is specified in `src/RunAction.cc`; each variable is given an integer as index, starting from 0 and counting, based on the creation order. The variables are then filled in `src/EventAction.cc`, being referred to using the aforementioned indexes rather than the chosen names; this can be done on a event-by-event basis or with more detail, e.g. step by step, depending on the structure of the data collections defined in the custom hits and sensitive detectors (in `include/CustomHit.hh`, `src/CustomHit.cc`, `include/CustomSD.hh` and `src/CustomSD.cc` &mdash; check comments therein and in the related test mode implementations, in `include/TestMode.cc`) and on the desired output information.
+The list of variables (or columns) to be written in the ntuple is specified in `src/RunAction.cc`; each variable is given an integer as index, starting from 0 and counting, based on the creation order. The variables are then filled in `src/EventAction.cc`, being referred to using the aforementioned indexes rather than the chosen names; this can be done on a event-by-event basis or with more detail, e.g. step by step, depending on the structure of the data collections defined in the custom hits and sensitive detectors (in `include/CustomHit.hh`, `src/CustomHit.cc`, `include/CustomSD.hh` and `src/CustomSD.cc` &mdash; check comments therein and in the related test mode implementations, in `src/TestMode.cc`) and on the desired output information.
 
 In the test mode, the event-by-event scoring of
 
