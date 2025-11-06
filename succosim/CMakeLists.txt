@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.3 FATAL_ERROR)
 # vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 # set project name here
 # e.g. set(ENV{PROJECTNAME} succosim)
-set(ENV{PROJECTNAME} succosim)
+set(ENV{PROJECTNAME} tiletest)
 # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 project($ENV{PROJECTNAME})

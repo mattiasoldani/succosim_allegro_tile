@@ -23,7 +23,7 @@ RunAction::RunAction() :  G4UserRunAction()
   
     // --------------------------------------------------
     // ...uncomment this line for the test ntuple columns (implemented in src/TestMode.cc)
-    OutputNtupleTest(analysis);
+    //OutputNtupleTest(analysis);
     // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     analysis->FinishNtuple(0);
 	

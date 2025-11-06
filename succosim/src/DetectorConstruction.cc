@@ -16,6 +16,8 @@
 #include "DetectorConstruction.hh"
 #include "CustomSD.hh"
 
+#include <G4Trd.hh>
+
 // DetectorConstruction::Construct, i.e. where the setup geometry is implemented
 G4VPhysicalVolume* DetectorConstruction::Construct()
 {
@@ -24,10 +26,55 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 	
     // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
     // define the world and all the setup stuff (materials, volumes) here, or...
+	
+    // colors
+    G4VisAttributes* cyan = new G4VisAttributes(G4Colour::Cyan());
+    G4VisAttributes* red = new G4VisAttributes(G4Colour::Red());
+	
+    // off-the-shelf materials (from NIST)
+    G4Material* air = nist->FindOrBuildMaterial("G4_AIR"); // air
+	
+    // manual material: BC400 scintillator
+    G4Element* elH = new G4Element("Hydrogen", "H", 1., 1.0079 * g/mole);
+    G4Element* elC = new G4Element("Carbon", "C", 6., 12.01 * g/mole);
+    G4Material* bc400 = new G4Material("BC400", 1.032*g/cm3, 2);
+    bc400->AddElement(elH, 0.085);
+    bc400->AddElement(elC, 0.915);
+	
+    // world
+    G4double worldSizeX = 2 * m;
+    G4double worldSizeY = 2 * m;
+    G4double worldSizeZ = 2 * m;
+    G4RotationMatrix* worldRotation = new G4RotationMatrix();
+    worldRotation->rotateX(90 * deg);
+    G4VSolid* worldBox = new G4Box("World_Solid", worldSizeX / 2, worldSizeY / 2, worldSizeZ / 2);
+    G4LogicalVolume* worldLog = new G4LogicalVolume(worldBox, air, "World_Logical");
+    G4VisAttributes* visAttrWorld = new G4VisAttributes();
+    visAttrWorld->SetVisibility(false);
+    worldLog->SetVisAttributes(visAttrWorld);
+    G4VPhysicalVolume* worldPhys = new G4PVPlacement(nullptr, {}, worldLog, "World", nullptr, false, 0);
+
+    // 2nd world layer, rotated to have the beam travelling horizontally along z
+    G4LogicalVolume* worldLog_rot = new G4LogicalVolume(worldBox, air, "World_Logical_Rot");
+    G4VisAttributes* visAttrWorld_rot = new G4VisAttributes();
+    visAttrWorld_rot->SetVisibility(false);
+    worldLog_rot->SetVisAttributes(visAttrWorld_rot);
+    new G4PVPlacement(worldRotation, {}, worldLog_rot, "World_Rot", worldLog, false, 0);
+	
+	// tile shapes
+    G4double radius = 3*m;
+    G4double height = 100*mm;
+    G4double angle = 360*deg/128;
+    G4double thickness = 3*mm;
+    G4double sidegap = 1*mm;
+
+	geomTrapezoid* tileTestGeom = new geomTrapezoid(radius, height, angle);
+    G4LogicalVolume* tileTest1Log = fLogTileFullWGap(tileTestGeom, "tile", thickness, sidegap, bc400, cyan);
+    new G4PVPlacement(nullptr, G4ThreeVector(0, 2*cm, 0), tileTest1Log, "tile", worldLog_rot, false, 0);
 
     // --------------------------------------------------
     // ...uncomment this line for the test setup (implemented in src/TestMode.cc) 
-    G4VPhysicalVolume* worldPhys = SetupTest(nist);
+    //G4VPhysicalVolume* worldPhys = SetupTest(nist);
     // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 	
     // print list of defined material
@@ -51,7 +98,7 @@ void DetectorConstruction::ConstructSDandField()
 	
     // --------------------------------------------------
     // ...uncomment this line for the test sensitive detectors (implemented in src/TestMode.cc)
-    SDTest(sdm);
+    //SDTest(sdm);
     // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 }
 

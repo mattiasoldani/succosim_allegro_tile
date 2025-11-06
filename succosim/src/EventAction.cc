@@ -27,6 +27,6 @@ void EventAction::EndOfEventAction(const G4Event* event)
 
     // --------------------------------------------------
     // ...uncomment this line for the test event action (implemented in src/TestMode.cc)
-    EndOfEventScoringTest(event, sdm, hcofEvent, analysis);
+    //EndOfEventScoringTest(event, sdm, hcofEvent, analysis);
     // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 }
