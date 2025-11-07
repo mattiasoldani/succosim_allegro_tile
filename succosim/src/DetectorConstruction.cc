@@ -29,7 +29,10 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 	
     // colors
     G4VisAttributes* cyan = new G4VisAttributes(G4Colour::Cyan());
+    G4VisAttributes* blue = new G4VisAttributes(G4Colour::Blue());
     G4VisAttributes* red = new G4VisAttributes(G4Colour::Red());
+    G4VisAttributes* green = new G4VisAttributes(G4Colour::Green());
+    G4VisAttributes* magenta = new G4VisAttributes(G4Colour::Magenta());
 	
     // off-the-shelf materials (from NIST)
     G4Material* air = nist->FindOrBuildMaterial("G4_AIR"); // air
@@ -47,7 +50,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     G4double worldSizeZ = 2 * m;
     G4RotationMatrix* worldRotation = new G4RotationMatrix();
     worldRotation->rotateX(90 * deg);
-    G4VSolid* worldBox = new G4Box("World_Solid", worldSizeX / 2, worldSizeY / 2, worldSizeZ / 2);
+    G4VSolid* worldBox = new G4Box("World_Shape", worldSizeX / 2, worldSizeY / 2, worldSizeZ / 2);
     G4LogicalVolume* worldLog = new G4LogicalVolume(worldBox, air, "World_Logical");
     G4VisAttributes* visAttrWorld = new G4VisAttributes();
     visAttrWorld->SetVisibility(false);
@@ -62,15 +65,63 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     new G4PVPlacement(worldRotation, {}, worldLog_rot, "World_Rot", worldLog, false, 0);
 	
 	// tile shapes
-    G4double radius = 3*m;
     G4double height = 100*mm;
+    G4double radius = 2.8*m + 10*mm + 4*100*mm + height/2;
     G4double angle = 360*deg/128;
     G4double thickness = 3*mm;
-    G4double sidegap = 1*mm;
+    G4double sidegap = 3*mm;
 
 	geomTrapezoid* tileTestGeom = new geomTrapezoid(radius, height, angle);
-    G4LogicalVolume* tileTest1Log = fLogTileFullWGap(tileTestGeom, "tile", thickness, sidegap, bc400, cyan);
-    new G4PVPlacement(nullptr, G4ThreeVector(0, 2*cm, 0), tileTest1Log, "tile", worldLog_rot, false, 0);
+    G4double offset;
+
+    // full tile
+    G4LogicalVolume* tileTest0Log = fLogTile(tileTestGeom, "tile0", thickness, 0, bc400, cyan);
+    new G4PVPlacement(nullptr, G4ThreeVector(0, 0, 0), tileTest0Log, "tile0", worldLog_rot, false, 0);
+
+    tileTestGeom->AddHorGaps(sidegap);
+    G4LogicalVolume* tileTest1Log = fLogTile(tileTestGeom, "tile1", thickness, 0, bc400, cyan);
+    new G4PVPlacement(nullptr, G4ThreeVector(0, -2*thickness, 0), tileTest1Log, "tile1", worldLog_rot, false, 0);
+    tileTestGeom->RmHorGaps();
+
+    // half tile, positive horizontal side
+    G4LogicalVolume* tileTest2Log = fLogTile(tileTestGeom, "tile2", thickness, 1, bc400, blue);
+    new G4PVPlacement(nullptr, G4ThreeVector(0, -4*thickness, 0), tileTest2Log, "tile2", worldLog_rot, false, 0);
+
+    tileTestGeom->AddHorGaps(sidegap);
+    G4LogicalVolume* tileTest3Log = fLogTile(tileTestGeom, "tile3", thickness, 1, bc400, blue);
+    new G4PVPlacement(nullptr, G4ThreeVector(0, -6*thickness, 0), tileTest3Log, "tile3", worldLog_rot, false, 0);
+    tileTestGeom->RmHorGaps();
+
+    // half tile, negative horizontal side
+    G4LogicalVolume* tileTest4Log = fLogTile(tileTestGeom, "tile4", thickness, -1, bc400, red);
+    new G4PVPlacement(nullptr, G4ThreeVector(0, -8*thickness, 0), tileTest4Log, "tile4", worldLog_rot, false, 0);
+
+    tileTestGeom->AddHorGaps(sidegap);
+    G4LogicalVolume* tileTest5Log = fLogTile(tileTestGeom, "tile5", thickness, -1, bc400, red);
+    new G4PVPlacement(nullptr, G4ThreeVector(0, -10*thickness, 0), tileTest5Log, "tile5", worldLog_rot, false, 0);
+    tileTestGeom->RmHorGaps();
+
+    // half tile, positive horizontal side, centred (notice the -offset)
+    offset = tileTestGeom->GetFullToHalfCentreOffset();
+    G4LogicalVolume* tileTest6Log = fLogTile(tileTestGeom, "tile6", thickness, 1, bc400, green);
+    new G4PVPlacement(nullptr, G4ThreeVector(-offset, -12*thickness, 0), tileTest6Log, "tile6", worldLog_rot, false, 0);
+
+    tileTestGeom->AddHorGaps(sidegap);
+    offset = tileTestGeom->GetFullToHalfCentreOffset();
+    G4LogicalVolume* tileTest7Log = fLogTile(tileTestGeom, "tile7", thickness, 1, bc400, green);
+    new G4PVPlacement(nullptr, G4ThreeVector(-offset, -14*thickness, 0), tileTest7Log, "tile7", worldLog_rot, false, 0);
+    tileTestGeom->RmHorGaps();
+
+    // half tile, negative horizontal side, centred (notice the +offset)
+    offset = tileTestGeom->GetFullToHalfCentreOffset();
+    G4LogicalVolume* tileTest8Log = fLogTile(tileTestGeom, "tile8", thickness, -1, bc400, magenta);
+    new G4PVPlacement(nullptr, G4ThreeVector(offset, -16*thickness, 0), tileTest8Log, "tile8", worldLog_rot, false, 0);
+
+    tileTestGeom->AddHorGaps(sidegap);
+    offset = tileTestGeom->GetFullToHalfCentreOffset();
+    G4LogicalVolume* tileTest9Log = fLogTile(tileTestGeom, "tile9", thickness, -1, bc400, magenta);
+    new G4PVPlacement(nullptr, G4ThreeVector(offset, -18*thickness, 0), tileTest9Log, "tile9", worldLog_rot, false, 0);
+    tileTestGeom->RmHorGaps();
 
     // --------------------------------------------------
     // ...uncomment this line for the test setup (implemented in src/TestMode.cc) 
