@@ -65,11 +65,12 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     new G4PVPlacement(worldRotation, {}, worldLog_rot, "World_Rot", worldLog, false, 0);
 	
 	// tile shapes
-    G4double height = 100*mm;
-    G4double radius = 2.8*m + 10*mm + 4*100*mm + height/2;
-    G4double angle = 360*deg/128;
+    G4double pi = 3.1415926535;
+    G4double height = 50*mm;
+    G4double radius = 2.8*m + 10*mm + height/2;
+    G4double angle = 2*pi/128;
     G4double thickness = 3*mm;
-    G4double sidegap = 3*mm;
+    G4double sidegap = 2*mm;
 
 	geomTrapezoid* tileTestGeom = new geomTrapezoid(radius, height, angle);
     G4double offset;

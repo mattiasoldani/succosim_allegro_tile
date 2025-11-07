@@ -107,6 +107,8 @@ private:
             }
 
         private:
+            G4double pi = 3.1415926535;
+
             G4double H;
             G4double R;
             G4double Theta;
@@ -123,10 +125,10 @@ private:
             G4double fR_t(G4double r, G4double h) {return r + h/2;}
 
             G4double fL_b(G4double r, G4double h, G4double theta) {
-                return fR_b(r, h) * sin(theta/2) / cos (theta/2);
+                return 2 * fR_b(r, h) * sin(theta/2) / cos (theta/2);
             }
             G4double fL_t(G4double r, G4double h, G4double theta) {
-                return fR_t(r, h) * sin(theta/2) / cos (theta/2);
+                return 2 * fR_t(r, h) * sin(theta/2) / cos (theta/2);
             }
 
             G4double fL_mid(G4double l_b, G4double l_t) {
@@ -134,7 +136,7 @@ private:
             }
 
             G4double fside(G4double h, G4double theta) { 
-                return (h / sin(90*deg - theta/2));
+                return (h / sin(pi/2 - theta/2));
             }
 
     };
