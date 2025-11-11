@@ -171,32 +171,35 @@ private:
 
         G4int signHalf = 0, // if 0, full tile is kept; if > (<) 0 , half tile is selected from positive (negative) half
 
-        G4double holeR = 0, // radius of the service holes - if 0, no holes are modelled
-        G4double holeX = 0, // hole centre, horizontal distance from tile centre
-        G4double holeY = 0 // hole centre, vertical distance from tile centre
+        G4double holeR = 0., // radius of the service holes - if 0, no holes are modelled
+        G4double holeX = 0., // hole centre, horizontal distance from tile centre
+        G4double holeY = 0. // hole centre, vertical distance from tile centre
         // note: two holes are always added to the full tile: one in (holeX, holey), one in (-holeX, -holey)
     ){
         G4VSolid* shape_full = fShapeTileFull(pGeom, name, dThk);
+        G4VSolid* shape_fin;
 
         G4String name_solid = name + "_Shape";
 
         // model service holes
         G4VSolid* shape_holes;
-        if (int(holeR)) {
+        if (holeR > 0) {
+            G4RotationMatrix* holeRotation = new G4RotationMatrix();
+            holeRotation->rotateX(90 * deg);
+
             G4VSolid* shape_hole = new G4Tubs("hole_Shape", 0., holeR, dThk / 2, 0., 2*acos(-1));
 
             G4VSolid* shape_holes_temp = new G4SubtractionSolid(
-                name_solid, shape_full, shape_hole, nullptr, G4ThreeVector(holeX, 0., holeY)
+                "temp", shape_full, shape_hole, holeRotation, G4ThreeVector(holeX, 0., holeY)
             );
             shape_holes = new G4SubtractionSolid(
-                name_solid, shape_holes_temp, shape_hole, nullptr, G4ThreeVector(-holeX, 0., -holeY)
+                name_solid, shape_holes_temp, shape_hole, holeRotation, G4ThreeVector(-holeX, 0., -holeY)
             );
-        } else {
-            shape_holes = shape_full;
         }
+        shape_fin = holeR > 0 ? shape_holes : shape_full;
         
         // turn full tile into half tile
-        G4VSolid* shape_fin;
+        G4VSolid* shape_halved;
         if (signHalf) {
             G4int sign = (signHalf > 0) ? 1 : -1 ;
 
@@ -207,13 +210,12 @@ private:
             G4VSolid* shape_rm = new G4Box("rm_Shape", dHor_max / 4, dThk / 2, dVer / 2);
 
             G4VSolid* shape_intersect = new G4IntersectionSolid(
-                name_solid, shape_holes, shape_rm, nullptr, G4ThreeVector(sign*dHor_max/4, 0., 0.)
+                name_solid, shape_fin, shape_rm, nullptr, G4ThreeVector(sign*dHor_max/4, 0., 0.)
             );
 
-            shape_fin = shape_intersect;
-        } else {
-            shape_fin = shape_full;
+            shape_halved = shape_intersect;
         }
+        shape_fin = signHalf ? shape_halved : shape_fin ;
 
         G4String name_log = name + "_Log";
         G4LogicalVolume* logvol = new G4LogicalVolume(shape_fin, pMaterial, name_log);
