@@ -35,21 +35,24 @@ void EventAction::EndOfEventAction(const G4Event* event)
     int colETileTest000 = 1;
     int colETileTest001 = 2;
 
+    G4double E000 = 0.0;
+    G4double E001 = 0.0;
+
     analysis->FillNtupleDColumn(0, colNEv, event->GetEventID());
     if (hitCollectionTileTest000)
     {
-        G4double E000 = 0.0;
         for (auto hit: *hitCollectionTileTest000->GetVector())
         {E000 += hit->GetEDep();}
         analysis->FillNtupleDColumn(0, colETileTest000, E000 / MeV);
     }else{analysis->FillNtupleDColumn(0, colETileTest000, -1.0);}
     if (hitCollectionTileTest001)
     {
-        G4double E001 = 0.0;
         for (auto hit: *hitCollectionTileTest001->GetVector())
         {E001 += hit->GetEDep();}
         analysis->FillNtupleDColumn(0, colETileTest001, E001 / MeV);
     }else{analysis->FillNtupleDColumn(0, colETileTest001, -1.0);}
+
+    analysis->AddNtupleRow(0);
 
     // --------------------------------------------------
     // ...uncomment this line for the test event action (implemented in src/TestMode.cc)

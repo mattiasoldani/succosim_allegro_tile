@@ -12,6 +12,7 @@ RunAction::RunAction() :  G4UserRunAction()
 {
     // load the analysis manager for data output
     G4AnalysisManager* analysis = G4AnalysisManager::Instance();
+    analysis->SetNtupleMerging(true);
     analysis->SetVerboseLevel(1);  // set analysis manager verbosity here
   
     // create output ntuple

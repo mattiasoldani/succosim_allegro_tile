@@ -174,7 +174,7 @@ void DetectorConstruction::ConstructSDandField()
     sdm->AddNewDetector(tileTest000SD);
 
     VolumeEDepSD* tileTest001SD = new VolumeEDepSD("tile001_SD");
-    SetSensitiveDetector("tile000_Log", tileTest001SD);
+    SetSensitiveDetector("tile001_Log", tileTest001SD);
     sdm->AddNewDetector(tileTest001SD);
 	
     // --------------------------------------------------
