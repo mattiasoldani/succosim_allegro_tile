@@ -77,7 +77,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 	geomTrapezoid* tileTestGeom = new geomTrapezoid(radius, height, angle);
     G4double offset;
 
-    // preliminary tests 0
+    //// preliminary tests 00 ////
 
     // // full tile
     // G4LogicalVolume* tileTest0Log = fLogTile(tileTestGeom, "tile0", thickness, bc400, cyan, 0, holeradius, 0, holey);
@@ -128,18 +128,19 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     // new G4PVPlacement(nullptr, G4ThreeVector(offset, -18*thickness, 0), tileTest9Log, "tile9", worldLog_rot, false, 0);
     // tileTestGeom->RmHorGaps();
 
-    // preliminary tests 1
+    //// preliminary tests 01 ////
 
     tileTestGeom->AddHorGaps(sidegap);
     offset = tileTestGeom->GetFullToHalfCentreOffset();
-    G4LogicalVolume* tileTest7Log = fLogTile(tileTestGeom, "tile7", thickness, bc400, cyan, 1, holeradius, holex, holey);
-    new G4PVPlacement(nullptr, G4ThreeVector(-0.5*cm, 0*thickness, 0), tileTest7Log, "tile7", worldLog_rot, false, 0);
+
+    G4LogicalVolume* tileTest000Log = fLogTile(tileTestGeom, "tile000", thickness, bc400, cyan, 1, holeradius, holex, holey);
+    new G4PVPlacement(nullptr, G4ThreeVector(-0.5*cm, 0*thickness, 0), tileTest000Log, "tile000", worldLog_rot, false, 0);
     tileTestGeom->RmHorGaps();
 
-    tileTestGeom->AddHorGaps(sidegap);
     offset = tileTestGeom->GetFullToHalfCentreOffset();
-    G4LogicalVolume* tileTest9Log = fLogTile(tileTestGeom, "tile9", thickness, bc400, cyan, -1, holeradius, holex, holey);
-    new G4PVPlacement(nullptr, G4ThreeVector(0.5*cm, 10*thickness, 0), tileTest9Log, "tile9", worldLog_rot, false, 0);
+    G4LogicalVolume* tileTest001Log = fLogTile(tileTestGeom, "tile001", thickness, bc400, cyan, -1, holeradius, holex, holey);
+    new G4PVPlacement(nullptr, G4ThreeVector(0.5*cm, 10*thickness, 0), tileTest001Log, "tile001", worldLog_rot, false, 0);
+
     tileTestGeom->RmHorGaps();
 
     // --------------------------------------------------
@@ -165,6 +166,16 @@ void DetectorConstruction::ConstructSDandField()
 
     // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
     // create the sensitive detectors and bin them to the logical volumes here, or...
+
+    //// preliminary tests 01 ////
+
+    VolumeEDepSD* tileTest000SD = new VolumeEDepSD("tile000_SD");
+    SetSensitiveDetector("tile000_Log", tileTest000SD);
+    sdm->AddNewDetector(tileTest000SD);
+
+    VolumeEDepSD* tileTest001SD = new VolumeEDepSD("tile001_SD");
+    SetSensitiveDetector("tile000_Log", tileTest001SD);
+    sdm->AddNewDetector(tileTest001SD);
 	
     // --------------------------------------------------
     // ...uncomment this line for the test sensitive detectors (implemented in src/TestMode.cc)

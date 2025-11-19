@@ -14,8 +14,6 @@
 
 using namespace std;
 
-
-
 // class for logical volumes
 class G4LogicalVolume;
 

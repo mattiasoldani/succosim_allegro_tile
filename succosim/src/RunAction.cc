@@ -20,7 +20,12 @@ RunAction::RunAction() :  G4UserRunAction()
     // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
     // create the ntuple columns (remember the order, it is needed to fill them) here, or...
     // e.g. analysis->CreateNtupleDColumn("NEvent");
-  
+
+    //// preliminary tests 01 ////
+
+    analysis->CreateNtupleDColumn("NEvent");
+    analysis->CreateNtupleDColumn("E_tileTest000");
+    analysis->CreateNtupleDColumn("E_tileTest001");
     // --------------------------------------------------
     // ...uncomment this line for the test ntuple columns (implemented in src/TestMode.cc)
     //OutputNtupleTest(analysis);
