@@ -67,15 +67,18 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 	// tile shapes
     G4double height = 50*mm;
     G4double radius = 2.8*m + 10*mm + height/2;
-    G4double angle = 2*acos(-1)/128;
+    G4double angle = 2*pi/128;
     G4double thickness = 3*mm;
     G4double sidegap = 2*mm;
     G4double holeradius = 3*mm;
     G4double holey = height/2 - 6*mm;
     G4double holex = 6*mm;
+    G4double fibreradius = 0.5*mm;
 
 	geomTrapezoid* tileTestGeom = new geomTrapezoid(radius, height, angle);
     G4double offset;
+    G4ThreeVector pos;
+    G4int sign;
 
     //// preliminary tests 00 ////
 
@@ -131,15 +134,20 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     //// preliminary tests 01 ////
 
     tileTestGeom->AddHorGaps(sidegap);
-    offset = tileTestGeom->GetFullToHalfCentreOffset();
 
-    G4LogicalVolume* tileTest000Log = fLogTile(tileTestGeom, "tile000", thickness, bc400, cyan, 1, holeradius, holex, holey);
-    new G4PVPlacement(nullptr, G4ThreeVector(-0.5*cm, 0*thickness, 0), tileTest000Log, "tile000", worldLog_rot, false, 0);
-    tileTestGeom->RmHorGaps();
+    sign = 1;
+    pos = G4ThreeVector(-sign*0.5*cm, 0*thickness, 0);
+    G4LogicalVolume* tileTest000Log = fLogTile("tile000", bc400, cyan, tileTestGeom, thickness, sign, holeradius, holex, holey);
+    new G4PVPlacement(nullptr, pos, tileTest000Log, "tile000", worldLog_rot, false, 0);
 
-    offset = tileTestGeom->GetFullToHalfCentreOffset();
-    G4LogicalVolume* tileTest001Log = fLogTile(tileTestGeom, "tile001", thickness, bc400, cyan, -1, holeradius, holex, holey);
-    new G4PVPlacement(nullptr, G4ThreeVector(0.5*cm, 10*thickness, 0), tileTest001Log, "tile001", worldLog_rot, false, 0);
+    G4LogicalVolume* tileTest000FibreLog = fLogPlaceFibreCirc("fibre000", bc400, green, tileTestGeom, worldLog_rot, fibreradius, 0., 0., pos, nullptr, sign);
+
+    sign = -1;
+    pos = G4ThreeVector(-sign*0.5*cm, 10*thickness, 0);
+    G4LogicalVolume* tileTest001Log = fLogTile("tile001", bc400, cyan, tileTestGeom, thickness, sign, holeradius, holex, holey);
+    new G4PVPlacement(nullptr, pos, tileTest001Log, "tile001", worldLog_rot, false, 0);
+
+    G4LogicalVolume* tileTest001FibreLog = fLogPlaceFibreCirc("fibre001", bc400, green, tileTestGeom, worldLog_rot, fibreradius, 0., 0., pos, nullptr, sign);
 
     tileTestGeom->RmHorGaps();
 
@@ -187,33 +195,14 @@ void DetectorConstruction::ConstructSDandField()
 // ============================================================
 // implement custom methods here
 
-// reduce the horizontal dimensions to account for the fibre gaps
-// only (some) horizontal quantities are affected
-void DetectorConstruction::geomTrapezoid::AddHorGaps(G4double gapsize) {
-    GapHor = gapsize / cos(GetTheta() / 2);
-    isGaps = true;
+// DetectorConstruction methods ///////////////////////////////
 
-    L_b = GetDHor_b() - 2*GapHor;
-    L_t = GetDHor_t() - 2*GapHor;
-    SetDHor_mid(); // recalculate L_mid
-}
-
-//
-void DetectorConstruction::geomTrapezoid::RmHorGaps() {
-    if (isGaps) {
-        L_b = GetDHor_b() + 2*GapHor;
-        L_t = GetDHor_t() + 2*GapHor;
-        SetDHor_mid(); // recalculate L_mid
-
-        GapHor = 0;
-        isGaps = false;
-    } else {return;}
-}
+G4double DetectorConstruction::pi = acos(-1);
 
 // create the full tile solid
 G4VSolid* DetectorConstruction::fShapeTileFull(
-    geomTrapezoid* pGeom, 
     G4String name, 
+    geomTrapezoid* pGeom, 
     G4double dThk
 ){
     G4double dHor_b = pGeom->GetDHor_b();
@@ -228,11 +217,11 @@ G4VSolid* DetectorConstruction::fShapeTileFull(
 
 // create the tile (customised) logical volume
 G4LogicalVolume* DetectorConstruction::fLogTile(
-    geomTrapezoid* pGeom, 
     G4String name, 
-    G4double dThk,
     G4Material* pMaterial, 
     G4VisAttributes* pColour,
+    geomTrapezoid* pGeom, 
+    G4double dThk,
 
     G4int signHalf = 0, // if 0, full tile is kept; if > (<) 0 , half tile is selected from positive (negative) half
 
@@ -241,7 +230,7 @@ G4LogicalVolume* DetectorConstruction::fLogTile(
     G4double holeY = 0. // hole centre, vertical distance from tile centre
     // note: two holes are always added to the full tile: one in (holeX, holey), one in (-holeX, -holey)
 ){
-    G4VSolid* shape_full = fShapeTileFull(pGeom, name, dThk);
+    G4VSolid* shape_full = fShapeTileFull(name, pGeom, dThk);
     G4VSolid* shape_fin;
 
     G4String name_solid = name + "_Shape";
@@ -252,7 +241,7 @@ G4LogicalVolume* DetectorConstruction::fLogTile(
         G4RotationMatrix* holeRotation = new G4RotationMatrix();
         holeRotation->rotateX(90 * deg);
 
-        G4VSolid* shape_hole = new G4Tubs("hole_Shape", 0., holeR, dThk / 2, 0., 2*acos(-1));
+        G4VSolid* shape_hole = new G4Tubs("hole_Shape", 0., holeR, dThk / 2, 0., 2*pi);
 
         G4VSolid* shape_holes_temp = new G4SubtractionSolid(
             "temp", shape_full, shape_hole, holeRotation, G4ThreeVector(holeX, 0., holeY)
@@ -287,5 +276,86 @@ G4LogicalVolume* DetectorConstruction::fLogTile(
     logvol->SetVisAttributes(pColour);
 
     return logvol;
+}
+
+// create and place the optical fibre next to a tile
+G4LogicalVolume* DetectorConstruction::fLogPlaceFibreCirc(
+    G4String name, 
+    G4Material* pMaterial, 
+    G4VisAttributes* pColour,
+    geomTrapezoid* pTileGeom, 
+    G4LogicalVolume* pEnvelope, // logical volume in which to place the fibre
+
+    G4double sectionR, // fibre section radius
+    G4double extraRIn, // fibre extension (along the wedge side) towards inner radii (i.e. towards collision point)
+    G4double extraROut, // fibre extension (along the wedge side) towards outer radii
+
+    G4ThreeVector tilePos, // central coordinates used for tile placement
+    G4RotationMatrix* pTileRot = nullptr, // rotation matrix used for tile placement
+    G4int signHalf = 0 // see signHalf in tile logical volume creation
+){
+    // create shape and logical volume (the latter will be returned)
+    G4double length_contact = pTileGeom->GetDSide();
+    G4double length_total = length_contact + extraRIn + extraROut;
+
+    G4String name_solid = name + "_Shape";
+    G4VSolid* shape = new G4Tubs(name_solid, 0., sectionR, length_total/2, 0., 2*pi);
+
+    G4String name_log = name + "_Log";
+    G4LogicalVolume* logvol = new G4LogicalVolume(shape, pMaterial, name_log);
+    logvol->SetVisAttributes(pColour);
+
+    // placement of the physical volume
+    G4String name_phys = name + "_Fibre";
+
+    G4int sign = (signHalf > 0) ? 1 : -1 ;
+
+    G4double tilt = pTileGeom->GetTheta()/2;
+
+    G4double pos_long = tilePos.getY();
+    G4double pos_tran_ver = tilePos.getZ();
+    G4double pos_tran_hor;
+    G4ThreeVector pos_final;
+    G4RotationMatrix* rot_final = pTileRot ? pTileRot : new G4RotationMatrix();
+
+    if (signHalf != 0) {
+        pos_tran_hor = tilePos.getX() + sign*(pTileGeom->GetDHor_mid()/2 + sectionR/cos(pTileGeom->GetTheta()));
+        pos_final  = G4ThreeVector(pos_tran_hor, pos_long, pos_tran_ver);
+        rot_final->rotateY(-sign*tilt);
+
+        new G4PVPlacement(rot_final, pos_final, logvol, name_phys, pEnvelope, false, 0);
+    }
+    // else
+    // {
+
+    // }
+
+    return logvol;
+}
+
+// geomTrapezoid methods //////////////////////////////////////
+
+// reduce the horizontal dimensions to account for the fibre gaps
+// only (some) horizontal quantities are affected
+void DetectorConstruction::geomTrapezoid::AddHorGaps(G4double gapsize) {
+    GapHor = gapsize / cos(GetTheta() / 2);
+    isGaps = true;
+
+    L_b = GetDHor_b() - 2*GapHor;
+    L_t = GetDHor_t() - 2*GapHor;
+    SetDHor_mid(); // recalculate L_mid
+}
+
+// remove the gap introduced with AddHorGaps
+// only (some) horizontal quantities are affected
+void DetectorConstruction::geomTrapezoid::RmHorGaps() {
+    if (isGaps) {
+        L_b = GetDHor_b() + 2*GapHor;
+        L_t = GetDHor_t() + 2*GapHor;
+        SetDHor_mid(); // recalculate L_mid
+
+        GapHor = 0;
+        isGaps = false;
+    } else {return;}
 }
 

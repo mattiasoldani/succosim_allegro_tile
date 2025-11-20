@@ -29,6 +29,9 @@ private:
     // define custom methods here
     // e.g. void ConstructCalo(G4LogicalVolume* worldLog);
 
+    // simply pi
+    static G4double pi;
+
     // all about isosceles trapezoids
     class geomTrapezoid{
         public:
@@ -88,7 +91,7 @@ private:
             void RmHorGaps(); // defined in DetectorConstruction.cc
 
         private:
-            G4double pi = acos(-1);
+            G4double pi = DetectorConstruction::pi;
 
             G4double H;
             G4double R;
@@ -122,21 +125,35 @@ private:
     };
 
     G4VSolid* fShapeTileFull( // defined in DetectorConstruction.cc
-        geomTrapezoid* pGeom, 
         G4String name, 
+        geomTrapezoid* pGeom, 
         G4double dThk
     );
 
     G4LogicalVolume* fLogTile( // defined in DetectorConstruction.cc
-        geomTrapezoid* pGeom, 
         G4String name, 
-        G4double dThk,
         G4Material* pMaterial, 
         G4VisAttributes* pColour,
+        geomTrapezoid* pGeom, 
+        G4double dThk,
         G4int signHalf,
-        G4double holeR ,
-        G4double holeX ,
+        G4double holeR,
+        G4double holeX,
         G4double holeY
+    );
+
+    G4LogicalVolume* fLogPlaceFibreCirc(
+        G4String name, 
+        G4Material* pMaterial, 
+        G4VisAttributes* pColour,
+        geomTrapezoid* pTileGeom, 
+        G4LogicalVolume* pEnvelope,
+        G4double sectionR,
+        G4double extraRIn,
+        G4double extraRLOut,
+        G4ThreeVector tilePos,
+        G4RotationMatrix* pTileRot,
+        G4int signHalf
     );
 	
     // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
