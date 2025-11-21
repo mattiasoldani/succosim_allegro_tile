@@ -63,8 +63,8 @@ private:
             G4double GetR_b() {return R_b;}
             G4double GetR_t() {return R_t;}
 
-            void SetDHor_b() {L_b = fL_b(GetR(), GetH(), GetTheta());}
-            void SetDHor_t() {L_t = fL_t(GetR(), GetH(), GetTheta());}
+            void SetDHor_b(G4bool override=false, G4double newval=0); // defined in DetectorConstruction.cc
+            void SetDHor_t(G4bool override=false, G4double newval=0); // defined in DetectorConstruction.cc
             G4double GetDHor_b() {return L_b;}
             G4double GetDHor_t() {return L_t;}
             G4double GetDVer() {return GetH();} // just an alias for GetH
@@ -74,6 +74,12 @@ private:
             G4double GetDHor_mid() {return L_mid;}
             G4double GetDSide() {return side;}
 
+            G4bool GetIsConsistent() {return isConsistent;}
+            G4bool GetIsGaps() {return isGaps;}
+
+            // calculate and get the (horizontal) distance between the full tile and the half tile
+            G4double GetFullToHalfCentreOffset() {return L_mid/4;}
+
             // update all derived variables
             void SetAllDerived() {
                 SetR_b();
@@ -82,10 +88,9 @@ private:
                 SetDHor_t();
                 SetDHor_mid();
                 SetDSide();
+                
+                isConsistent = true;
             }
-
-            // calculate and get the (horizontal) distance between the full tile and the half tile
-            G4double GetFullToHalfCentreOffset() {return L_mid/4;}
 
             void AddHorGaps(G4double gapsize); // defined in DetectorConstruction.cc
             void RmHorGaps(); // defined in DetectorConstruction.cc
@@ -101,6 +106,8 @@ private:
             G4double L_b, L_t;
             G4double L_mid;
             G4double side;
+
+            G4bool isConsistent = true;
 
             G4bool isGaps = false;
             G4double GapHor = 0;

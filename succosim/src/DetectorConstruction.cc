@@ -50,19 +50,19 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     G4double worldSizeZ = 2 * m;
     G4RotationMatrix* worldRotation = new G4RotationMatrix();
     worldRotation->rotateX(90 * deg);
-    G4VSolid* worldBox = new G4Box("World_Shape", worldSizeX / 2, worldSizeY / 2, worldSizeZ / 2);
-    G4LogicalVolume* worldLog = new G4LogicalVolume(worldBox, air, "World_Logical");
+    G4VSolid* worldBox = new G4Box("world_Shape", worldSizeX / 2, worldSizeY / 2, worldSizeZ / 2);
+    G4LogicalVolume* worldLog = new G4LogicalVolume(worldBox, air, "world_Logical");
     G4VisAttributes* visAttrWorld = new G4VisAttributes();
     visAttrWorld->SetVisibility(false);
     worldLog->SetVisAttributes(visAttrWorld);
-    G4VPhysicalVolume* worldPhys = new G4PVPlacement(nullptr, {}, worldLog, "World", nullptr, false, 0);
+    G4VPhysicalVolume* worldPhys = new G4PVPlacement(nullptr, {}, worldLog, "world", nullptr, false, 0);
 
     // 2nd world layer, rotated to have the beam travelling horizontally along z
-    G4LogicalVolume* worldLog_rot = new G4LogicalVolume(worldBox, air, "World_Logical_Rot");
+    G4LogicalVolume* worldLog_rot = new G4LogicalVolume(worldBox, air, "world_Logical_Rot");
     G4VisAttributes* visAttrWorld_rot = new G4VisAttributes();
     visAttrWorld_rot->SetVisibility(false);
     worldLog_rot->SetVisAttributes(visAttrWorld_rot);
-    new G4PVPlacement(worldRotation, {}, worldLog_rot, "World_Rot", worldLog, false, 0);
+    new G4PVPlacement(worldRotation, {}, worldLog_rot, "world_Rot", worldLog, false, 0);
 	
 	// tile shapes
     G4double height = 50*mm;
@@ -151,6 +151,13 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     new G4PVPlacement(tileRotation, pos, tileTest001Log, "tile001", worldLog_rot, false, 0);
 
     G4LogicalVolume* tileTest001FibreLog = fLogPlaceFibreCirc("fibre001", bc400, green, tileTestGeom, worldLog_rot, fibreradius, 5., 50., pos, tileRotation, sign);
+
+    sign = 0;
+    pos = G4ThreeVector(-3*cm, -10*thickness, 0);
+    G4LogicalVolume* tileTest002Log = fLogTile("tile002", bc400, cyan, tileTestGeom, thickness, sign, holeradius, holex, holey);
+    new G4PVPlacement(tileRotation, pos, tileTest002Log, "tile002", worldLog_rot, false, 0);
+
+    G4LogicalVolume* tileTest002FibreLog = fLogPlaceFibreCirc("fibre002", bc400, green, tileTestGeom, worldLog_rot, fibreradius, 5., 50., pos, tileRotation, sign);
 
     tileTestGeom->RmHorGaps();
 
@@ -244,7 +251,7 @@ G4LogicalVolume* DetectorConstruction::fLogTile(
         G4RotationMatrix* holeRotation = new G4RotationMatrix();
         holeRotation->rotateX(90 * deg);
 
-        G4VSolid* shape_hole = new G4Tubs("hole_Shape", 0., holeR, dThk / 2, 0., 2*pi);
+        G4VSolid* shape_hole = new G4Tubs("hole_Shape", 0., holeR, 1.002*dThk / 2, 0., 2*pi);
 
         G4VSolid* shape_holes_temp = new G4SubtractionSolid(
             "temp", shape_full, shape_hole, holeRotation, G4ThreeVector(holeX, 0., holeY)
@@ -311,42 +318,75 @@ G4LogicalVolume* DetectorConstruction::fLogPlaceFibreCirc(
     // placement of the physical volume
     G4NistManager* nist = G4NistManager::Instance();
 	G4Material* air = nist->FindOrBuildMaterial("G4_AIR");
-    G4VSolid* envelopeInternalBox = new G4Box("temp_Shape", length_total/2, sectionR/2, length_total/2);
-    G4LogicalVolume* pEnvelopeInternal = new G4LogicalVolume(envelopeInternalBox, air, "temp_Log");
-    G4VisAttributes* visAttrEnvelopeInternal = new G4VisAttributes();
-    visAttrEnvelopeInternal->SetVisibility(false);
-    pEnvelopeInternal->SetVisAttributes(visAttrEnvelopeInternal);
 
-    G4String name_phys = name + "_Fibre";
+    G4String name_phys = name + "_Phys";
 
     G4double tilt = pTileGeom->GetTheta()/2;
     G4double fibre_centre_shift = 0.5*( length_total - 2*extraRIn - length_contact );
-    G4double pos_long = tilePos.getY();
-    G4double pos_tran_ver = tilePos.getZ() + fibre_centre_shift*cos(tilt);
+    G4double pos_tran_ver = fibre_centre_shift*cos(tilt); // add vertical shift to the centre of the fibre part in contact
     G4double pos_tran_hor;
-    G4ThreeVector pos_final = G4ThreeVector(0, pos_long, pos_tran_ver); // x is set below (once sign is defined)
-    G4RotationMatrix* rot_internal = new G4RotationMatrix();
+    G4ThreeVector pos_internal = G4ThreeVector(0, 0, pos_tran_ver); // x is set below (once sign is defined)
+    G4RotationMatrix* rot_internal;
 
-    G4int sign, isignlim = signHalf ? 0 : 1;
+    G4int sign;
+    G4int sign0 = signHalf ? ((signHalf > 0) ? 1 : -1) : 0;
+    G4int isignlim = signHalf ? 0 : 1;
+
+    // G4VSolid* envelopeInternalBox = new G4Box(name + "_Shape_EnvIntNoRot", 0.5*(pTileGeom->GetDHor_t() + sectionR), sectionR/2, length_total/2);
+    // G4LogicalVolume* pEnvelopeInternal = new G4LogicalVolume(envelopeInternalBox, air, name + "_Log_EnvIntNoRot");
+    geomTrapezoid pTileGeomExtended = *pTileGeom;
+    pTileGeomExtended.SetDHor_b(true, pTileGeom->GetDHor_b() + sectionR/cos(tilt) * (signHalf ? 2 : 4));
+    pTileGeomExtended.SetDHor_t(true, pTileGeom->GetDHor_t() + sectionR/cos(tilt) * (signHalf ? 2 : 4));
+    G4LogicalVolume* pEnvelopeInternal = fLogTile(name + "_EnvIntNoRot", pMaterial, pColour, &pTileGeomExtended, sectionR, sign0);
+    G4VisAttributes* visAttrEnvelopeInternal = new G4VisAttributes();
+    visAttrEnvelopeInternal->SetVisibility(false);
+    pEnvelopeInternal->SetVisAttributes(visAttrEnvelopeInternal);
 
     for(int isign=0; isign<=isignlim; isign++){
     // if half module, fibre only on one side
     // if full module, fibre is in principle on both sides (set signHalf properly to only have it on one side anyway)
         sign = signHalf ? ((signHalf > 0) ? 1 : -1) : (isign ? -1 : 1);
-        pos_tran_hor = tilePos.getX() + sign*(pTileGeom->GetDHor_mid()/2 + sectionR/cos(tilt)); // move horizontally centre of the total fibre, then...
-        pos_tran_hor += sign*fibre_centre_shift*sin(tilt); // ... add shift to the centre of the fibre part in contact
-        pos_final.setX(pos_tran_hor);
+        pos_tran_hor = sign*(pTileGeom->GetDHor_mid()/2 + sectionR/cos(tilt)); // move horizontally centre of the total fibre, then...
+        pos_tran_hor += sign*fibre_centre_shift*sin(tilt); // ... add horizontal shift to the centre of the fibre part in contact
+        pos_internal.setX(pos_tran_hor);
+        rot_internal = new G4RotationMatrix();
         rot_internal->rotateY(-sign*tilt);
-        new G4PVPlacement(rot_internal, pos_final, logvol, "temp_Phys", pEnvelopeInternal, false, 0);
+        new G4PVPlacement(rot_internal, pos_internal, logvol, name + "_Phys_EnvIntNoRot", pEnvelopeInternal, false, 0);
     }
 
     pTileRot->setAxis(tilePos);
-    new G4PVPlacement(pTileRot, {}, pEnvelopeInternal, name_phys, pEnvelope, false, 0);
+    new G4PVPlacement(pTileRot, tilePos, pEnvelopeInternal, name_phys, pEnvelope, false, 0);
 
     return logvol;
 }
 
 // geomTrapezoid methods //////////////////////////////////////
+
+// set full length of the lower base
+// default arguments set in the header
+// if override is false, use the standard function to calculate it from the trapezoid parameters
+// if override is false, manually set it through newval (ignored otherwise) - this will negate isConsistent
+void DetectorConstruction::geomTrapezoid::SetDHor_b(G4bool override, G4double newval) {
+    if(override){
+        L_b = newval;
+        isConsistent = false;
+    }else{
+        L_b = fL_b(GetR(), GetH(), GetTheta());
+    }
+}
+
+// set full length of the upper base
+// default arguments set in the header
+// if override is false, use the standard function to calculate it from the trapezoid parameters
+// if override is false, manually set it through newval (ignored otherwise) - this will negate isConsistent
+void DetectorConstruction::geomTrapezoid::SetDHor_t(G4bool override, G4double newval) {
+    if(override){
+        L_t = newval;
+        isConsistent = false;
+    }else{
+        L_t = fL_t(GetR(), GetH(), GetTheta());
+    }
+}
 
 // reduce the horizontal dimensions to account for the fibre gaps
 // only (some) horizontal quantities are affected
