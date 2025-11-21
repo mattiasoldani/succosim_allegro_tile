@@ -75,6 +75,9 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     G4double holex = 6*mm;
     G4double fibreradius = 0.5*mm;
 
+    G4RotationMatrix* tileRotation = new G4RotationMatrix();
+    tileRotation->rotateY(20 * deg);
+
 	geomTrapezoid* tileTestGeom = new geomTrapezoid(radius, height, angle);
     G4double offset;
     G4ThreeVector pos;
@@ -138,16 +141,16 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     sign = 1;
     pos = G4ThreeVector(-sign*0.5*cm, 0*thickness, 0);
     G4LogicalVolume* tileTest000Log = fLogTile("tile000", bc400, cyan, tileTestGeom, thickness, sign, holeradius, holex, holey);
-    new G4PVPlacement(nullptr, pos, tileTest000Log, "tile000", worldLog_rot, false, 0);
+    new G4PVPlacement(tileRotation, pos, tileTest000Log, "tile000", worldLog_rot, false, 0);
 
-    G4LogicalVolume* tileTest000FibreLog = fLogPlaceFibreCirc("fibre000", bc400, green, tileTestGeom, worldLog_rot, fibreradius, 0., 0., pos, nullptr, sign);
+    G4LogicalVolume* tileTest000FibreLog = fLogPlaceFibreCirc("fibre000", bc400, green, tileTestGeom, worldLog_rot, fibreradius, 5., 50., pos, tileRotation, sign);
 
     sign = -1;
     pos = G4ThreeVector(-sign*0.5*cm, 10*thickness, 0);
     G4LogicalVolume* tileTest001Log = fLogTile("tile001", bc400, cyan, tileTestGeom, thickness, sign, holeradius, holex, holey);
-    new G4PVPlacement(nullptr, pos, tileTest001Log, "tile001", worldLog_rot, false, 0);
+    new G4PVPlacement(tileRotation, pos, tileTest001Log, "tile001", worldLog_rot, false, 0);
 
-    G4LogicalVolume* tileTest001FibreLog = fLogPlaceFibreCirc("fibre001", bc400, green, tileTestGeom, worldLog_rot, fibreradius, 0., 0., pos, nullptr, sign);
+    G4LogicalVolume* tileTest001FibreLog = fLogPlaceFibreCirc("fibre001", bc400, green, tileTestGeom, worldLog_rot, fibreradius, 5., 50., pos, tileRotation, sign);
 
     tileTestGeom->RmHorGaps();
 
@@ -306,29 +309,39 @@ G4LogicalVolume* DetectorConstruction::fLogPlaceFibreCirc(
     logvol->SetVisAttributes(pColour);
 
     // placement of the physical volume
+    G4NistManager* nist = G4NistManager::Instance();
+	G4Material* air = nist->FindOrBuildMaterial("G4_AIR");
+    G4VSolid* envelopeInternalBox = new G4Box("temp_Shape", length_total/2, sectionR/2, length_total/2);
+    G4LogicalVolume* pEnvelopeInternal = new G4LogicalVolume(envelopeInternalBox, air, "temp_Log");
+    G4VisAttributes* visAttrEnvelopeInternal = new G4VisAttributes();
+    visAttrEnvelopeInternal->SetVisibility(false);
+    pEnvelopeInternal->SetVisAttributes(visAttrEnvelopeInternal);
+
     G4String name_phys = name + "_Fibre";
 
-    G4int sign = (signHalf > 0) ? 1 : -1 ;
-
     G4double tilt = pTileGeom->GetTheta()/2;
-
+    G4double fibre_centre_shift = 0.5*( length_total - 2*extraRIn - length_contact );
     G4double pos_long = tilePos.getY();
-    G4double pos_tran_ver = tilePos.getZ();
+    G4double pos_tran_ver = tilePos.getZ() + fibre_centre_shift*cos(tilt);
     G4double pos_tran_hor;
-    G4ThreeVector pos_final;
-    G4RotationMatrix* rot_final = pTileRot ? pTileRot : new G4RotationMatrix();
+    G4ThreeVector pos_final = G4ThreeVector(0, pos_long, pos_tran_ver); // x is set below (once sign is defined)
+    G4RotationMatrix* rot_internal = new G4RotationMatrix();
 
-    if (signHalf != 0) {
-        pos_tran_hor = tilePos.getX() + sign*(pTileGeom->GetDHor_mid()/2 + sectionR/cos(pTileGeom->GetTheta()));
-        pos_final  = G4ThreeVector(pos_tran_hor, pos_long, pos_tran_ver);
-        rot_final->rotateY(-sign*tilt);
+    G4int sign, isignlim = signHalf ? 0 : 1;
 
-        new G4PVPlacement(rot_final, pos_final, logvol, name_phys, pEnvelope, false, 0);
+    for(int isign=0; isign<=isignlim; isign++){
+    // if half module, fibre only on one side
+    // if full module, fibre is in principle on both sides (set signHalf properly to only have it on one side anyway)
+        sign = signHalf ? ((signHalf > 0) ? 1 : -1) : (isign ? -1 : 1);
+        pos_tran_hor = tilePos.getX() + sign*(pTileGeom->GetDHor_mid()/2 + sectionR/cos(tilt)); // move horizontally centre of the total fibre, then...
+        pos_tran_hor += sign*fibre_centre_shift*sin(tilt); // ... add shift to the centre of the fibre part in contact
+        pos_final.setX(pos_tran_hor);
+        rot_internal->rotateY(-sign*tilt);
+        new G4PVPlacement(rot_internal, pos_final, logvol, "temp_Phys", pEnvelopeInternal, false, 0);
     }
-    // else
-    // {
 
-    // }
+    pTileRot->setAxis(tilePos);
+    new G4PVPlacement(pTileRot, {}, pEnvelopeInternal, name_phys, pEnvelope, false, 0);
 
     return logvol;
 }
