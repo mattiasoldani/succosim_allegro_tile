@@ -80,6 +80,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     G4double S2_theta = 2 * atan((S2_W - S2_w) / S2_h); // angle (full-module)
     G4double S2_r = S2_W / tan(S2_theta / 2); // radial distance from cylinder centre (full-module)
 
+
 	geomTrapezoid* S2_geom = new geomTrapezoid(S2_r, S2_h, S2_theta);
 
 	// tile shapes - S6
@@ -98,8 +99,6 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 
 	geomTrapezoid* S6_geom = new geomTrapezoid(S6_r, S6_h, S6_theta);
 
-
-    
 
     //// preliminary tests 00 ////
 
