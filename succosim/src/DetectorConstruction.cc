@@ -63,80 +63,46 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     visAttrWorld_rot->SetVisibility(false);
     worldLog_rot->SetVisAttributes(visAttrWorld_rot);
     new G4PVPlacement(worldRotation, {}, worldLog_rot, "world_Rot", worldLog, false, 0);
-	
-	// tile shapes
-    G4double height = 50*mm;
-    G4double radius = 2.8*m + 10*mm + height/2;
-    G4double angle = 2*pi/128;
-    G4double thickness = 3*mm;
-    G4double sidegap = 2*mm;
-    G4double holeradius = 3*mm;
-    G4double holey = height/2 - 6*mm;
-    G4double holex = 6*mm;
-    G4double fibreradius = 0.5*mm;
 
     G4RotationMatrix* tileRotation = new G4RotationMatrix();
     tileRotation->rotateY(20 * deg);
+	
+	// tile shapes - S2
+    G4double S2_w = 70.5*mm; // short-side width (half-module)
+    G4double S2_W = 75*mm; // long-side width (half-module)
+    G4double S2_h = 97*mm; // height
+    G4double S2_thk = 3*mm; // thickness
+    G4double S2_fibreradius = 0.5*mm; // radius of the WLS fibre
+    G4double S2_sidegap = 0*mm; // side reduction to account for the fibres
+    G4double S2_holeradius = 0*mm; // radius of the pipe/rod hole
+    G4double S2_holey = S2_h/2 - 6*mm; // pipe/rod hole centre y (relative to full-module tile centre)
+    G4double S2_holex = 6*mm; // pipe/rod hole centre x (relative to full-module tile centre)
 
-	geomTrapezoid* tileTestGeom = new geomTrapezoid(radius, height, angle);
-    G4double offset;
-    G4ThreeVector pos;
-    G4int sign;
+    G4double S2_theta = 2 * atan((S2_W - S2_w) / S2_h); // angle (full-module)
+    G4double S2_r = S2_W / tan(S2_theta / 2); // radial distance from cylinder centre (full-module)
+
+	geomTrapezoid* S2_geom = new geomTrapezoid(S2_r, S2_h, S2_theta);
+
+	// tile shapes - S6
+    G4double S6_w = 91*mm; // short-side width (half-module)
+    G4double S6_W = 100*mm; // long-side width (half-module)
+    G4double S6_h = 187*mm; // height
+    G4double S6_thk = 3*mm; // thickness
+    G4double S6_fibreradius = 0.5*mm; // radius of the WLS fibre
+    G4double S6_sidegap = 0*mm; // side reduction to account for the fibres
+    G4double S6_holeradius = 0*mm; // radius of the pipe/rod hole
+    G4double S6_holey = S6_h/2 - 6*mm; // pipe/rod hole centre y (relative to full-module tile centre)
+    G4double S6_holex = 6*mm; // pipe/rod hole centre x (relative to full-module tile centre)
+
+    G4double S6_theta = 2 * atan((S6_W - S6_w) / S6_h); // angle (full-module)
+    G4double S6_r = S6_W / tan(S6_theta / 2); // radial distance from cylinder centre (full-module)
+
+	geomTrapezoid* S6_geom = new geomTrapezoid(S6_r, S6_h, S6_theta);
+
 
     //// preliminary tests 00 ////
 
-    // // full tile
-    // G4LogicalVolume* tileTest0Log = fLogTile(tileTestGeom, "tile0", thickness, bc400, cyan, 0, holeradius, 0, holey);
-    // new G4PVPlacement(nullptr, G4ThreeVector(0, 0, 0), tileTest0Log, "tile0", worldLog_rot, false, 0);
-
-    // tileTestGeom->AddHorGaps(sidegap);
-    // G4LogicalVolume* tileTest1Log = fLogTile(tileTestGeom, "tile1", thickness, bc400, cyan, 0, holeradius, holex, holey);
-    // new G4PVPlacement(nullptr, G4ThreeVector(0, -2*thickness, 0), tileTest1Log, "tile1", worldLog_rot, false, 0);
-    // tileTestGeom->RmHorGaps();
-
-    // // half tile, positive horizontal side
-    // G4LogicalVolume* tileTest2Log = fLogTile(tileTestGeom, "tile2", thickness, bc400, blue, 1, holeradius, 0, holey);
-    // new G4PVPlacement(nullptr, G4ThreeVector(0, -4*thickness, 0), tileTest2Log, "tile2", worldLog_rot, false, 0);
-
-    // tileTestGeom->AddHorGaps(sidegap);
-    // G4LogicalVolume* tileTest3Log = fLogTile(tileTestGeom, "tile3", thickness, bc400, blue, 1, holeradius, holex, holey);
-    // new G4PVPlacement(nullptr, G4ThreeVector(0, -6*thickness, 0), tileTest3Log, "tile3", worldLog_rot, false, 0);
-    // tileTestGeom->RmHorGaps();
-
-    // // half tile, negative horizontal side
-    // G4LogicalVolume* tileTest4Log = fLogTile(tileTestGeom, "tile4", thickness, bc400, red, -1, holeradius, 0, holey);
-    // new G4PVPlacement(nullptr, G4ThreeVector(0, -8*thickness, 0), tileTest4Log, "tile4", worldLog_rot, false, 0);
-
-    // tileTestGeom->AddHorGaps(sidegap);
-    // G4LogicalVolume* tileTest5Log = fLogTile(tileTestGeom, "tile5", thickness, bc400, red, -1, holeradius, holex, holey);
-    // new G4PVPlacement(nullptr, G4ThreeVector(0, -10*thickness, 0), tileTest5Log, "tile5", worldLog_rot, false, 0);
-    // tileTestGeom->RmHorGaps();
-
-    // // half tile, positive horizontal side, centred (notice the -offset)
-    // offset = tileTestGeom->GetFullToHalfCentreOffset();
-    // G4LogicalVolume* tileTest6Log = fLogTile(tileTestGeom, "tile6", thickness, bc400, green, 1, holeradius, 0, holey);
-    // new G4PVPlacement(nullptr, G4ThreeVector(-offset, -12*thickness, 0), tileTest6Log, "tile6", worldLog_rot, false, 0);
-
-    // tileTestGeom->AddHorGaps(sidegap);
-    // offset = tileTestGeom->GetFullToHalfCentreOffset();
-    // G4LogicalVolume* tileTest7Log = fLogTile(tileTestGeom, "tile7", thickness, bc400, green, 1, holeradius, holex, holey);
-    // new G4PVPlacement(nullptr, G4ThreeVector(-offset, -14*thickness, 0), tileTest7Log, "tile7", worldLog_rot, false, 0);
-    // tileTestGeom->RmHorGaps();
-
-    // // half tile, negative horizontal side, centred (notice the +offset)
-    // offset = tileTestGeom->GetFullToHalfCentreOffset();
-    // G4LogicalVolume* tileTest8Log = fLogTile(tileTestGeom, "tile8", thickness, bc400, magenta, -1, holeradius, 0, holey);
-    // new G4PVPlacement(nullptr, G4ThreeVector(offset, -16*thickness, 0), tileTest8Log, "tile8", worldLog_rot, false, 0);
-
-    // tileTestGeom->AddHorGaps(sidegap);
-    // offset = tileTestGeom->GetFullToHalfCentreOffset();
-    // G4LogicalVolume* tileTest9Log = fLogTile(tileTestGeom, "tile9", thickness, bc400, magenta, -1, holeradius, holex, holey);
-    // new G4PVPlacement(nullptr, G4ThreeVector(offset, -18*thickness, 0), tileTest9Log, "tile9", worldLog_rot, false, 0);
-    // tileTestGeom->RmHorGaps();
-
-    //// preliminary tests 01 ////
-
-    tileTestGeom->AddHorGaps(sidegap);
+    S2_geom->AddHorGaps(sidegap);
 
     sign = 1;
     pos = G4ThreeVector(-sign*0.5*cm, 0*thickness, 0);
