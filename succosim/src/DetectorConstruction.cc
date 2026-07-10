@@ -99,28 +99,8 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 
 	geomTrapezoid* S6_geom = new geomTrapezoid(S6_r, S6_h, S6_theta);
 
-    G4double S2_theta = 2 * atan((S2_W - S2_w) / S2_h); // angle (full-module)
-    G4double S2_r = S2_W / tan(S2_theta / 2); // radial distance from cylinder centre (full-module)
 
-	geomTrapezoid* S2_geom = new geomTrapezoid(S2_r, S2_h, S2_theta);
-
-	// tile shapes - S6
-    G4double S6_w = 91*mm; // short-side width (half-module)
-    G4double S6_W = 100*mm; // long-side width (half-module)
-    G4double S6_h = 187*mm; // height
-    G4double S6_thk = 3*mm; // thickness
-    G4double S6_fibreradius = 0.5*mm; // radius of the WLS fibre
-    G4double S6_sidegap = 0*mm; // side reduction to account for the fibres
-    G4double S6_holeradius = 0*mm; // radius of the pipe/rod hole
-    G4double S6_holey = S6_h/2 - 6*mm; // pipe/rod hole centre y (relative to full-module tile centre)
-    G4double S6_holex = 6*mm; // pipe/rod hole centre x (relative to full-module tile centre)
-
-    G4double S6_theta = 2 * atan((S6_W - S6_w) / S6_h); // angle (full-module)
-    G4double S6_r = S6_W / tan(S6_theta / 2); // radial distance from cylinder centre (full-module)
-
-	geomTrapezoid* S6_geom = new geomTrapezoid(S6_r, S6_h, S6_theta);
-
->>>>>>> e497abd4908c40a501a5339ac6196963b095c447
+    
 
     //// preliminary tests 00 ////
 
