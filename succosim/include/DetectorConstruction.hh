@@ -58,8 +58,8 @@ private:
             G4double GetTheta() {return Theta;}
             G4double GetH() {return H;}
 
-            void SetR_b() {R_b = fR_b(GetR(), GetH());}
-            void SetR_t() {R_t = fR_t(GetR(), GetH());}
+            void SetR_b(G4bool override=false, G4double newval=0); // defined in DetectorConstruction.cc
+            void SetR_t(G4bool override=false, G4double newval=0); // defined in DetectorConstruction.cc
             G4double GetR_b() {return R_b;}
             G4double GetR_t() {return R_t;}
 
@@ -92,6 +92,27 @@ private:
                 isConsistent = true;
             }
 
+            // turn trapezoid into a rectangular tile with height h and custom width (argument)
+            // it only works if r and theta are set to 0
+            // if it works, it will set isConsistentRectangle to true and negate isConsistent
+            // otherwise, it will negate both isConsistent flags
+            void SetRectangle(G4double w) {
+                if ((R==0) && (Theta==0)) {
+                    SetR_b(true, 0);
+                    SetR_t(true, 0);
+                    SetDHor_b(true, w);
+                    SetDHor_t(true, w);
+                    SetDHor_mid();
+                    SetDSide();
+
+                    isConsistent = false;
+                    isConsistentRectangle = true;
+                } else {
+                    isConsistent = false;
+                    isConsistentRectangle = false;
+                }
+            }
+
             void AddHorGaps(G4double gapsize); // defined in DetectorConstruction.cc
             void RmHorGaps(); // defined in DetectorConstruction.cc
 
@@ -107,7 +128,8 @@ private:
             G4double L_mid;
             G4double side;
 
-            G4bool isConsistent = true;
+            G4bool isConsistent = false;
+            G4bool isConsistentRectangle = false;
 
             G4bool isGaps = false;
             G4double GapHor = 0;

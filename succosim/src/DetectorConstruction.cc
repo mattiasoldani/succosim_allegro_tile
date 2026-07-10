@@ -79,6 +79,10 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     tileRotation->rotateY(20 * deg);
 
 	geomTrapezoid* tileTestGeom = new geomTrapezoid(radius, height, angle);
+
+	geomTrapezoid* tileTestGeomRect = new geomTrapezoid(0, height, 0);
+    tileTestGeomRect->SetRectangle(height);
+
     G4double offset;
     G4ThreeVector pos;
     G4int sign;
@@ -158,6 +162,27 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     new G4PVPlacement(tileRotation, pos, tileTest002Log, "tile002", worldLog_rot, false, 0);
 
     G4LogicalVolume* tileTest002FibreLog = fLogPlaceFibreCirc("fibre002", bc400, green, tileTestGeom, worldLog_rot, fibreradius, 5., 50., pos, tileRotation, sign);
+
+    sign = 1;
+    pos = G4ThreeVector(-sign*0.5*cm, 0*thickness - 200*mm, 0);
+    G4LogicalVolume* tileTest003Log = fLogTile("tile003", bc400, cyan, tileTestGeomRect, thickness, sign, holeradius, holex, holey);
+    new G4PVPlacement(tileRotation, pos, tileTest003Log, "tile003", worldLog_rot, false, 0);
+
+    G4LogicalVolume* tileTest003FibreLog = fLogPlaceFibreCirc("fibre003", bc400, green, tileTestGeomRect, worldLog_rot, fibreradius, 5., 50., pos, tileRotation, sign);
+
+    sign = -1;
+    pos = G4ThreeVector(-sign*0.5*cm, 10*thickness - 200*mm, 0);
+    G4LogicalVolume* tileTest004Log = fLogTile("tile004", bc400, cyan, tileTestGeomRect, thickness, sign, holeradius, holex, holey);
+    new G4PVPlacement(tileRotation, pos, tileTest004Log, "tile004", worldLog_rot, false, 0);
+
+    G4LogicalVolume* tileTest004FibreLog = fLogPlaceFibreCirc("fibre004", bc400, green, tileTestGeomRect, worldLog_rot, fibreradius, 5., 50., pos, tileRotation, sign);
+
+    sign = 0;
+    pos = G4ThreeVector(-3*cm, -10*thickness - 200*mm, 0);
+    G4LogicalVolume* tileTest005Log = fLogTile("tile005", bc400, cyan, tileTestGeomRect, thickness, sign, holeradius, holex, holey);
+    new G4PVPlacement(tileRotation, pos, tileTest005Log, "tile005", worldLog_rot, false, 0);
+
+    G4LogicalVolume* tileTest005FibreLog = fLogPlaceFibreCirc("fibre005", bc400, green, tileTestGeomRect, worldLog_rot, fibreradius, 5., 50., pos, tileRotation, sign);
 
     tileTestGeom->RmHorGaps();
 
@@ -362,14 +387,43 @@ G4LogicalVolume* DetectorConstruction::fLogPlaceFibreCirc(
 
 // geomTrapezoid methods //////////////////////////////////////
 
+// set radial position of the lower base
+// default arguments set in the header
+// if override is false, use the standard function to calculate it from the trapezoid parameters
+// if override is true, manually set it through newval (ignored otherwise) - this will negate isConsistent flags
+void DetectorConstruction::geomTrapezoid::SetR_b(G4bool override, G4double newval) {
+    if(override){
+        R_b = newval;
+        isConsistent = false;
+        isConsistentRectangle = false;
+    }else{
+        R_b = fR_b(GetR(), GetH());
+    }
+}
+
+// set radial position of the upper base
+// default arguments set in the header
+// if override is false, use the standard function to calculate it from the trapezoid parameters
+// if override is true, manually set it through newval (ignored otherwise) - this will negate isConsistent flags
+void DetectorConstruction::geomTrapezoid::SetR_t(G4bool override, G4double newval) {
+    if(override){
+        R_t = newval;
+        isConsistent = false;
+        isConsistentRectangle = false;
+    }else{
+        R_t = fR_t(GetR(), GetH());
+    }
+}
+
 // set full length of the lower base
 // default arguments set in the header
 // if override is false, use the standard function to calculate it from the trapezoid parameters
-// if override is false, manually set it through newval (ignored otherwise) - this will negate isConsistent
+// if override is true, manually set it through newval (ignored otherwise) - this will negate isConsistent flags
 void DetectorConstruction::geomTrapezoid::SetDHor_b(G4bool override, G4double newval) {
     if(override){
         L_b = newval;
         isConsistent = false;
+        isConsistentRectangle = false;
     }else{
         L_b = fL_b(GetR(), GetH(), GetTheta());
     }
@@ -378,11 +432,12 @@ void DetectorConstruction::geomTrapezoid::SetDHor_b(G4bool override, G4double ne
 // set full length of the upper base
 // default arguments set in the header
 // if override is false, use the standard function to calculate it from the trapezoid parameters
-// if override is false, manually set it through newval (ignored otherwise) - this will negate isConsistent
+// if override is true, manually set it through newval (ignored otherwise) - this will negate isConsistent flags
 void DetectorConstruction::geomTrapezoid::SetDHor_t(G4bool override, G4double newval) {
     if(override){
         L_t = newval;
         isConsistent = false;
+        isConsistentRectangle = false;
     }else{
         L_t = fL_t(GetR(), GetH(), GetTheta());
     }
