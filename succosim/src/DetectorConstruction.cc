@@ -99,7 +99,6 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 
 	geomTrapezoid* S6_geom = new geomTrapezoid(S6_r, S6_h, S6_theta);
 
-
     //// preliminary tests 00 ////
 
     // S2_geom->AddHorGaps(sidegap);
