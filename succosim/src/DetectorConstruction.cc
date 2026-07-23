@@ -48,10 +48,11 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     // world
     G4double worldSizeX = 2 * m;
     G4double worldSizeY = 2 * m;
-    G4double worldSizeZ = 2 * m;
+    G4double worldSizeZ = 15 * m;
     G4RotationMatrix* worldRotation = new G4RotationMatrix();
     worldRotation->rotateX(90 * deg);
-    G4VSolid* worldBox = new G4Box("world_Shape", worldSizeX / 2, worldSizeY / 2, worldSizeZ / 2);
+    worldRotation->rotateZ(180 * deg);
+    G4VSolid* worldBox = new G4Box("world_Shape", worldSizeX / 2, worldSizeZ / 2, worldSizeY / 2);
     G4LogicalVolume* worldLog = new G4LogicalVolume(worldBox, air, "world_Logical");
     G4VisAttributes* visAttrWorld = new G4VisAttributes();
     visAttrWorld->SetVisibility(false);
@@ -61,42 +62,51 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     // 2nd world layer, rotated to have the beam travelling horizontally along z
     G4LogicalVolume* worldLog_rot = new G4LogicalVolume(worldBox, air, "world_Logical_Rot");
     G4VisAttributes* visAttrWorld_rot = new G4VisAttributes();
-    visAttrWorld_rot->SetVisibility(false);
+    visAttrWorld_rot->SetVisibility(true);
     worldLog_rot->SetVisAttributes(visAttrWorld_rot);
     new G4PVPlacement(worldRotation, {}, worldLog_rot, "world_Rot", worldLog, false, 0);
-
-    G4RotationMatrix* tileRotation = new G4RotationMatrix();
-    tileRotation->rotateY(0);
 
     G4ThreeVector pos_temp;
 	
 	// tile shapes - CERN S2
+    G4int S2_sign = -1; // half-tile chirality; if 0, then the full tile is created
     G4double S2_w = 70.5*mm; // short-side width (half-module)
     G4double S2_W = 75*mm; // long-side width (half-module)
     G4double S2_h = 97*mm; // height
     G4double S2_thk = 3*mm; // thickness
     G4double S2_fibreradius = 0.5*mm; // radius of the WLS fibre
     G4double S2_sidegap = 0*mm; // side reduction to account for the fibres
-    G4double S2_holeradius = 0*mm; // radius of the pipe/rod hole
+    G4double S2_holeradius = 5*mm; // radius of the pipe/rod hole
     G4double S2_holey = S2_h/2 - 6*mm; // pipe/rod hole centre y (relative to full-module tile centre)
     G4double S2_holex = 6*mm; // pipe/rod hole centre x (relative to full-module tile centre)
 
 	// tile shapes - CERN S6
+    G4int S6_sign = -1; // half-tile chirality; if 0, then the full tile is created
     G4double S6_w = 91*mm; // short-side width (half-module)
     G4double S6_W = 100*mm; // long-side width (half-module)
     G4double S6_h = 187*mm; // height
     G4double S6_thk = 3*mm; // thickness
     G4double S6_fibreradius = 0.5*mm; // radius of the WLS fibre
     G4double S6_sidegap = 0*mm; // side reduction to account for the fibres
-    G4double S6_holeradius = 0*mm; // radius of the pipe/rod hole
+    G4double S6_holeradius = 5*mm; // radius of the pipe/rod hole
     G4double S6_holey = S6_h/2 - 6*mm; // pipe/rod hole centre y (relative to full-module tile centre)
     G4double S6_holex = 6*mm; // pipe/rod hole centre x (relative to full-module tile centre)
 
     // steel tile shapes
     G4double passive_thk = 3*cm;
 
+    // general positioning
+    G4double z_tileCern_front = 3*m;
+
     //// CERN stack ////
 
+    G4RotationMatrix* tileCern_rot = new G4RotationMatrix();
+
+    G4int tileCern_n = 10;
+
+    tileCern_rot->rotateY(-90 * deg);
+
+    G4int tileCern_sign = S6_sign;
     G4double tileCern_w = S6_w;
     G4double tileCern_W = S6_W;
     G4double tileCern_h = S6_h;
@@ -110,8 +120,6 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     G4double tileCern_theta = 2 * atan((tileCern_W - tileCern_w) / tileCern_h); // angle (full-module)
     G4double tileCern_r = tileCern_W / tan(tileCern_theta / 2); // radial distance from cylinder centre (full-module)
 
-    G4int tileCern_n = 10;
-
 	geomTrapezoid* tileCern_geom = new geomTrapezoid(tileCern_r, tileCern_h, tileCern_theta);
 
     G4LogicalVolume* tileCern_lvols[tileCern_n];
@@ -124,13 +132,13 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
         G4String tileName = "log_tileCern" + std::to_string(i);
         G4String fibreName = "log_fibreCern" + std::to_string(i);
 
-        pos_temp = G4ThreeVector(0, i*(passive_thk + tileCern_thk/2), 0);
+        pos_temp = G4ThreeVector(0, z_tileCern_front + i*(passive_thk + tileCern_thk/2), 0);
 
-        tileCern_lvols[i] = fLogTile(tileName, bc400, cyan, tileCern_geom, tileCern_thk, 0, tileCern_holeradius, tileCern_holex, tileCern_holey);
-        new G4PVPlacement(tileRotation, pos_temp, tileCern_lvols[i], tileName, worldLog_rot, false, i);
+        tileCern_lvols[i] = fLogTile(tileName, bc400, cyan, tileCern_geom, tileCern_thk, tileCern_sign, tileCern_holeradius, tileCern_holex, tileCern_holey);
+        new G4PVPlacement(tileCern_rot, pos_temp, tileCern_lvols[i], tileName, worldLog_rot, false, i);
 
         tileCern_lvols_fibres[i] = fLogPlaceFibreCirc(
-            fibreName, bc400, green, tileCern_geom, worldLog_rot, tileCern_fibreradius, 5., 50., pos_temp, tileRotation, 0
+            fibreName, bc400, green, tileCern_geom, worldLog_rot, tileCern_fibreradius, 5., 50., pos_temp, tileCern_rot, tileCern_sign
         );
     }
 
