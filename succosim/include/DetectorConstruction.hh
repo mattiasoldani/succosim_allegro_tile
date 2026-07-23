@@ -32,7 +32,7 @@ private:
     // simply pi
     static G4double pi;
 
-    // all about isosceles trapezoids
+    // all about isosceles trapezoids (full or half)
     class geomTrapezoid{
         public:
             geomTrapezoid(G4double r, G4double h, G4double theta) {
@@ -58,13 +58,13 @@ private:
             G4double GetTheta() {return Theta;}
             G4double GetH() {return H;}
 
-            void SetR_b(G4bool override=false, G4double newval=0); // defined in DetectorConstruction.cc
-            void SetR_t(G4bool override=false, G4double newval=0); // defined in DetectorConstruction.cc
+            void SetR_b(G4bool override=false, G4double newval=0); // defined in DetectorConstruction_tile.cc
+            void SetR_t(G4bool override=false, G4double newval=0); // defined in DetectorConstruction_tile.cc
             G4double GetR_b() {return R_b;}
             G4double GetR_t() {return R_t;}
 
-            void SetDHor_b(G4bool override=false, G4double newval=0); // defined in DetectorConstruction.cc
-            void SetDHor_t(G4bool override=false, G4double newval=0); // defined in DetectorConstruction.cc
+            void SetDHor_b(G4bool override=false, G4double newval=0); // defined in DetectorConstruction_tile.cc
+            void SetDHor_t(G4bool override=false, G4double newval=0); // defined in DetectorConstruction_tile.cc
             G4double GetDHor_b() {return L_b;}
             G4double GetDHor_t() {return L_t;}
             G4double GetDVer() {return GetH();} // just an alias for GetH
@@ -81,7 +81,7 @@ private:
             G4double GetFullToHalfCentreOffset() {return L_mid/4;}
 
             // update all derived variables
-            void SetAllDerived() {
+            virtual void SetAllDerived() {
                 SetR_b();
                 SetR_t();
                 SetDHor_b();
@@ -92,31 +92,10 @@ private:
                 isConsistent = true;
             }
 
-            // turn trapezoid into a rectangular tile with height h and custom width (argument)
-            // it only works if r and theta are set to 0
-            // if it works, it will set isConsistentRectangle to true and negate isConsistent
-            // otherwise, it will negate both isConsistent flags
-            void SetRectangle(G4double w) {
-                if ((R==0) && (Theta==0)) {
-                    SetR_b(true, 0);
-                    SetR_t(true, 0);
-                    SetDHor_b(true, w);
-                    SetDHor_t(true, w);
-                    SetDHor_mid();
-                    SetDSide();
+            void AddHorGaps(G4double gapsize); // defined in DetectorConstruction_tile.cc
+            void RmHorGaps(); // defined in DetectorConstruction_tile.cc
 
-                    isConsistent = false;
-                    isConsistentRectangle = true;
-                } else {
-                    isConsistent = false;
-                    isConsistentRectangle = false;
-                }
-            }
-
-            void AddHorGaps(G4double gapsize); // defined in DetectorConstruction.cc
-            void RmHorGaps(); // defined in DetectorConstruction.cc
-
-        private:
+        protected:
             G4double pi = DetectorConstruction::pi;
 
             G4double H;
@@ -153,13 +132,54 @@ private:
             }
     };
 
-    G4VSolid* fShapeTileFull( // defined in DetectorConstruction.cc
+    // rectangular geometry - derived from geomTrapezoid
+    class geomRectangle : public geomTrapezoid
+    {
+        public:
+            geomRectangle(G4double w, G4double h) : geomTrapezoid(0, h, 0) {
+                R = 0; // R: meaningless in case of rectangular tiles
+                Theta = 0; // Theta: meaningless in case of rectangular tiles
+                H = h; // H: full height
+
+                W = w; // W: full width
+
+                SetAllDerived();
+
+                // derived quantities - trivial in case of rectangular tiles:
+                // - R_b: radial position of the lower base --> = 0
+                // - R_t: radial position of the upper base --> = 0
+                // - L_b: full length of the lower base --> = W
+                // - L_t: full length of the upper base --> = W
+                // - L_mid: full width (i.e. horizontal length) at mid height --> = W
+                // - side: full length of one of the non-parallel sides --> = H
+            }  
+
+            void SetW(G4double w) {W = w; SetAllDerived();}
+            G4double GetW() {return W;}
+
+            // update all derived variables - special version for rectangular tiles
+            void SetAllDerived() override {
+                SetR_b(true, 0);
+                SetR_t(true, 0);
+                SetDHor_b(true, W);
+                SetDHor_t(true, W);
+                SetDHor_mid();
+                SetDSide();
+
+                isConsistentRectangle = true;
+            }
+            
+        protected:
+            G4double W;
+    };
+
+    G4VSolid* fShapeTileFull( // defined in DetectorConstruction_tile.cc
         G4String name, 
         geomTrapezoid* pGeom, 
         G4double dThk
     );
 
-    G4LogicalVolume* fLogTile( // defined in DetectorConstruction.cc
+    G4LogicalVolume* fLogTile( // defined in DetectorConstruction_tile.cc
         G4String name, 
         G4Material* pMaterial, 
         G4VisAttributes* pColour,
