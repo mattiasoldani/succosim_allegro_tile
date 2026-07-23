@@ -79,8 +79,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 
 	geomTrapezoid* tileTestGeom = new geomTrapezoid(radius, height, angle);
 
-	geomTrapezoid* tileTestGeomRect = new geomTrapezoid(0, height, 0);
-    tileTestGeomRect->SetRectangle(height);
+	geomTrapezoid* tileTestGeomRect = new geomRectangle(height, height);
 
     G4double offset;
     G4ThreeVector pos;
@@ -233,7 +232,7 @@ void DetectorConstruction::ConstructSDandField()
 
 G4double DetectorConstruction::pi = acos(-1);
 
-// tile-specific stuff in DetectorConstruction_tile.cc
+// --> tile-specific stuff in DetectorConstruction_tile.cc
 
 
 
