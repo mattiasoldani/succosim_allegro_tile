@@ -1,6 +1,8 @@
 #include <G4SystemOfUnits.hh>
 #include <G4String.hh>
 
+#include <string>
+
 #include "RunAction.hh"
 #include "Analysis.hh"
 
@@ -22,11 +24,13 @@ RunAction::RunAction() :  G4UserRunAction()
     // create the ntuple columns (remember the order, it is needed to fill them) here, or...
     // e.g. analysis->CreateNtupleDColumn("NEvent");
 
-    //// preliminary tests 01 ////
+    //// S6 stack ////
 
     analysis->CreateNtupleDColumn("NEvent");
-    analysis->CreateNtupleDColumn("E_tileTest000");
-    analysis->CreateNtupleDColumn("E_tileTest001");
+    const G4int tileCern_n = 10;
+    for (G4int i = 0; i < tileCern_n; i++) {
+        analysis->CreateNtupleDColumn("E_tileCern" + std::to_string(i));
+    }
     // --------------------------------------------------
     // ...uncomment this line for the test ntuple columns (implemented in src/TestMode.cc)
     //OutputNtupleTest(analysis);

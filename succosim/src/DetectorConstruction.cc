@@ -14,6 +14,8 @@
 #include <G4Box.hh>
 #include <G4Trd.hh>
 
+#include <string>
+
 #include "DetectorConstruction.hh"
 #include "CustomSD.hh"
 
@@ -64,9 +66,11 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     new G4PVPlacement(worldRotation, {}, worldLog_rot, "world_Rot", worldLog, false, 0);
 
     G4RotationMatrix* tileRotation = new G4RotationMatrix();
-    tileRotation->rotateY(20 * deg);
+    tileRotation->rotateY(0);
+
+    G4ThreeVector pos_temp;
 	
-	// tile shapes - S2
+	// tile shapes - CERN S2
     G4double S2_w = 70.5*mm; // short-side width (half-module)
     G4double S2_W = 75*mm; // long-side width (half-module)
     G4double S2_h = 97*mm; // height
@@ -77,13 +81,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     G4double S2_holey = S2_h/2 - 6*mm; // pipe/rod hole centre y (relative to full-module tile centre)
     G4double S2_holex = 6*mm; // pipe/rod hole centre x (relative to full-module tile centre)
 
-    G4double S2_theta = 2 * atan((S2_W - S2_w) / S2_h); // angle (full-module)
-    G4double S2_r = S2_W / tan(S2_theta / 2); // radial distance from cylinder centre (full-module)
-
-
-	geomTrapezoid* S2_geom = new geomTrapezoid(S2_r, S2_h, S2_theta);
-
-	// tile shapes - S6
+	// tile shapes - CERN S6
     G4double S6_w = 91*mm; // short-side width (half-module)
     G4double S6_W = 100*mm; // long-side width (half-module)
     G4double S6_h = 187*mm; // height
@@ -94,23 +92,49 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     G4double S6_holey = S6_h/2 - 6*mm; // pipe/rod hole centre y (relative to full-module tile centre)
     G4double S6_holex = 6*mm; // pipe/rod hole centre x (relative to full-module tile centre)
 
-    G4double S6_theta = 2 * atan((S6_W - S6_w) / S6_h); // angle (full-module)
-    G4double S6_r = S6_W / tan(S6_theta / 2); // radial distance from cylinder centre (full-module)
+    // steel tile shapes
+    G4double passive_thk = 3*cm;
 
-	geomTrapezoid* S6_geom = new geomTrapezoid(S6_r, S6_h, S6_theta);
+    //// CERN stack ////
 
-    //// preliminary tests 00 ////
+    G4double tileCern_w = S6_w;
+    G4double tileCern_W = S6_W;
+    G4double tileCern_h = S6_h;
+    G4double tileCern_thk = S6_thk;
+    G4double tileCern_fibreradius = S6_fibreradius;
+    G4double tileCern_sidegap = S6_sidegap;
+    G4double tileCern_holeradius = S6_holeradius;
+    G4double tileCern_holey = S6_holey;
+    G4double tileCern_holex = S6_holex;
 
-    // S2_geom->AddHorGaps(sidegap);
+    G4double tileCern_theta = 2 * atan((tileCern_W - tileCern_w) / tileCern_h); // angle (full-module)
+    G4double tileCern_r = tileCern_W / tan(tileCern_theta / 2); // radial distance from cylinder centre (full-module)
 
-    // sign = 1;
-    // pos = G4ThreeVector(-sign*0.5*cm, 0*thickness, 0);
-    // G4LogicalVolume* tileTest000Log = fLogTile("tile000", bc400, cyan, tileTestGeom, thickness, sign, holeradius, holex, holey);
-    // new G4PVPlacement(tileRotation, pos, tileTest000Log, "tile000", worldLog_rot, false, 0);
+    G4int tileCern_n = 10;
 
-    // G4LogicalVolume* tileTest000FibreLog = fLogPlaceFibreCirc("fibre000", bc400, green, tileTestGeom, worldLog_rot, fibreradius, 5., 50., pos, tileRotation, sign);
+	geomTrapezoid* tileCern_geom = new geomTrapezoid(tileCern_r, tileCern_h, tileCern_theta);
 
-    // S2_geom->RmHorGaps();
+    G4LogicalVolume* tileCern_lvols[tileCern_n];
+    G4LogicalVolume* tileCern_lvols_fibres[tileCern_n];
+    G4LogicalVolume* tileCern_lvols_passive[tileCern_n];
+
+    tileCern_geom->AddHorGaps(tileCern_sidegap);
+
+    for (G4int i = 0; i < tileCern_n; i++) {
+        G4String tileName = "log_tileCern" + std::to_string(i);
+        G4String fibreName = "log_fibreCern" + std::to_string(i);
+
+        pos_temp = G4ThreeVector(0, i*(passive_thk + tileCern_thk/2), 0);
+
+        tileCern_lvols[i] = fLogTile(tileName, bc400, cyan, tileCern_geom, tileCern_thk, 0, tileCern_holeradius, tileCern_holex, tileCern_holey);
+        new G4PVPlacement(tileRotation, pos_temp, tileCern_lvols[i], tileName, worldLog_rot, false, i);
+
+        tileCern_lvols_fibres[i] = fLogPlaceFibreCirc(
+            fibreName, bc400, green, tileCern_geom, worldLog_rot, tileCern_fibreradius, 5., 50., pos_temp, tileRotation, 0
+        );
+    }
+
+    tileCern_geom->RmHorGaps();
 
     // --------------------------------------------------
     // ...uncomment this line for the test setup (implemented in src/TestMode.cc) 
@@ -136,15 +160,15 @@ void DetectorConstruction::ConstructSDandField()
     // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
     // create the sensitive detectors and bin them to the logical volumes here, or...
 
-    //// preliminary tests 01 ////
+    //// S6 stack ////
 
-    VolumeEDepSD* tileTest000SD = new VolumeEDepSD("tile000_SD");
-    SetSensitiveDetector("tile000_Log", tileTest000SD);
-    sdm->AddNewDetector(tileTest000SD);
-
-    VolumeEDepSD* tileTest001SD = new VolumeEDepSD("tile001_SD");
-    SetSensitiveDetector("tile001_Log", tileTest001SD);
-    sdm->AddNewDetector(tileTest001SD);
+    const G4int tileCern_n = 10;
+    for (G4int i = 0; i < tileCern_n; i++) {
+        G4String tileName = "log_tileCern" + std::to_string(i);
+        VolumeEDepSD* tileSD = new VolumeEDepSD("SD_tileCern" + std::to_string(i));
+        SetSensitiveDetector(tileName + "_Log", tileSD);
+        sdm->AddNewDetector(tileSD);
+    }
 	
     // --------------------------------------------------
     // ...uncomment this line for the test sensitive detectors (implemented in src/TestMode.cc)
@@ -161,6 +185,3 @@ void DetectorConstruction::ConstructSDandField()
 G4double DetectorConstruction::pi = acos(-1);
 
 // --> tile-specific stuff in DetectorConstruction_tile.cc
-
-
-

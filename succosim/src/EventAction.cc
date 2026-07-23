@@ -3,6 +3,8 @@
 #include <G4THitsMap.hh>
 #include <G4Event.hh>
 
+#include <string>
+
 #include "EventAction.hh"
 #include "Analysis.hh"
 #include "CustomHit.hh"
@@ -25,32 +27,22 @@ void EventAction::EndOfEventAction(const G4Event* event)
     // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
     // implement cast of the data collections, operations on them and ntuple filling here, or... 
 
-    G4int fIdETileTest000 = sdm->GetCollectionID("tile000_SD/VolumeEDep");
-    G4int fIdETileTest001 = sdm->GetCollectionID("tile001_SD/VolumeEDep");
-
-    VolumeEDepHitsCollection* hitCollectionTileTest000 = dynamic_cast<VolumeEDepHitsCollection*>(hcofEvent->GetHC(fIdETileTest000));
-    VolumeEDepHitsCollection* hitCollectionTileTest001 = dynamic_cast<VolumeEDepHitsCollection*>(hcofEvent->GetHC(fIdETileTest001));
-
     int colNEv = 0;
-    int colETileTest000 = 1;
-    int colETileTest001 = 2;
-
-    G4double E000 = 0.0;
-    G4double E001 = 0.0;
-
     analysis->FillNtupleDColumn(0, colNEv, event->GetEventID());
-    if (hitCollectionTileTest000)
-    {
-        for (auto hit: *hitCollectionTileTest000->GetVector())
-        {E000 += hit->GetEDep();}
-        analysis->FillNtupleDColumn(0, colETileTest000, E000 / MeV);
-    }else{analysis->FillNtupleDColumn(0, colETileTest000, -1.0);}
-    if (hitCollectionTileTest001)
-    {
-        for (auto hit: *hitCollectionTileTest001->GetVector())
-        {E001 += hit->GetEDep();}
-        analysis->FillNtupleDColumn(0, colETileTest001, E001 / MeV);
-    }else{analysis->FillNtupleDColumn(0, colETileTest001, -1.0);}
+
+    const G4int tileCern_n = 10;
+    for (G4int i = 0; i < tileCern_n; i++) {
+        G4int fIdETile = sdm->GetCollectionID("SD_tileCern" + std::to_string(i) + "/VolumeEDep");
+        VolumeEDepHitsCollection* hitCollectionTile = dynamic_cast<VolumeEDepHitsCollection*>(hcofEvent->GetHC(fIdETile));
+
+        G4double eTile = 0.0;
+        if (hitCollectionTile)
+        {
+            for (auto hit: *hitCollectionTile->GetVector())
+            {eTile += hit->GetEDep();}
+            analysis->FillNtupleDColumn(0, i + 1, eTile / MeV);
+        }else{analysis->FillNtupleDColumn(0, i + 1, -1.0);}
+    }
 
     analysis->AddNtupleRow(0);
 
