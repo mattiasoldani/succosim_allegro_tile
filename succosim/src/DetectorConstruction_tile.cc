@@ -98,7 +98,7 @@ G4LogicalVolume* DetectorConstruction::fLogTile(
     return logvol;
 }
 
-// create and place the optical fibre next to a tile
+// create and place the optical fibre next to a tile - outdated version
 G4LogicalVolume* DetectorConstruction::fLogPlaceFibreCirc(
     G4String name, 
     G4Material* pMaterial, 
@@ -164,10 +164,89 @@ G4LogicalVolume* DetectorConstruction::fLogPlaceFibreCirc(
         new G4PVPlacement(rot_internal, pos_internal, logvol, name + "_Phys_EnvIntNoRot", pEnvelopeInternal, false, 0);
     }
 
-    pTileRot->setAxis(tilePos);
-    new G4PVPlacement(pTileRot, tilePos, pEnvelopeInternal, name_phys, pEnvelope, false, 0);
+    //pTileRot->setAxis(tilePos);
+    new G4PVPlacement(nullptr, tilePos, pEnvelopeInternal, name_phys, pEnvelope, false, 0);
 
     return logvol;
+}
+
+// create and place the optical fibre next to a tile
+G4LogicalVolume* DetectorConstruction::fLogPlaceFibreCirc(
+    G4String name, 
+    G4Material* pMaterial, 
+    G4VisAttributes* pColour,
+    geomTrapezoid* pTileGeom, 
+    G4LogicalVolume* pEnvelope, // logical volume in which to place the fibre
+
+    G4double sectionR, // fibre section radius
+    G4double extraRIn, // fibre extension (along the wedge side) towards inner radii (i.e. towards collision point)
+    G4double extraROut, // fibre extension (along the wedge side) towards outer radii
+
+    G4Transform3D tilePosRot, // general 3D transformation for tile placement
+    G4int signHalf = 0 // see signHalf in tile logical volume creation
+){
+	
+    // create shape and logical volume (the latter will be returned)
+    G4double length_contact = pTileGeom->GetDSide();
+    G4double length_total = length_contact + extraRIn + extraROut;
+
+    G4String name_solid = name + "_Shape";
+    G4VSolid* shape = new G4Tubs(name_solid, 0., sectionR, length_total/2, 0., 2*pi);
+
+    G4String name_log = name + "_Log";
+    G4LogicalVolume* logvol = new G4LogicalVolume(shape, pMaterial, name_log);
+    logvol->SetVisAttributes(pColour);
+
+    // placement of the physical volume
+    G4NistManager* nist = G4NistManager::Instance();
+	G4Material* air = nist->FindOrBuildMaterial("G4_AIR");
+
+    G4String name_phys = name + "_Phys";
+
+    G4double tilt = pTileGeom->GetTheta()/2;
+    G4double fibre_centre_shift = 0.5*( length_total - 2*extraRIn - length_contact );
+    G4double pos_tran_ver = fibre_centre_shift*cos(tilt); // add vertical shift to the centre of the fibre part in contact
+    G4double pos_tran_hor;
+    G4ThreeVector pos_internal = G4ThreeVector(0, 0, pos_tran_ver); // x is set below (once sign is defined)
+    G4RotationMatrix* rot_internal;
+
+    G4int sign;
+    G4int sign0 = signHalf ? ((signHalf > 0) ? 1 : -1) : 0;
+    G4int isignlim = signHalf ? 0 : 1;
+
+    // G4VSolid* envelopeInternalBox = new G4Box(name + "_Shape_EnvIntNoRot", 0.5*(pTileGeom->GetDHor_t() + sectionR), sectionR/2, length_total/2);
+    // G4LogicalVolume* pEnvelopeInternal = new G4LogicalVolume(envelopeInternalBox, air, name + "_Log_EnvIntNoRot");
+    geomTrapezoid pTileGeomExtended = *pTileGeom;
+    pTileGeomExtended.SetDHor_b(true, pTileGeom->GetDHor_b() + sectionR/cos(tilt) * (signHalf ? 2 : 4));
+    pTileGeomExtended.SetDHor_t(true, pTileGeom->GetDHor_t() + sectionR/cos(tilt) * (signHalf ? 2 : 4));
+    G4LogicalVolume* pEnvelopeInternal = fLogTile(name + "_EnvIntNoRot", pMaterial, pColour, &pTileGeomExtended, sectionR, sign0);
+    G4VisAttributes* visAttrEnvelopeInternal = new G4VisAttributes();
+    visAttrEnvelopeInternal->SetVisibility(false);
+    pEnvelopeInternal->SetVisAttributes(visAttrEnvelopeInternal);
+
+    for(int isign=0; isign<=isignlim; isign++){
+    // if half module, fibre only on one side
+    // if full module, fibre is in principle on both sides (set signHalf properly to only have it on one side anyway)
+        sign = signHalf ? ((signHalf > 0) ? 1 : -1) : (isign ? -1 : 1);
+        pos_tran_hor = sign*(pTileGeom->GetDHor_mid()/2 + sectionR/cos(tilt)); // move horizontally centre of the total fibre, then...
+        pos_tran_hor += sign*fibre_centre_shift*sin(tilt); // ... add horizontal shift to the centre of the fibre part in contact
+        pos_internal.setX(pos_tran_hor);
+        rot_internal = new G4RotationMatrix();
+        rot_internal->rotateY(-sign*tilt);
+        new G4PVPlacement(rot_internal, pos_internal, logvol, name + "_Phys_EnvIntNoRot", pEnvelopeInternal, false, 0);
+    }
+
+    //pTileRot->setAxis(tilePos);
+    new G4PVPlacement(tilePosRot, pEnvelopeInternal, name_phys, pEnvelope, false, 0);
+
+    return logvol;
+	
+    //G4ThreeVector tilePos = tilePosRot.getTranslation();
+	//G4RotationMatrix tileRot = tilePosRot.getRotation();
+    //G4RotationMatrix* pTileRot = &tileRot;
+	
+	//return fLogPlaceFibreCirc(name, pMaterial, pColour, pTileGeom, pEnvelope, sectionR, extraRIn, //extraROut, tilePos, pTileRot, signHalf);
+	
 }
 
 // geomTrapezoid methods //////////////////////////////////////

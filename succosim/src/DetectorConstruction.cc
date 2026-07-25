@@ -13,6 +13,8 @@
 #include <G4MultiFunctionalDetector.hh>
 #include <G4Box.hh>
 #include <G4Trd.hh>
+#include <G4Vector3D.hh>
+#include <G4Transform3D.hh>
 
 #include <string>
 
@@ -50,26 +52,15 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     G4double worldSizeY = 2 * m;
     G4double worldSizeZ = 15 * m;
     G4RotationMatrix* worldRotation = new G4RotationMatrix();
-    worldRotation->rotateX(90 * deg);
-    worldRotation->rotateZ(180 * deg);
-    G4VSolid* worldBox = new G4Box("world_Shape", worldSizeX / 2, worldSizeZ / 2, worldSizeY / 2);
+    G4VSolid* worldBox = new G4Box("world_Shape", worldSizeX / 2, worldSizeY / 2, worldSizeZ / 2);
     G4LogicalVolume* worldLog = new G4LogicalVolume(worldBox, air, "world_Logical");
     G4VisAttributes* visAttrWorld = new G4VisAttributes();
     visAttrWorld->SetVisibility(false);
     worldLog->SetVisAttributes(visAttrWorld);
     G4VPhysicalVolume* worldPhys = new G4PVPlacement(nullptr, {}, worldLog, "world", nullptr, false, 0);
 
-    // 2nd world layer, rotated to have the beam travelling horizontally along z
-    G4LogicalVolume* worldLog_rot = new G4LogicalVolume(worldBox, air, "world_Logical_Rot");
-    G4VisAttributes* visAttrWorld_rot = new G4VisAttributes();
-    visAttrWorld_rot->SetVisibility(true);
-    worldLog_rot->SetVisAttributes(visAttrWorld_rot);
-    new G4PVPlacement(worldRotation, {}, worldLog_rot, "world_Rot", worldLog, false, 0);
-
-    G4ThreeVector pos_temp;
-	
 	// tile shapes - CERN S2
-    G4int S2_sign = -1; // half-tile chirality; if 0, then the full tile is created
+    G4int S2_sign = 1; // half-tile chirality; if 0, then the full tile is created
     G4double S2_w = 70.5*mm; // short-side width (half-module)
     G4double S2_W = 75*mm; // long-side width (half-module)
     G4double S2_h = 97*mm; // height
@@ -81,7 +72,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     G4double S2_holex = 6*mm; // pipe/rod hole centre x (relative to full-module tile centre)
 
 	// tile shapes - CERN S6
-    G4int S6_sign = -1; // half-tile chirality; if 0, then the full tile is created
+    G4int S6_sign = 1; // half-tile chirality; if 0, then the full tile is created
     G4double S6_w = 91*mm; // short-side width (half-module)
     G4double S6_W = 100*mm; // long-side width (half-module)
     G4double S6_h = 187*mm; // height
@@ -97,14 +88,13 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 
     // general positioning
     G4double z_tileCern_front = 3*m;
+	
+	G4ThreeVector pos_temp;
+	G4Transform3D pos_rot_temp;
 
     //// CERN stack ////
 
-    G4RotationMatrix* tileCern_rot = new G4RotationMatrix();
-
     G4int tileCern_n = 10;
-
-    tileCern_rot->rotateY(-90 * deg);
 
     G4int tileCern_sign = S6_sign;
     G4double tileCern_w = S6_w;
@@ -132,13 +122,15 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
         G4String tileName = "log_tileCern" + std::to_string(i);
         G4String fibreName = "log_fibreCern" + std::to_string(i);
 
-        pos_temp = G4ThreeVector(0, z_tileCern_front + i*(passive_thk + tileCern_thk/2), 0);
+        pos_temp = G4ThreeVector(0, 0, z_tileCern_front + i*(passive_thk + tileCern_thk/2));
+		pos_rot_temp = G4Translate3D(pos_temp) * G4Rotate3D(45*deg, G4Vector3D(1,0,0)) * G4Rotate3D(45*deg, G4Vector3D(0,1,0)) * G4Rotate3D(45*deg, G4Vector3D(0,0,1));
 
         tileCern_lvols[i] = fLogTile(tileName, bc400, cyan, tileCern_geom, tileCern_thk, tileCern_sign, tileCern_holeradius, tileCern_holex, tileCern_holey);
-        new G4PVPlacement(tileCern_rot, pos_temp, tileCern_lvols[i], tileName, worldLog_rot, false, i);
+        new G4PVPlacement(pos_rot_temp, tileCern_lvols[i], tileName, worldLog, false, i);
 
+		// THE PROBLEM IS HERE!
         tileCern_lvols_fibres[i] = fLogPlaceFibreCirc(
-            fibreName, bc400, green, tileCern_geom, worldLog_rot, tileCern_fibreradius, 5., 50., pos_temp, tileCern_rot, tileCern_sign
+            fibreName, bc400, green, tileCern_geom, worldLog, tileCern_fibreradius, 5., 50., pos_rot_temp, tileCern_sign
         );
     }
 

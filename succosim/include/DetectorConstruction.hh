@@ -191,7 +191,7 @@ private:
         G4double holeY
     );
 
-    G4LogicalVolume* fLogPlaceFibreCirc(
+    G4LogicalVolume* fLogPlaceFibreCirc( // defined in DetectorConstruction_tile.cc
         G4String name, 
         G4Material* pMaterial, 
         G4VisAttributes* pColour,
@@ -202,6 +202,19 @@ private:
         G4double extraRLOut,
         G4ThreeVector tilePos,
         G4RotationMatrix* pTileRot,
+        G4int signHalf
+    );
+	
+    G4LogicalVolume* fLogPlaceFibreCirc( // defined in DetectorConstruction_tile.cc
+        G4String name, 
+        G4Material* pMaterial, 
+        G4VisAttributes* pColour,
+        geomTrapezoid* pTileGeom, 
+        G4LogicalVolume* pEnvelope,
+        G4double sectionR,
+        G4double extraRIn,
+        G4double extraRLOut,
+        G4Transform3D tilePosRot,
         G4int signHalf
     );
 	
