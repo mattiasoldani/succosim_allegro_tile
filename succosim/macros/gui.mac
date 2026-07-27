@@ -6,6 +6,6 @@
 /vis/drawVolume
 /vis/scene/add/trajectories smooth
 /vis/scene/endOfEventAction accumulate
-/vis/scene/add/axes 0 0 0
+# /vis/scene/add/axes 0 0 0
 
 # don't shot anything --> waiting for manual input from the GUI

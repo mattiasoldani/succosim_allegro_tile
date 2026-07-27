@@ -13,8 +13,6 @@
 #include <G4MultiFunctionalDetector.hh>
 #include <G4Box.hh>
 #include <G4Trd.hh>
-#include <G4Vector3D.hh>
-#include <G4Transform3D.hh>
 
 #include <string>
 
@@ -36,21 +34,14 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     G4VisAttributes* red = new G4VisAttributes(G4Colour::Red());
     G4VisAttributes* green = new G4VisAttributes(G4Colour::Green());
     G4VisAttributes* magenta = new G4VisAttributes(G4Colour::Magenta());
+	G4VisAttributes* grey = new G4VisAttributes(G4Colour::Grey());
 	
     // off-the-shelf materials (from NIST)
     G4Material* air = nist->FindOrBuildMaterial("G4_AIR"); // air
-	
-    // manual material: BC400 scintillator
-    G4Element* elH = new G4Element("Hydrogen", "H", 1., 1.0079 * g/mole);
-    G4Element* elC = new G4Element("Carbon", "C", 6., 12.01 * g/mole);
-    G4Material* bc400 = new G4Material("BC400", 1.032*g/cm3, 2);
-    bc400->AddElement(elH, 0.085);
-    bc400->AddElement(elC, 0.915);
+	G4Material* SS = nist->FindOrBuildMaterial("G4_STAINLESS-STEEL"); // steel
+	G4Material* plastic = nist->FindOrBuildMaterial("G4_POLYSTYRENE"); // plastic scintillator
 	
     // world
-    G4double worldSizeX = 2 * m;
-    G4double worldSizeY = 2 * m;
-    G4double worldSizeZ = 15 * m;
     G4RotationMatrix* worldRotation = new G4RotationMatrix();
     G4VSolid* worldBox = new G4Box("world_Shape", worldSizeX / 2, worldSizeY / 2, worldSizeZ / 2);
     G4LogicalVolume* worldLog = new G4LogicalVolume(worldBox, air, "world_Logical");
@@ -58,83 +49,182 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     visAttrWorld->SetVisibility(false);
     worldLog->SetVisAttributes(visAttrWorld);
     G4VPhysicalVolume* worldPhys = new G4PVPlacement(nullptr, {}, worldLog, "world", nullptr, false, 0);
-
-	// tile shapes - CERN S2
-    G4int S2_sign = 1; // half-tile chirality; if 0, then the full tile is created
-    G4double S2_w = 70.5*mm; // short-side width (half-module)
-    G4double S2_W = 75*mm; // long-side width (half-module)
-    G4double S2_h = 97*mm; // height
-    G4double S2_thk = 3*mm; // thickness
-    G4double S2_fibreradius = 0.5*mm; // radius of the WLS fibre
-    G4double S2_sidegap = 0*mm; // side reduction to account for the fibres
-    G4double S2_holeradius = 5*mm; // radius of the pipe/rod hole
-    G4double S2_holey = S2_h/2 - 6*mm; // pipe/rod hole centre y (relative to full-module tile centre)
-    G4double S2_holex = 6*mm; // pipe/rod hole centre x (relative to full-module tile centre)
-
-	// tile shapes - CERN S6
-    G4int S6_sign = 1; // half-tile chirality; if 0, then the full tile is created
-    G4double S6_w = 91*mm; // short-side width (half-module)
-    G4double S6_W = 100*mm; // long-side width (half-module)
-    G4double S6_h = 187*mm; // height
-    G4double S6_thk = 3*mm; // thickness
-    G4double S6_fibreradius = 0.5*mm; // radius of the WLS fibre
-    G4double S6_sidegap = 0*mm; // side reduction to account for the fibres
-    G4double S6_holeradius = 5*mm; // radius of the pipe/rod hole
-    G4double S6_holey = S6_h/2 - 6*mm; // pipe/rod hole centre y (relative to full-module tile centre)
-    G4double S6_holex = 6*mm; // pipe/rod hole centre x (relative to full-module tile centre)
-
-    // steel tile shapes
-    G4double passive_thk = 3*cm;
-
-    // general positioning
-    G4double z_tileCern_front = 3*m;
 	
+	// generic translation and roto-translation, to be applied element-by-element
 	G4ThreeVector pos_temp;
 	G4Transform3D pos_rot_temp;
 
-    //// CERN stack ////
+    ///////////////////
+    //// FZU stack ////
 
-    G4int tileCern_n = 10;
+    G4double FZU_theta = 2 * atan((FZU_W - FZU_w) / FZU_h);
+    G4double FZU_r = FZU_W / tan(FZU_theta / 2);
 
-    G4int tileCern_sign = S6_sign;
-    G4double tileCern_w = S6_w;
-    G4double tileCern_W = S6_W;
-    G4double tileCern_h = S6_h;
-    G4double tileCern_thk = S6_thk;
-    G4double tileCern_fibreradius = S6_fibreradius;
-    G4double tileCern_sidegap = S6_sidegap;
-    G4double tileCern_holeradius = S6_holeradius;
-    G4double tileCern_holey = S6_holey;
-    G4double tileCern_holex = S6_holex;
+    geomTrapezoid* FZU_geom = new geomTrapezoid(FZU_r, FZU_h, FZU_theta);
 
-    G4double tileCern_theta = 2 * atan((tileCern_W - tileCern_w) / tileCern_h); // angle (full-module)
-    G4double tileCern_r = tileCern_W / tan(tileCern_theta / 2); // radial distance from cylinder centre (full-module)
+    G4LogicalVolume* FZU_lvols[TILEFZU_N];
+    G4LogicalVolume* FZU_lvols_fibres[2*TILEFZU_N];
 
-	geomTrapezoid* tileCern_geom = new geomTrapezoid(tileCern_r, tileCern_h, tileCern_theta);
+    FZU_geom->AddHorGaps(FZU_sidegap);
 
-    G4LogicalVolume* tileCern_lvols[tileCern_n];
-    G4LogicalVolume* tileCern_lvols_fibres[tileCern_n];
-    G4LogicalVolume* tileCern_lvols_passive[tileCern_n];
+    for (G4int i = 0; i < TILEFZU_N; i++) {
 
-    tileCern_geom->AddHorGaps(tileCern_sidegap);
+        G4String FZUName = "FZU" + std::to_string(i);
+        G4String FZUfibreName = "FZU_fibre" + std::to_string(i);
 
-    for (G4int i = 0; i < tileCern_n; i++) {
-        G4String tileName = "log_tileCern" + std::to_string(i);
-        G4String fibreName = "log_fibreCern" + std::to_string(i);
+        // tiles...
 
-        pos_temp = G4ThreeVector(0, 0, z_tileCern_front + i*(passive_thk + tileCern_thk/2));
-		pos_rot_temp = G4Translate3D(pos_temp) * G4Rotate3D(45*deg, G4Vector3D(1,0,0)) * G4Rotate3D(45*deg, G4Vector3D(0,1,0)) * G4Rotate3D(45*deg, G4Vector3D(0,0,1));
+        pos_temp = G4ThreeVector(0, 0, z_FZU_front + i*(FZU_thk + FZU_zgap) + FZU_thk/2);
+        pos_rot_temp = G4Translate3D(pos_temp) * G4Rotate3D(FZU_ang_x, G4Vector3D(1,0,0)) * G4Rotate3D(FZU_ang_y, G4Vector3D(0,1,0)) * G4Rotate3D(FZU_ang_z, G4Vector3D(0,0,1));
+        FZU_lvols[i] = fLogTile(FZUName, plastic, cyan, FZU_geom, FZU_thk, 0, FZU_holeradius, FZU_holex, FZU_holey);
+        new G4PVPlacement(pos_rot_temp, FZU_lvols[i], FZUName + "_Phys", worldLog, false, i);
 
-        tileCern_lvols[i] = fLogTile(tileName, bc400, cyan, tileCern_geom, tileCern_thk, tileCern_sign, tileCern_holeradius, tileCern_holex, tileCern_holey);
-        new G4PVPlacement(pos_rot_temp, tileCern_lvols[i], tileName, worldLog, false, i);
-
-		// THE PROBLEM IS HERE!
-        tileCern_lvols_fibres[i] = fLogPlaceFibreCirc(
-            fibreName, bc400, green, tileCern_geom, worldLog, tileCern_fibreradius, 5., 50., pos_rot_temp, tileCern_sign
-        );
+        // ... + fibres - keeping left and right separate
+        FZU_lvols_fibres[2*i] = fLogPlaceFibreCirc(FZUfibreName, plastic, green, FZU_geom, worldLog, FZU_fibreradius, 2., 200., pos_rot_temp, -1);
+        FZU_lvols_fibres[2*i+1] = fLogPlaceFibreCirc(FZUfibreName, plastic, green, FZU_geom, worldLog, FZU_fibreradius, 2., 200., pos_rot_temp, 1);
     }
 
-    tileCern_geom->RmHorGaps();
+    FZU_geom->RmHorGaps();
+
+    //// FZU stack ////
+    ///////////////////
+
+    ////////////////////////////////////
+    //// CERN stack - trigger tiles ////
+
+    G4double tileCernTrigger_sign = -1;
+
+    G4double tileCernTrigger_theta = 2 * atan((S2_W - S2_w) / S2_h);
+    G4double tileCernTrigger_r = S2_W / tan(tileCernTrigger_theta / 2);
+
+    geomTrapezoid* tileCernTrigger_geom = new geomTrapezoid(tileCernTrigger_r, S2_h, tileCernTrigger_theta);
+
+    G4LogicalVolume* tileCernTrigger_lvols[2];
+    G4LogicalVolume* tileCernTrigger_lvols_fibres[2];
+
+    tileCernTrigger_geom->AddHorGaps(S2_sidegap);
+
+    for (G4int i = 0; i < 2; i++) {
+
+        G4String tileTriggerName = "tileCernTrigger" + std::to_string(i);
+        G4String fibreTriggerName = "tileCernTrigger_fibre" + std::to_string(i);
+
+        G4double z_temp = TILECERN_B_ANY ? (z_tileCern_front - i*(S2_thk + gen_gap) - S2_thk/2) : z_FZU_rear + (i==0 ? 17.5*cm : 51.5*cm);
+
+		// tiles...
+        pos_temp = G4ThreeVector(0, - passive_h/2 + passive_trig_shift, z_temp);
+		pos_rot_temp = G4Translate3D(pos_temp) * G4Rotate3D(S6_ang_x, G4Vector3D(1,0,0)) * G4Rotate3D(S6_ang_y, G4Vector3D(0,1,0)) * G4Rotate3D(S6_ang_z, G4Vector3D(0,0,1)); // note: trigger tiles are oriented like those in S6 stack
+        tileCernTrigger_lvols[i] = fLogTile(tileTriggerName, plastic, cyan, tileCernTrigger_geom, S2_thk, tileCernTrigger_sign, S2_holeradius, S2_holex, S2_holey);
+        new G4PVPlacement(pos_rot_temp, tileCernTrigger_lvols[i], tileTriggerName + "_Phys", worldLog, false, i);
+
+		// ... + fibres
+        tileCernTrigger_lvols_fibres[i] = fLogPlaceFibreCirc(fibreTriggerName, plastic, green, tileCernTrigger_geom, worldLog, S2_fibreradius, 2., 200., pos_rot_temp, tileCernTrigger_sign);
+
+    }
+
+    tileCernTrigger_geom->RmHorGaps();
+
+    //// CERN stack - trigger tiles ////
+    ////////////////////////////////////
+
+    ////////////////////
+    //// CERN stack ////
+
+    if (TILECERN_B_ANY) {
+
+        G4int tileCern_sign;
+
+        G4double tileCern_ang_x;
+        G4double tileCern_ang_y;
+        G4double tileCern_ang_z;
+        G4double tileCern_w;
+        G4double tileCern_W;
+        G4double tileCern_h;
+        G4double tileCern_thk;
+        G4double tileCern_fibreradius;
+        G4double tileCern_sidegap;
+        G4double tileCern_holeradius;
+        G4double tileCern_holey;
+        G4double tileCern_holex;
+        auto tileCern_fzrel = [this](G4int i) { return TILECERN_B_S6 ? S6_fzrel(i) : S2_fzrel(i); };
+        auto tileCern_fxrel = [this](G4int i) { return TILECERN_B_S6 ? S6_fxrel(i) : S2_fxrel(i); };
+        auto tileCern_fyrel = [this](G4int i) { return TILECERN_B_S6 ? S6_fyrel(i) : S2_fyrel(i); };   
+
+        if (TILECERN_B_S6) {
+            tileCern_ang_x = S6_ang_x;
+            tileCern_ang_y = S6_ang_y;
+            tileCern_ang_z = S6_ang_z;
+            tileCern_w = S6_w;
+            tileCern_W = S6_W;
+            tileCern_h = S6_h;
+            tileCern_thk = S6_thk;
+            tileCern_fibreradius = S6_fibreradius;
+            tileCern_sidegap = S6_sidegap;
+            tileCern_holeradius = S6_holeradius;
+            tileCern_holey = S6_holey;
+            tileCern_holex = S6_holex;
+        } else {
+            tileCern_ang_x = S2_ang_x;
+            tileCern_ang_y = S2_ang_y;
+            tileCern_ang_z = S2_ang_z;
+            tileCern_w = S2_w;
+            tileCern_W = S2_W;
+            tileCern_h = S2_h;
+            tileCern_thk = S2_thk;
+            tileCern_fibreradius = S2_fibreradius;
+            tileCern_sidegap = S2_sidegap;
+            tileCern_holeradius = S2_holeradius;
+            tileCern_holey = S2_holey;
+            tileCern_holex = S2_holex;
+        }
+
+        G4double tileCern_theta = 2 * atan((tileCern_W - tileCern_w) / tileCern_h);
+        G4double tileCern_r = tileCern_W / tan(tileCern_theta / 2);
+
+        geomTrapezoid* tileCern_geom = new geomTrapezoid(tileCern_r, tileCern_h, tileCern_theta);
+        geomRectangle* passive_geom_u = new geomRectangle(passive_w_u, passive_h);
+        geomRectangle* passive_geom_d = new geomRectangle(passive_w_d, passive_h);
+
+        G4LogicalVolume* tileCern_lvols[TILECERN_N];
+        G4LogicalVolume* tileCern_lvols_fibres[TILECERN_N];
+        G4LogicalVolume* tileCern_lvols_passive[2*TILECERN_N];
+
+        tileCern_geom->AddHorGaps(tileCern_sidegap);
+
+        for (G4int i = 0; i < TILECERN_N; i++) {
+
+            tileCern_sign = TILECERN_B_S6 ? -1 : ((i+1)%2 ? -1 : 1);
+
+            G4String tileName = "tileCern" + std::to_string(i);
+            G4String fibreName = "tileCern_fibre" + std::to_string(i);
+
+            // passive layers
+            pos_temp = G4ThreeVector(0, 0, z_tileCern_front + tileCern_fzrel(i) - (passive_thk_gross + tileCern_thk)/2 - (passive_thk_gross - 2*passive_thk_gap - passive_thk_u)/2);
+            pos_rot_temp = G4Translate3D(pos_temp) * G4Rotate3D(passive_ang_x, G4Vector3D(1,0,0)) * G4Rotate3D(passive_ang_y, G4Vector3D(0,1,0)) * G4Rotate3D(passive_ang_z, G4Vector3D(0,0,1));
+            tileCern_lvols_passive[2*i] = fLogTile("tileCern_passive", SS, grey, passive_geom_u, passive_thk_u, 0, 0, 0, 0);
+            new G4PVPlacement(pos_rot_temp, tileCern_lvols_passive[2*i], "tileCern_passive_Phys", worldLog, false, i);
+
+            pos_temp = G4ThreeVector(0, 0, z_tileCern_front + tileCern_fzrel(i) - (passive_thk_gross + tileCern_thk)/2 + (passive_thk_gross - 2*passive_thk_gap - passive_thk_d)/2);
+            pos_rot_temp = G4Translate3D(pos_temp) * G4Rotate3D(passive_ang_x, G4Vector3D(1,0,0)) * G4Rotate3D(passive_ang_y, G4Vector3D(0,1,0)) * G4Rotate3D(passive_ang_z, G4Vector3D(0,0,1));
+            tileCern_lvols_passive[2*i+1] = fLogTile("tileCern_passive", SS, grey, passive_geom_d, passive_thk_d, 0, 0, 0, 0);
+            new G4PVPlacement(pos_rot_temp, tileCern_lvols_passive[2*i+1], "tileCern_passive_Phys", worldLog, false, i);
+
+            // tiles...
+            pos_temp = G4ThreeVector(tileCern_fxrel(i), tileCern_fyrel(i), z_tileCern_front + tileCern_fzrel(i));
+            pos_rot_temp = G4Translate3D(pos_temp) * G4Rotate3D(tileCern_ang_x, G4Vector3D(1,0,0)) * G4Rotate3D(tileCern_ang_y, G4Vector3D(0,1,0)) * G4Rotate3D(tileCern_ang_z, G4Vector3D(0,0,1));
+            tileCern_lvols[i] = fLogTile(tileName, plastic, cyan, tileCern_geom, tileCern_thk, tileCern_sign, tileCern_holeradius, tileCern_holex, tileCern_holey);
+            new G4PVPlacement(pos_rot_temp, tileCern_lvols[i], tileName + "_Phys", worldLog, false, i);
+
+            // ... + fibres
+            tileCern_lvols_fibres[i] = fLogPlaceFibreCirc(fibreName, plastic, green, tileCern_geom, worldLog, tileCern_fibreradius, 2., 200., pos_rot_temp, tileCern_sign);
+        }
+
+        tileCern_geom->RmHorGaps();
+
+    }
+
+    //// CERN stack ////
+    ////////////////////
 
     // --------------------------------------------------
     // ...uncomment this line for the test setup (implemented in src/TestMode.cc) 
@@ -160,16 +250,47 @@ void DetectorConstruction::ConstructSDandField()
     // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
     // create the sensitive detectors and bin them to the logical volumes here, or...
 
-    //// S6 stack ////
+    ///////////////////
+    //// FZU stack ////
 
-    const G4int tileCern_n = 10;
-    for (G4int i = 0; i < tileCern_n; i++) {
-        G4String tileName = "log_tileCern" + std::to_string(i);
-        VolumeEDepSD* tileSD = new VolumeEDepSD("SD_tileCern" + std::to_string(i));
-        SetSensitiveDetector(tileName + "_Log", tileSD);
-        sdm->AddNewDetector(tileSD);
+    for (G4int i = 0; i < TILEFZU_N; i++) {
+        G4String FZUName = "FZU" + std::to_string(i);
+        VolumeEDepSD* FZUSD = new VolumeEDepSD("SD_FZU" + std::to_string(i));
+        SetSensitiveDetector(FZUName + "_Log", FZUSD);
+        sdm->AddNewDetector(FZUSD);
     }
-	
+
+    //// FZU stack ////
+    ///////////////////
+
+    ////////////////////////////////////
+    //// CERN stack - trigger tiles ////
+
+    for (G4int i = 0; i < 2; i++) {
+        G4String tileTriggerName = "tileCernTrigger" + std::to_string(i);
+        VolumeEDepSD* tileCernTriggerSD = new VolumeEDepSD("SD_tileCernTrigger" + std::to_string(i));
+        SetSensitiveDetector(tileTriggerName + "_Log", tileCernTriggerSD);
+        sdm->AddNewDetector(tileCernTriggerSD);
+    }
+
+    //// CERN stack - trigger tiles ////
+    ////////////////////////////////////
+
+    ////////////////////
+    //// CERN stack ////
+
+    if (TILECERN_B_ANY) {
+        for (G4int i = 0; i < TILECERN_N; i++) {
+            G4String tileName = "tileCern" + std::to_string(i);
+            VolumeEDepSD* tileCernSD = new VolumeEDepSD("SD_tileCern" + std::to_string(i));
+            SetSensitiveDetector(tileName + "_Log", tileCernSD);
+            sdm->AddNewDetector(tileCernSD);
+        }
+    }
+
+    //// CERN stack ////
+    ////////////////////
+    
     // --------------------------------------------------
     // ...uncomment this line for the test sensitive detectors (implemented in src/TestMode.cc)
     //SDTest(sdm);
@@ -183,5 +304,25 @@ void DetectorConstruction::ConstructSDandField()
 // DetectorConstruction methods ///////////////////////////////
 
 G4double DetectorConstruction::pi = acos(-1);
+
+G4double DetectorConstruction::S2_fzrel(G4int i){ // longitudinal position of single tiles, relative to front
+	return floor(i/2)*(passive_thk_gross + S2_thk) + passive_thk_gross + S2_thk/2;
+} 
+G4double DetectorConstruction::S2_fxrel(G4int i){ // transverse (x) position of single tiles, relative to centre
+	return ((i+1)%2 ? -1 : 1) * S2_xgap/2;
+}
+G4double DetectorConstruction::S2_fyrel(G4int i){ // transverse (y) position of single tiles, relative to centre
+	return 0;
+}
+
+G4double DetectorConstruction::S6_fzrel(G4int i) { // longitudinal position of single tiles, relative to front
+	return i*(passive_thk_gross + S6_thk) + passive_thk_gross + S6_thk/2;
+} 
+G4double DetectorConstruction::S6_fxrel(G4int i){ // transverse (x) position of single tiles, relative to centre
+	return 0;
+}
+G4double DetectorConstruction::S6_fyrel(G4int i){ // transverse (y) position of single tiles, relative to centre
+	return - passive_h/2 + passive_S6_shift;
+}
 
 // --> tile-specific stuff in DetectorConstruction_tile.cc

@@ -24,13 +24,39 @@ RunAction::RunAction() :  G4UserRunAction()
     // create the ntuple columns (remember the order, it is needed to fill them) here, or...
     // e.g. analysis->CreateNtupleDColumn("NEvent");
 
-    //// S6 stack ////
 
     analysis->CreateNtupleDColumn("NEvent");
-    const G4int tileCern_n = 10;
-    for (G4int i = 0; i < tileCern_n; i++) {
+
+    ///////////////////
+    //// FZU stack ////
+
+    for (G4int i = 0; i < TILEFZU_N; i++) {
+        analysis->CreateNtupleDColumn("E_FZU" + std::to_string(i));
+    }
+
+    //// FZU stack ////
+    ///////////////////
+
+    ////////////////////////////////////
+    //// CERN stack - trigger tiles ////
+
+    for (G4int i = 0; i < 2; i++) {
+        analysis->CreateNtupleDColumn("E_tileCernTrigger" + std::to_string(i));
+    }
+
+    //// CERN stack - trigger tiles ////
+    ////////////////////////////////////
+
+    ////////////////////
+    //// CERN stack ////
+
+    for (G4int i = 0; i < TILECERN_N; i++) {
         analysis->CreateNtupleDColumn("E_tileCern" + std::to_string(i));
     }
+
+    //// CERN stack ////
+    ////////////////////
+
     // --------------------------------------------------
     // ...uncomment this line for the test ntuple columns (implemented in src/TestMode.cc)
     //OutputNtupleTest(analysis);

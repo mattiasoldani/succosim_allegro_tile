@@ -11,6 +11,13 @@
 #include <G4Tubs.hh>
 #include <G4IntersectionSolid.hh>
 #include <G4SubtractionSolid.hh>
+#include <G4Vector3D.hh>
+#include <G4Transform3D.hh>
+
+#define TILECERN_B_ANY 0
+#define TILECERN_B_S6 0
+#define TILECERN_N 10
+#define TILEFZU_N 32
 
 using namespace std;
 
@@ -31,6 +38,92 @@ private:
 
     // simply pi
     static G4double pi;
+	
+	//// specific for this application ////
+
+    // misc general stuff
+    G4double gen_gap = 1*mm;
+    G4double gen_fibreradius = 0.5*mm; // radius of the WLS fibres
+    G4double gen_thk = 3*mm; // tile thickness
+    G4double gen_holeradius = 0*mm; // radius of the pipe/rod hole
+    G4double gen_sidegap = 0*mm; // side reduction to account for the fibres
+
+    // world
+    G4double worldSizeX = 2 * m;
+    G4double worldSizeY = 2 * m;
+    G4double worldSizeZ = 30 * m;
+
+    // general positioning (source will be in world centre)
+    G4double z_tileCern_front = (817+43.5+9+51.5+29.5+36)*cm;
+    G4double z_FZU_front = (817+43.5+9+51.5+29.5+7)*cm;
+    G4double z_FZU_rear = z_FZU_front + TILEFZU_N*(gen_thk+gen_gap); 
+    G4double passive_S6_shift = 47.17*mm;
+    G4double passive_trig_shift = 59*mm;
+
+	// tile shapes - CERN S2
+	G4double FZU_ang_x = -90*deg;
+	G4double FZU_ang_y = 0*deg;
+	G4double FZU_ang_z = 0*deg;
+    G4double FZU_w = 70.5*mm; // short-side width (half-module)
+    G4double FZU_W = 75*mm; // long-side width (half-module)
+    G4double FZU_h = 97*mm; // height
+    G4double FZU_thk = gen_thk;
+    G4double FZU_fibreradius = gen_fibreradius;
+    G4double FZU_sidegap = gen_sidegap;
+    G4double FZU_holeradius = gen_holeradius;
+    G4double FZU_holey = 0; // pipe/rod hole centre y (relative to full-module tile centre)
+    G4double FZU_holex = 0; // pipe/rod hole centre x (relative to full-module tile centre)
+
+    G4double FZU_zgap = gen_gap; // longitudinal gap between successive tiles, FZU only
+
+	// tile shapes - CERN S2
+	G4double S2_ang_x = 90*deg;
+	G4double S2_ang_y = 180*deg;
+	G4double S2_ang_z = 0*deg;
+    G4double S2_w = 70.5*mm; // short-side width (half-module)
+    G4double S2_W = 75*mm; // long-side width (half-module)
+    G4double S2_h = 97*mm; // height
+    G4double S2_thk = gen_thk;
+    G4double S2_fibreradius = gen_fibreradius;
+    G4double S2_sidegap = gen_sidegap;
+    G4double S2_holeradius = gen_holeradius;
+    G4double S2_holey = S2_h/2 - 6*mm; // pipe/rod hole centre y (relative to full-module tile centre)
+    G4double S2_holex = 6*mm; // pipe/rod hole centre x (relative to full-module tile centre)
+
+    G4double S2_xgap = gen_gap; // transverse (horizontal) gap between adjacent tiles, S2 only 
+
+	G4double S2_fzrel(G4int i), S2_fxrel(G4int i), S2_fyrel(G4int i); // functions for iterative tile placing, defined in DetectorConstruction.cc
+
+	// tile shapes - CERN S6
+	G4double S6_ang_x = 90*deg;
+	G4double S6_ang_y = -90*deg;
+	G4double S6_ang_z = 0*deg;
+    G4double S6_w = 91*mm; // short-side width (half-module)
+    G4double S6_W = 100*mm; // long-side width (half-module)
+    G4double S6_h = 187*mm; // height
+    G4double S6_thk = gen_thk;
+    G4double S6_fibreradius = gen_fibreradius;
+    G4double S6_sidegap = gen_sidegap;
+    G4double S6_holeradius = gen_holeradius;
+    G4double S6_holey = S6_h/2 - 6*mm; // pipe/rod hole centre y (relative to full-module tile centre)
+    G4double S6_holex = 6*mm; // pipe/rod hole centre x (relative to full-module tile centre)
+
+	G4double S6_fzrel(G4int i), S6_fxrel(G4int i), S6_fyrel(G4int i); // functions for iterative tile placing, defined in DetectorConstruction.cc
+
+    // steel tile shapes
+	G4double passive_ang_x = 90*deg;
+	G4double passive_ang_y = 0*deg;
+	G4double passive_ang_z = 0*deg;
+    G4double passive_thk_u = 9.9*mm;
+    G4double passive_w_u = 17.38*cm;
+    G4double passive_thk_d = 14.5*mm;
+    G4double passive_w_d = 18.08*cm;
+    G4double passive_h = 19.2*cm;
+    G4double passive_thk_gap = gen_gap;
+
+    G4double passive_thk_gross = passive_thk_u + passive_thk_d + 2*passive_thk_gap;
+		
+	//// specific for DetectorConstruction_tile ////
 
     // all about isosceles trapezoids (full or half)
     class geomTrapezoid{

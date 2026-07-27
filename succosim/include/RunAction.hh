@@ -6,6 +6,7 @@
 #include <G4Run.hh>
 
 #include "Analysis.hh"
+#include "DetectorConstruction.hh"
 
 // RunAction, actions executed at each run
 

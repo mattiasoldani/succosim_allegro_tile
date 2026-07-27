@@ -7,6 +7,7 @@
 #include <globals.hh>
 
 #include "Analysis.hh"
+#include "DetectorConstruction.hh"
 
 // EventAction::EndOfEventAction, actions executed at each event
 
