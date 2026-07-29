@@ -35,18 +35,25 @@ void EventAction::EndOfEventAction(const G4Event* event)
     ///////////////////
     //// FZU stack ////
 
-    for (G4int i = 0; i < TILEFZU_N; i++) {
-        G4int fIdEFZU = sdm->GetCollectionID("SD_FZU" + std::to_string(i) + "/VolumeEDep");
-        VolumeEDepHitsCollection* hitCollectionFZU = fIdEFZU >= 0 ? dynamic_cast<VolumeEDepHitsCollection*>(hcofEvent->GetHC(fIdEFZU)) : nullptr;
+    if (TARGET_B_ANY) {
+        for (G4int i = 0; i < TILEFZU_N; i++) {
+            G4int fIdEFZU = sdm->GetCollectionID("SD_FZU" + std::to_string(i) + "/VolumeEDep");
+            VolumeEDepHitsCollection* hitCollectionFZU = fIdEFZU >= 0 ? dynamic_cast<VolumeEDepHitsCollection*>(hcofEvent->GetHC(fIdEFZU)) : nullptr;
 
-        G4double eFZU = 0.0;
-        if (hitCollectionFZU)
-        {
-            for (auto hit: *hitCollectionFZU->GetVector())
-            {eFZU += hit->GetEDep();}
-            analysis->FillNtupleDColumn(0, itemp, eFZU / MeV);
-        }else{analysis->FillNtupleDColumn(0, itemp, -1.0);}
-        itemp++;
+            G4double eFZU = 0.0;
+            if (hitCollectionFZU)
+            {
+                for (auto hit: *hitCollectionFZU->GetVector())
+                {eFZU += hit->GetEDep();}
+                analysis->FillNtupleDColumn(0, itemp, eFZU / MeV);
+            }else{analysis->FillNtupleDColumn(0, itemp, -1.0);}
+            itemp++;
+        }
+    } else {
+        for (G4int i = 0; i < TILEFZU_N; i++) {
+            analysis->FillNtupleDColumn(0, itemp, -1.0);
+            itemp++;
+        }
     }
 
     //// FZU stack ////
@@ -55,18 +62,25 @@ void EventAction::EndOfEventAction(const G4Event* event)
     ////////////////////////////////////
     //// CERN stack - trigger tiles ////
 
-    for (G4int i = 0; i < 2; i++) {
-        G4int fIdETileCernTrigger = sdm->GetCollectionID("SD_tileCernTrigger" + std::to_string(i) + "/VolumeEDep");
-        VolumeEDepHitsCollection* hitCollectionTileCernTrigger = fIdETileCernTrigger >= 0 ? dynamic_cast<VolumeEDepHitsCollection*>(hcofEvent->GetHC(fIdETileCernTrigger)) : nullptr;
+    if (TARGET_B_ANY) {
+        for (G4int i = 0; i < 2; i++) {
+            G4int fIdETileCernTrigger = sdm->GetCollectionID("SD_tileCernTrigger" + std::to_string(i) + "/VolumeEDep");
+            VolumeEDepHitsCollection* hitCollectionTileCernTrigger = fIdETileCernTrigger >= 0 ? dynamic_cast<VolumeEDepHitsCollection*>(hcofEvent->GetHC(fIdETileCernTrigger)) : nullptr;
 
-        G4double eTileCernTrigger = 0.0;
-        if (hitCollectionTileCernTrigger)
-        {
-            for (auto hit: *hitCollectionTileCernTrigger->GetVector())
-            {eTileCernTrigger += hit->GetEDep();}
-            analysis->FillNtupleDColumn(0, itemp, eTileCernTrigger / MeV);
-        }else{analysis->FillNtupleDColumn(0, itemp, -1.0);}
-        itemp++;
+            G4double eTileCernTrigger = 0.0;
+            if (hitCollectionTileCernTrigger)
+            {
+                for (auto hit: *hitCollectionTileCernTrigger->GetVector())
+                {eTileCernTrigger += hit->GetEDep();}
+                analysis->FillNtupleDColumn(0, itemp, eTileCernTrigger / MeV);
+            }else{analysis->FillNtupleDColumn(0, itemp, -1.0);}
+            itemp++;
+        }
+    } else {
+        for (G4int i = 0; i < 2; i++) {
+            analysis->FillNtupleDColumn(0, itemp, -1.0);
+            itemp++;
+        }
     }
 
     //// CERN stack - trigger tiles ////
@@ -75,7 +89,7 @@ void EventAction::EndOfEventAction(const G4Event* event)
     ////////////////////
     //// CERN stack ////
 
-    if (TILECERN_B_ANY) {
+    if (TARGET_B_ANY & TILECERN_B_ANY) {
         for (G4int i = 0; i < TILECERN_N; i++) {
             G4int fIdETileCern = sdm->GetCollectionID("SD_tileCern" + std::to_string(i) + "/VolumeEDep");
             VolumeEDepHitsCollection* hitCollectionTileCern = fIdETileCern >= 0 ? dynamic_cast<VolumeEDepHitsCollection*>(hcofEvent->GetHC(fIdETileCern)) : nullptr;

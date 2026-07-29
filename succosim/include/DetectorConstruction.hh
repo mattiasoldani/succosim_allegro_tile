@@ -14,8 +14,17 @@
 #include <G4Vector3D.hh>
 #include <G4Transform3D.hh>
 
-#define TILECERN_B_ANY 0
-#define TILECERN_B_S6 0
+
+/* instructions:
+- TARGET_B_ANY=0, TILECERN_B_ANY=*, TILECERN_B_S6=* --> no stacks, only ancillary detectors
+- TARGET_B_ANY=1, TILECERN_B_ANY=0, TILECERN_B_S6=* --> configuration for Bethe-Bloch measurement
+- TARGET_B_ANY=1, TILECERN_B_ANY=1, TILECERN_B_S6=0 --> configuration for CERN calorimetric stack, CERN S2
+- TARGET_B_ANY=1, TILECERN_B_ANY=1, TILECERN_B_S6=1 --> configuration for CERN calorimetric stack, CERN S6
+*/ 
+#define TARGET_B_ANY 1
+#define TILECERN_B_ANY 1
+#define TILECERN_B_S6 1
+
 #define TILECERN_N 10
 #define TILEFZU_N 32
 
@@ -54,6 +63,13 @@ private:
     G4double worldSizeZ = 30 * m;
 
     // general positioning (source will be in world centre)
+    G4double z_scintiSmall0_front = (0)*cm;
+    G4double z_scintiSmall1_front = (817)*cm;
+    G4double z_scintiBig0_front = (817+43.5+9+51.5+29.5-46-8.3)*cm;
+    G4double z_scintiBig1_front = (817+43.5+9+51.5+29.5+91.5+70.1+49.5+57.4)*cm;
+    G4double z_pipe0_front = (30)*cm; // not measured
+    G4double z_pipe1_front = (817-34.5-259)*cm;
+    G4double z_pbGl_front = (817+43.5+9+51.5+29.5+91.5+70.1)*cm;
     G4double z_tileCern_front = (817+43.5+9+51.5+29.5+36)*cm;
     G4double z_FZU_front = (817+43.5+9+51.5+29.5+7)*cm;
     G4double z_FZU_rear = z_FZU_front + TILEFZU_N*(gen_thk+gen_gap); 
