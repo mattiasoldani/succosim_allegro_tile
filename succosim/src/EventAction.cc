@@ -8,6 +8,7 @@
 #include "EventAction.hh"
 #include "Analysis.hh"
 #include "CustomHit.hh"
+#include "DetectorConstruction.hh"
 
 using namespace std;
 
@@ -32,10 +33,82 @@ void EventAction::EndOfEventAction(const G4Event* event)
     analysis->FillNtupleDColumn(0, itemp, event->GetEventID());
     itemp++;
 
+    DetectorConstruction * det; 
+
+    ///////////////////////
+    //// Pb glass calo ////
+    if (det->IsPbGl()) {
+        G4int fIdEPbGl = sdm->GetCollectionID("SD_PbGl/VolumeEDep");
+        VolumeEDepHitsCollection* hitCollectionPbGl = fIdEPbGl >= 0 ? dynamic_cast<VolumeEDepHitsCollection*>(hcofEvent->GetHC(fIdEPbGl)) : nullptr;
+
+        G4double ePbGl = 0.0;
+        if (hitCollectionPbGl)
+        {
+            for (auto hit: *hitCollectionPbGl->GetVector())
+            {ePbGl += hit->GetEDep();}
+            analysis->FillNtupleDColumn(0, itemp, ePbGl / MeV);
+        }else{analysis->FillNtupleDColumn(0, itemp, -1.0);}
+        itemp++;
+    } else {
+        analysis->FillNtupleDColumn(0, itemp, -1.0);
+        itemp++;
+    }
+    //// Pb glass calo ////
+    ///////////////////////
+
+    ////////////////////////////
+    //// scintillating pads ////
+    if (det->IsScinti()) {
+        for (G4int i = 0; i < 4; i++) {
+            G4int fIdEScinti = sdm->GetCollectionID("SD_scinti" + std::to_string(i) + "/VolumeEDep");
+            VolumeEDepHitsCollection* hitCollectionScinti = fIdEScinti >= 0 ? dynamic_cast<VolumeEDepHitsCollection*>(hcofEvent->GetHC(fIdEScinti)) : nullptr;
+
+            G4double eScinti = 0.0;
+            if (hitCollectionScinti)
+            {
+                for (auto hit: *hitCollectionScinti->GetVector())
+                {eScinti += hit->GetEDep();}
+                analysis->FillNtupleDColumn(0, itemp, eScinti / MeV);
+            }else{analysis->FillNtupleDColumn(0, itemp, -1.0);}
+            itemp++;
+        }
+    } else {
+        for (G4int i = 0; i < 4; i++) {
+            analysis->FillNtupleDColumn(0, itemp, -1.0);
+            itemp++;
+        }
+    }
+    //// scintillating pads ////
+    ////////////////////////////
+
+    /////////////////////////
+    //// Cherenkov pipes ////
+    if (det->IsPipe()) {
+        for (G4int i = 0; i < 2; i++) {
+            G4int fIdEPipe = sdm->GetCollectionID("SD_pipe" + std::to_string(i) + "/VolumeEDep");
+            VolumeEDepHitsCollection* hitCollectionPipe = fIdEPipe >= 0 ? dynamic_cast<VolumeEDepHitsCollection*>(hcofEvent->GetHC(fIdEPipe)) : nullptr;
+
+            G4double ePipe = 0.0;
+            if (hitCollectionPipe)
+            {
+                for (auto hit: *hitCollectionPipe->GetVector())
+                {ePipe += hit->GetEDep();}
+                analysis->FillNtupleDColumn(0, itemp, ePipe / MeV);
+            }else{analysis->FillNtupleDColumn(0, itemp, -1.0);}
+            itemp++;
+        }
+    } else {
+        for (G4int i = 0; i < 2; i++) {
+            analysis->FillNtupleDColumn(0, itemp, -1.0);
+            itemp++;
+        }
+    }
+    //// Cherenkov pipes ////
+    /////////////////////////
+
     ///////////////////
     //// FZU stack ////
-
-    if (TARGET_B_ANY) {
+    if (det->IsFZU()) {
         for (G4int i = 0; i < TILEFZU_N; i++) {
             G4int fIdEFZU = sdm->GetCollectionID("SD_FZU" + std::to_string(i) + "/VolumeEDep");
             VolumeEDepHitsCollection* hitCollectionFZU = fIdEFZU >= 0 ? dynamic_cast<VolumeEDepHitsCollection*>(hcofEvent->GetHC(fIdEFZU)) : nullptr;
@@ -55,14 +128,12 @@ void EventAction::EndOfEventAction(const G4Event* event)
             itemp++;
         }
     }
-
     //// FZU stack ////
     ///////////////////
 
     ////////////////////////////////////
     //// CERN stack - trigger tiles ////
-
-    if (TARGET_B_ANY) {
+    if (det->IsCERNTrig()) {
         for (G4int i = 0; i < 2; i++) {
             G4int fIdETileCernTrigger = sdm->GetCollectionID("SD_tileCernTrigger" + std::to_string(i) + "/VolumeEDep");
             VolumeEDepHitsCollection* hitCollectionTileCernTrigger = fIdETileCernTrigger >= 0 ? dynamic_cast<VolumeEDepHitsCollection*>(hcofEvent->GetHC(fIdETileCernTrigger)) : nullptr;
@@ -82,14 +153,12 @@ void EventAction::EndOfEventAction(const G4Event* event)
             itemp++;
         }
     }
-
     //// CERN stack - trigger tiles ////
     ////////////////////////////////////
 
     ////////////////////
     //// CERN stack ////
-
-    if (TARGET_B_ANY & TILECERN_B_ANY) {
+    if (det->IsCERNAny()) {
         for (G4int i = 0; i < TILECERN_N; i++) {
             G4int fIdETileCern = sdm->GetCollectionID("SD_tileCern" + std::to_string(i) + "/VolumeEDep");
             VolumeEDepHitsCollection* hitCollectionTileCern = fIdETileCern >= 0 ? dynamic_cast<VolumeEDepHitsCollection*>(hcofEvent->GetHC(fIdETileCern)) : nullptr;
@@ -109,7 +178,6 @@ void EventAction::EndOfEventAction(const G4Event* event)
             itemp++;
         }
     }
-
     //// CERN stack ////
     ////////////////////
 

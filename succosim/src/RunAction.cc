@@ -27,33 +27,49 @@ RunAction::RunAction() :  G4UserRunAction()
 
     analysis->CreateNtupleDColumn("NEvent");
 
+    ///////////////////////
+    //// Pb glass calo ////
+    analysis->CreateNtupleDColumn("E_PbGl");
+    //// Pb glass calo ////
+    ///////////////////////
+
+    ////////////////////////////
+    //// scintillating pads ////
+    for (G4int i = 0; i < 4; i++) {
+        analysis->CreateNtupleDColumn("E_S" + std::to_string(i));
+    }
+    //// scintillating pads ////
+    ////////////////////////////
+
+    /////////////////////////
+    //// Cherenkov pipes ////
+    for (G4int i = 0; i < 2; i++) {
+        analysis->CreateNtupleDColumn("E_cher_" + std::to_string(i));
+    }
+    //// Cherenkov pipes ////
+    /////////////////////////
+
     ///////////////////
     //// FZU stack ////
-
     for (G4int i = 0; i < TILEFZU_N; i++) {
-        analysis->CreateNtupleDColumn("E_FZU" + std::to_string(i));
+        analysis->CreateNtupleDColumn("E_FZU_" + std::to_string(i));
     }
-
     //// FZU stack ////
     ///////////////////
 
     ////////////////////////////////////
     //// CERN stack - trigger tiles ////
-
     for (G4int i = 0; i < 2; i++) {
-        analysis->CreateNtupleDColumn("E_tileCernTrigger" + std::to_string(i));
+        analysis->CreateNtupleDColumn("E_CERNTrig_" + std::to_string(i));
     }
-
     //// CERN stack - trigger tiles ////
     ////////////////////////////////////
 
     ////////////////////
     //// CERN stack ////
-
     for (G4int i = 0; i < TILECERN_N; i++) {
-        analysis->CreateNtupleDColumn("E_tileCern" + std::to_string(i));
+        analysis->CreateNtupleDColumn("E_CERN_" + std::to_string(i));
     }
-
     //// CERN stack ////
     ////////////////////
 
