@@ -35,6 +35,49 @@ void EventAction::EndOfEventAction(const G4Event* event)
 
     DetectorConstruction * det; 
 
+    ////////////////////////////
+    //// beamline hodoscope ////
+    if (det->IsHodo()) {
+        G4double thresholdHodoEDep = 50 * keV;
+
+        G4int fHodo = sdm->GetCollectionID("SD_hodo/VolumeTracking");
+        VolumeTrackingHitsCollection* hitCollectionHodo = dynamic_cast<VolumeTrackingHitsCollection*>(hcofEvent->GetHC(fHodo));
+
+        if (hitCollectionHodo){
+            G4int lastTrackId = -1;
+            G4int NStep = 1;
+            G4int NHits = 0;
+            G4double horsa = -9999.0*mm;
+            G4double versa = -9999.0*mm;
+            for (auto hit: *hitCollectionHodo->GetVector()){
+                if (hit->GetEDep()>thresholdHodoEDep){
+                    if(hit->GetTrackId() != lastTrackId){
+                        NHits+=1;
+                        NStep=1;
+                        horsa=hit->GetX()[0];
+                        versa=hit->GetX()[1];
+                    }else{
+                        NStep+=1;
+                        horsa+=hit->GetX()[0];
+                        versa+=hit->GetX()[1];
+                    }
+                    lastTrackId = hit->GetTrackId();
+                }
+            }
+            horsa = horsa / NStep;
+            versa = versa / NStep;
+            analysis->FillNtupleDColumn(0, itemp, NHits); itemp++;
+            analysis->FillNtupleDColumn(0, itemp, horsa / mm); itemp++;
+            analysis->FillNtupleDColumn(0, itemp, versa / mm); itemp++;
+        }else{
+            analysis->FillNtupleDColumn(0, itemp, 0); itemp++;
+            analysis->FillNtupleDColumn(0, itemp, -9999.0 / mm); itemp++;
+            analysis->FillNtupleDColumn(0, itemp, -9999.0 / mm); itemp++;
+        }
+    }
+    //// beamline hodoscope ////
+    ////////////////////////////
+
     ///////////////////////
     //// Pb glass calo ////
     if (det->IsPbGl()) {
@@ -83,7 +126,7 @@ void EventAction::EndOfEventAction(const G4Event* event)
 
     /////////////////////////
     //// Cherenkov pipes ////
-    if (det->IsPipe()) {
+    if (det->IsPipe() && B_CHER_DET) {
         for (G4int i = 0; i < 2; i++) {
             G4int fIdEPipe = sdm->GetCollectionID("SD_pipe" + std::to_string(i) + "/VolumeEDep");
             VolumeEDepHitsCollection* hitCollectionPipe = fIdEPipe >= 0 ? dynamic_cast<VolumeEDepHitsCollection*>(hcofEvent->GetHC(fIdEPipe)) : nullptr;

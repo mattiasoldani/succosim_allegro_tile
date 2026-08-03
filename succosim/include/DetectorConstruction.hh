@@ -24,10 +24,14 @@
 - 5 --> physics mode with CERN S6 (x2 upstream steel)
 - 6 --> physics mode with CERN S6 (x4 upstream steel)
 */ 
-#define B_CONFIG 6
+#define B_CONFIG 2
 
+// number of tiles in stacks
 #define TILECERN_N 10
 #define TILEFZU_N 32
+
+// activate Cherenkov detection
+#define B_CHER_DET 0
 
 using namespace std;
 
@@ -57,6 +61,7 @@ public:
     G4bool IsPbGl() const { return b_PbGl; }
     G4bool IsScinti() const { return b_scinti; }
     G4bool IsPipe() const { return b_pipe; }
+    G4bool IsHodo() const { return b_hodo; }
 
 private:
     // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
@@ -84,6 +89,7 @@ private:
     G4bool b_PbGl = !b_config_BB;
     G4bool b_scinti = true;
     G4bool b_pipe = true;
+    G4bool b_hodo = true;
 
     // world size - full sides
     G4double worldSizeX = 3 * m;
@@ -108,6 +114,7 @@ private:
     G4double z_tileCern_front = (817+43.5+9+51.5+29.5+36)*cm; // z of CERN stack front
     G4double z_FZU_front = (817+43.5+9+51.5+29.5+7)*cm; // z of FZU stack front
     G4double z_FZU_rear = z_FZU_front + TILEFZU_N*(gen_thk+gen_gap);  // z of FZU stack rear
+    G4double z_hodo_centre = (817+43.5+4.5)*cm; // z of plastic hodoscope centre
     G4double z_additionalPassive_rear = (817+43.5+9+51.5+29.5-1.5)*cm; // z of rear of extra passive layers in specific runs
     G4double beamref_beam_shift = -1*cm; // relative vertical offset of the beam reference markings wrt the observed beam
     G4double tileCern_beamref_shift = -1*cm; // relative vertical offset of the CERN stack wrt the beam reference markings

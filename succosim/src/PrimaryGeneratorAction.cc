@@ -19,10 +19,10 @@ PrimaryGeneratorAction::PrimaryGeneratorAction()
     // set the beam features that are constant throughout the run here, or...
 
     // particle type
-    fGunTest->SetParticleDefinition(G4ParticleTable::GetParticleTable()->FindParticle("e-"));
+    fGun->SetParticleDefinition(G4ParticleTable::GetParticleTable()->FindParticle("e-"));
 
     // energy
-    fGunTest->SetParticleEnergy(1 * GeV);
+    fGun->SetParticleEnergy(1 * GeV);
 
     // --------------------------------------------------
     // ...uncomment this line for the test beam (implemented in src/TestMode.cc)
@@ -43,12 +43,12 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
     G4double zFixed = 0 * cm;
     G4double xRnd = (5*mm) * (G4UniformRand()-0.5);
     G4double yRnd = (5*mm) * (G4UniformRand()-0.5);
-    fGunTest->SetParticlePosition(G4ThreeVector(xRnd, yRnd, zFixed));
+    fGun->SetParticlePosition(G4ThreeVector(xRnd, yRnd, zFixed));
 
     // angle wrt the longitudinal axis - gaussian
     G4double thRnd = G4RandGauss::shoot(0, 0.001);
     G4double phiRnd = 2 * 3.1415926535 * G4UniformRand();
-    fGunTest->SetParticleMomentumDirection(G4ThreeVector(sin(thRnd)*cos(phiRnd), sin(thRnd)*sin(phiRnd), cos(thRnd)));
+    fGun->SetParticleMomentumDirection(G4ThreeVector(sin(thRnd)*cos(phiRnd), sin(thRnd)*sin(phiRnd), cos(thRnd)));
 
     // --------------------------------------------------
     // ...uncomment this line for the test beam (implemented in src/TestMode.cc)

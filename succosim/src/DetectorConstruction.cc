@@ -42,6 +42,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     G4Material* air = nist->FindOrBuildMaterial("G4_AIR"); // air
 	G4Material* SS = nist->FindOrBuildMaterial("G4_STAINLESS-STEEL"); // steel
 	G4Material* plastic = nist->FindOrBuildMaterial("G4_POLYSTYRENE"); // plastic for scintillating tiles
+	G4Material* plastic_ancillary = nist->FindOrBuildMaterial("G4_POLYSTYRENE"); // plastic for ancillary detectors
 	G4Material* plastic_fibre = nist->FindOrBuildMaterial("G4_POLYSTYRENE"); // plastic for WLS fibres
 	G4Material* pbGl = nist->FindOrBuildMaterial("G4_GLASS_LEAD"); // Pb glass
     G4Material* vacuum = nist->FindOrBuildMaterial("G4_Galactic"); // vacuum
@@ -160,11 +161,11 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
         G4double tileCern_holeradius;
         G4double tileCern_holey;
         G4double tileCern_holex;
-        auto tileCern_fzrel = [this](G4int i) { return b_CERN_S6 ? S6_fzrel(i) : S2_fzrel(i); };
-        auto tileCern_fxrel = [this](G4int i) { return b_CERN_S6 ? S6_fxrel(i) : S2_fxrel(i); };
-        auto tileCern_fyrel = [this](G4int i) { return b_CERN_S6 ? S6_fyrel(i) : S2_fyrel(i); };   
+        auto tileCern_fzrel = [this](G4int i) { return IsCERNS6() ? S6_fzrel(i) : S2_fzrel(i); };
+        auto tileCern_fxrel = [this](G4int i) { return IsCERNS6() ? S6_fxrel(i) : S2_fxrel(i); };
+        auto tileCern_fyrel = [this](G4int i) { return IsCERNS6() ? S6_fyrel(i) : S2_fyrel(i); };   
 
-        if (b_CERN_S6) {
+        if (IsCERNS6()) {
             tileCern_ang_x = S6_ang_x;
             tileCern_ang_y = S6_ang_y;
             tileCern_ang_z = S6_ang_z;
@@ -207,7 +208,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 
         for (G4int i = 0; i < TILECERN_N; i++) {
 
-            tileCern_sign = b_CERN_S6 ? -1 : ((i+1)%2 ? -1 : 1);
+            tileCern_sign = IsCERNS6() ? -1 : ((i+1)%2 ? -1 : 1);
 
             G4String passiveName = "tileCern_passive" + std::to_string(i);
             G4String tileName = "tileCern" + std::to_string(i);
@@ -270,14 +271,14 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
         G4double scintiSmall0OffsetHorizontal = 0*cm;
         G4double scintiSmall0OffsetVertical = 0*cm;
         G4VSolid* scintiSmall0Box = new G4Box("scintiSmall0", scintiSmallWidth / 2, scintiSmallHeight / 2, scintiSmallThickness / 2);
-        G4LogicalVolume* scintiSmall0Log = new G4LogicalVolume(scintiSmall0Box, plastic, "scintiSmall0_Log");
+        G4LogicalVolume* scintiSmall0Log = new G4LogicalVolume(scintiSmall0Box, plastic_ancillary, "scintiSmall0_Log");
         scintiSmall0Log->SetVisAttributes(blue);
         new G4PVPlacement(nullptr, G4ThreeVector(scintiSmall0OffsetHorizontal, beamref_beam_shift + scintiSmall0OffsetVertical, z_scintiSmall0_front + scintiSmallThickness / 2), scintiSmall0Log, "scintiSmall0_Phys", worldLog, false, 0);
 
         G4double scintiSmall1OffsetHorizontal = 0*cm;
         G4double scintiSmall1OffsetVertical = -0.25*cm;
         G4VSolid* scintiSmall1Box = new G4Box("scintiSmall1", scintiSmallWidth / 2, scintiSmallHeight / 2, scintiSmallThickness / 2);
-        G4LogicalVolume* scintiSmall1Log = new G4LogicalVolume(scintiSmall1Box, plastic, "scintiSmall1_Log");
+        G4LogicalVolume* scintiSmall1Log = new G4LogicalVolume(scintiSmall1Box, plastic_ancillary, "scintiSmall1_Log");
         scintiSmall1Log->SetVisAttributes(blue);
         new G4PVPlacement(nullptr, G4ThreeVector(scintiSmall1OffsetHorizontal, beamref_beam_shift + scintiSmall1OffsetVertical, z_scintiSmall1_front + scintiSmallThickness / 2), scintiSmall1Log, "scintiSmall1_Phys", worldLog, false, 0);
 
@@ -288,14 +289,14 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
         G4double scintiBig0OffsetHorizontal = 0*cm;
         G4double scintiBig0OffsetVertical = -0.4*cm;
         G4VSolid* scintiBig0Box = new G4Box("scintiBig0", scintiBigWidth / 2, scintiBigHeight / 2, scintiBigThickness / 2);
-        G4LogicalVolume* scintiBig0Log = new G4LogicalVolume(scintiBig0Box, plastic, "scintiBig0_Log");
+        G4LogicalVolume* scintiBig0Log = new G4LogicalVolume(scintiBig0Box, plastic_ancillary, "scintiBig0_Log");
         scintiBig0Log->SetVisAttributes(blue);
         new G4PVPlacement(nullptr, G4ThreeVector(scintiBig0OffsetHorizontal, beamref_beam_shift + scintiBig0OffsetVertical, z_scintiBig0_front + scintiBigThickness / 2), scintiBig0Log, "scintiBig0_Phys", worldLog, false, 0);
 
         G4double scintiBig1OffsetHorizontal = 0*cm;
         G4double scintiBig1OffsetVertical = 0*cm;
         G4VSolid* scintiBig1Box = new G4Box("scintiBig1", scintiBigWidth / 2, scintiBigHeight / 2, scintiBigThickness / 2);
-        G4LogicalVolume* scintiBig1Log = new G4LogicalVolume(scintiBig1Box, plastic, "scintiBig1_Log");
+        G4LogicalVolume* scintiBig1Log = new G4LogicalVolume(scintiBig1Box, plastic_ancillary, "scintiBig1_Log");
         scintiBig1Log->SetVisAttributes(blue);
         new G4PVPlacement(nullptr, G4ThreeVector(scintiBig1OffsetHorizontal, beamref_beam_shift + scintiBig1OffsetVertical, z_scintiBig1_front + scintiBigThickness / 2), scintiBig1Log, "scintiBig1_Phys", worldLog, false, 0);
 
@@ -333,6 +334,25 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     }
     //// Cherenkov pipes ////
     /////////////////////////
+
+    ////////////////////////////
+    //// beamline hodoscope ////
+    if (IsHodo()) {
+
+        G4double hodoThickness = 1 * cm;
+        G4double hodoWidth = 10 * cm;
+        G4double hodoHeight = 10 * cm;
+
+        G4double hodoOffsetHorizontal = 0*cm;
+        G4double hodoOffsetVertical = 0*cm;
+        G4VSolid* hodoBox = new G4Box("hodo", hodoWidth / 2, hodoHeight / 2, hodoThickness / 2);
+        G4LogicalVolume* hodoLog = new G4LogicalVolume(hodoBox, plastic_ancillary, "hodo_Log");
+        hodoLog->SetVisAttributes(magenta);
+        new G4PVPlacement(nullptr, G4ThreeVector(hodoOffsetHorizontal, beamref_beam_shift + hodoOffsetVertical, z_hodo_centre), hodoLog, "hodo_Phys", worldLog, false, 0);
+
+    }
+    //// beamline hodoscope ////
+    ////////////////////////////
 
     //////////////////////////////////////////
     //// additional steel layers upstream ////
@@ -468,7 +488,7 @@ void DetectorConstruction::ConstructSDandField()
 
     /////////////////////////
     //// Cherenkov pipes ////
-    if (IsPipe()) {
+    if (IsPipe() && B_CHER_DET) {
         VolumeEDepSD* pipe0SD = new VolumeEDepSD("SD_pipe0");
         SetSensitiveDetector("pipe0Vacuum_Log", pipe0SD);
         sdm->AddNewDetector(pipe0SD);
@@ -479,6 +499,16 @@ void DetectorConstruction::ConstructSDandField()
     }
     //// Cherenkov pipes ////
     /////////////////////////
+
+    ////////////////////////////
+    //// beamline hodoscope ////
+    if (IsHodo()) {
+        VolumeTrackingSD* hodoSD = new VolumeTrackingSD("SD_hodo");
+        SetSensitiveDetector("hodo_Log", hodoSD);
+        sdm->AddNewDetector(hodoSD);
+    }
+    //// beamline hodoscope ////
+    ////////////////////////////
     
     // --------------------------------------------------
     // ...uncomment this line for the test sensitive detectors (implemented in src/TestMode.cc)

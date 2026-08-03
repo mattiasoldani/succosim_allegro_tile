@@ -27,6 +27,13 @@ RunAction::RunAction() :  G4UserRunAction()
 
     analysis->CreateNtupleDColumn("NEvent");
 
+    ////////////////////////////
+    //// beamline hodoscope ////
+    analysis->CreateNtupleDColumn("hodo_N");
+    analysis->CreateNtupleDColumn("hodo_X");
+    analysis->CreateNtupleDColumn("hodo_Y");
+    ////////////////////////////
+
     ///////////////////////
     //// Pb glass calo ////
     analysis->CreateNtupleDColumn("E_PbGl");
