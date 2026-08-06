@@ -8,6 +8,7 @@
 #include "EventAction.hh"
 #include "Analysis.hh"
 #include "CustomHit.hh"
+#include <G4RunManager.hh>
 #include "DetectorConstruction.hh"
 
 using namespace std;
@@ -33,7 +34,9 @@ void EventAction::EndOfEventAction(const G4Event* event)
     analysis->FillNtupleDColumn(0, itemp, event->GetEventID());
     itemp++;
 
-    DetectorConstruction * det; 
+    auto det = static_cast<const DetectorConstruction*>(
+        G4RunManager::GetRunManager()->GetUserDetectorConstruction());
+    if(!det) return;
 
     ////////////////////////////
     //// beamline hodoscope ////
@@ -41,7 +44,7 @@ void EventAction::EndOfEventAction(const G4Event* event)
         G4double thresholdHodoEDep = 50 * keV;
 
         G4int fHodo = sdm->GetCollectionID("SD_hodo/VolumeTracking");
-        VolumeTrackingHitsCollection* hitCollectionHodo = dynamic_cast<VolumeTrackingHitsCollection*>(hcofEvent->GetHC(fHodo));
+        VolumeTrackingHitsCollection* hitCollectionHodo = fHodo >= 0 ? dynamic_cast<VolumeTrackingHitsCollection*>(hcofEvent->GetHC(fHodo)) : nullptr;
 
         if (hitCollectionHodo){
             G4int lastTrackId = -1;
@@ -64,8 +67,10 @@ void EventAction::EndOfEventAction(const G4Event* event)
                     lastTrackId = hit->GetTrackId();
                 }
             }
-            horsa = horsa / NStep;
-            versa = versa / NStep;
+            if (NHits > 0) {
+                horsa = horsa / NStep;
+                versa = versa / NStep;
+            }
             analysis->FillNtupleDColumn(0, itemp, NHits); itemp++;
             analysis->FillNtupleDColumn(0, itemp, horsa / mm); itemp++;
             analysis->FillNtupleDColumn(0, itemp, versa / mm); itemp++;
@@ -74,6 +79,10 @@ void EventAction::EndOfEventAction(const G4Event* event)
             analysis->FillNtupleDColumn(0, itemp, -9999.0 / mm); itemp++;
             analysis->FillNtupleDColumn(0, itemp, -9999.0 / mm); itemp++;
         }
+    }else{
+        analysis->FillNtupleDColumn(0, itemp, 0); itemp++;
+        analysis->FillNtupleDColumn(0, itemp, -9999.0 / mm); itemp++;
+        analysis->FillNtupleDColumn(0, itemp, -9999.0 / mm); itemp++;
     }
     //// beamline hodoscope ////
     ////////////////////////////

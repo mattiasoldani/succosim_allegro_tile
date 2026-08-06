@@ -457,7 +457,7 @@ void DetectorConstruction::ConstructSDandField()
     ///////////////////////
     //// Pb glass calo ////
     if (IsPbGl()) {
-        VolumeEDepSD* pbGlSD = new VolumeEDepSD("SD_pbGl");
+        VolumeEDepSD* pbGlSD = new VolumeEDepSD("SD_PbGl");
         SetSensitiveDetector("pbGl_Log", pbGlSD);
         sdm->AddNewDetector(pbGlSD);
     }
@@ -523,6 +523,7 @@ void DetectorConstruction::ConstructSDandField()
 // DetectorConstruction methods ///////////////////////////////
 
 G4double DetectorConstruction::pi = acos(-1);
+
 
 G4double DetectorConstruction::S2_fzrel(G4int i){ // longitudinal position of single tiles, relative to front
 	return floor(i/2)*(passive_thk_gross + S2_thk) + passive_thk_gross + S2_thk/2;
