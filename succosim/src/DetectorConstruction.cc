@@ -56,74 +56,13 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 	G4ThreeVector pos_temp;
 	G4Transform3D pos_rot_temp;
 
-    ////////////////////////////
-    //////// test tiles ////////
+    ////////////////////////////////////////////////////////////////////////////////////////
+    //// prototype /////////////////////////////////////////////////////////////////////////
 
-    G4double offset;
-    G4int sign;
+    
 
-	geomTrapezoid* tileTestGeom = new geomTrapezoid(radius, height, angle);
-
-    // vvvvvvvvvv trapezoidal tiles, w/ fibre gap correction
-
-    tileTestGeom->AddHorGaps(sidegap);
-
-    sign = 1;
-    pos_temp = G4ThreeVector(-sign*0.5*cm, 0, 0*thickness);
-    pos_rot_temp = G4Translate3D(pos_temp) * G4Rotate3D(rot_x_ang, G4Vector3D(1,0,0)) * G4Rotate3D(rot_y_ang, G4Vector3D(0,1,0)) * G4Rotate3D(rot_z_ang, G4Vector3D(0,0,1));
-    G4LogicalVolume* tileTest000Log = fLogTile("tile000", plastic, cyan, tileTestGeom, thickness, sign, holeradius, holex, holey);
-    new G4PVPlacement(pos_rot_temp, tileTest000Log, "tile000", worldLog, false, 0);
-
-    G4LogicalVolume* tileTest000FibreLog = fLogPlaceFibreCirc("fibre000", plastic_fibre, green, tileTestGeom, worldLog, fibreradius, 5., 50., pos_rot_temp, sign);
-
-    sign = -1;
-    pos_temp = G4ThreeVector(-sign*0.5*cm, 0, 10*thickness);
-    pos_rot_temp = G4Translate3D(pos_temp) * G4Rotate3D(rot_x_ang, G4Vector3D(1,0,0)) * G4Rotate3D(rot_y_ang, G4Vector3D(0,1,0)) * G4Rotate3D(rot_z_ang, G4Vector3D(0,0,1));
-    G4LogicalVolume* tileTest001Log = fLogTile("tile001", plastic, cyan, tileTestGeom, thickness, sign, holeradius, holex, holey);
-    new G4PVPlacement(pos_rot_temp, tileTest001Log, "tile001", worldLog, false, 0);
-
-    G4LogicalVolume* tileTest001FibreLog = fLogPlaceFibreCirc("fibre001", plastic_fibre, green, tileTestGeom, worldLog, fibreradius, 5., 50., pos_rot_temp, sign);
-
-    sign = 0;
-    pos_temp = G4ThreeVector(-3*cm, 0, -10*thickness);
-    pos_rot_temp = G4Translate3D(pos_temp) * G4Rotate3D(rot_x_ang, G4Vector3D(1,0,0)) * G4Rotate3D(rot_y_ang, G4Vector3D(0,1,0)) * G4Rotate3D(rot_z_ang, G4Vector3D(0,0,1));
-    G4LogicalVolume* tileTest002Log = fLogTile("tile002", plastic, cyan, tileTestGeom, thickness, sign, holeradius, holex, holey);
-    new G4PVPlacement(pos_rot_temp, tileTest002Log, "tile002", worldLog, false, 0);
-
-    G4LogicalVolume* tileTest002FibreLog = fLogPlaceFibreCirc("fibre002", plastic_fibre, green, tileTestGeom, worldLog, fibreradius, 5., 50., pos_rot_temp, sign);
-
-    tileTestGeom->RmHorGaps();
-
-    // vvvvvvvvvv rectangular tiles, w/o fibre gap correction
-
-	geomTrapezoid* tileTestGeomRect = new geomRectangle(height, height);
-
-    sign = 1;
-    pos_temp = G4ThreeVector(-sign*0.5*cm, 0, 0*thickness + 200*mm);
-    pos_rot_temp = G4Translate3D(pos_temp) * G4Rotate3D(rot_x_ang, G4Vector3D(1,0,0)) * G4Rotate3D(rot_y_ang, G4Vector3D(0,1,0)) * G4Rotate3D(rot_z_ang, G4Vector3D(0,0,1));
-    G4LogicalVolume* tileTest003Log = fLogTile("tile003", plastic, cyan, tileTestGeomRect, thickness, sign, holeradius, holex, holey);
-    new G4PVPlacement(pos_rot_temp, tileTest003Log, "tile003", worldLog, false, 0);
-
-    G4LogicalVolume* tileTest003FibreLog = fLogPlaceFibreCirc("fibre003", plastic_fibre, green, tileTestGeomRect, worldLog, fibreradius, 5., 50., pos_rot_temp, sign);
-
-    sign = -1;
-    pos_temp = G4ThreeVector(-sign*0.5*cm, 0, 10*thickness + 200*mm);
-    pos_rot_temp = G4Translate3D(pos_temp) * G4Rotate3D(rot_x_ang, G4Vector3D(1,0,0)) * G4Rotate3D(rot_y_ang, G4Vector3D(0,1,0)) * G4Rotate3D(rot_z_ang, G4Vector3D(0,0,1));
-    G4LogicalVolume* tileTest004Log = fLogTile("tile004", plastic, cyan, tileTestGeomRect, thickness, sign, holeradius, holex, holey);
-    new G4PVPlacement(pos_rot_temp, tileTest004Log, "tile004", worldLog, false, 0);
-
-    G4LogicalVolume* tileTest004FibreLog = fLogPlaceFibreCirc("fibre004", plastic_fibre, green, tileTestGeomRect, worldLog, fibreradius, 5., 50., pos_rot_temp, sign);
-
-    sign = 0;
-    pos_temp = G4ThreeVector(-3*cm, 0, -10*thickness + 200*mm);
-    pos_rot_temp = G4Translate3D(pos_temp) * G4Rotate3D(rot_x_ang, G4Vector3D(1,0,0)) * G4Rotate3D(rot_y_ang, G4Vector3D(0,1,0)) * G4Rotate3D(rot_z_ang, G4Vector3D(0,0,1));
-    G4LogicalVolume* tileTest005Log = fLogTile("tile005", plastic, cyan, tileTestGeomRect, thickness, sign, holeradius, holex, holey);
-    new G4PVPlacement(pos_rot_temp, tileTest005Log, "tile005", worldLog, false, 0);
-
-    G4LogicalVolume* tileTest005FibreLog = fLogPlaceFibreCirc("fibre005", plastic_fibre, green, tileTestGeomRect, worldLog, fibreradius, 5., 50., pos_rot_temp, sign);
-
-    //////// test tiles ////////
-    ////////////////////////////
+    //// prototype /////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////
 
     // --------------------------------------------------
     // ...uncomment this line for the test setup (implemented in src/TestMode.cc) 
