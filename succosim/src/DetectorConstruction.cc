@@ -348,7 +348,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
         G4VSolid* hodoBox = new G4Box("hodo", hodoWidth / 2, hodoHeight / 2, hodoThickness / 2);
         G4LogicalVolume* hodoLog = new G4LogicalVolume(hodoBox, plastic_ancillary, "hodo_Log");
         hodoLog->SetVisAttributes(magenta);
-        new G4PVPlacement(nullptr, G4ThreeVector(hodoOffsetHorizontal, beamref_beam_shift + hodoOffsetVertical, z_hodo_centre), hodoLog, "hodo_Phys", worldLog, false, 0);
+        new G4PVPlacement(nullptr, G4ThreeVector(hodoOffsetHorizontal, hodoOffsetVertical, z_hodo_centre), hodoLog, "hodo_Phys", worldLog, false, 0);
 
     }
     //// beamline hodoscope ////

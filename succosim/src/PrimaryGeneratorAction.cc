@@ -23,8 +23,10 @@ PrimaryGeneratorAction::PrimaryGeneratorAction()
     // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
     // set the beam features that are constant throughout the run here, or...
 
+    // default particle: 1-GeV geantino originating from the centre of the world, within a transverse square of side 5 mm and with a divergence of 1 mrad
+
     // particle type
-    //fGun->SetParticleDefinition(G4ParticleTable::GetParticleTable()->FindParticle("e-"));
+    //fGun->SetParticleDefinition(G4ParticleTable::GetParticleTable()->FindParticle("geantino"));
     fGPS->SetParticleDefinition(G4ParticleTable::GetParticleTable()->FindParticle("geantino"));
 
     // energy
@@ -50,6 +52,8 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 {
     // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
     // set the beam features that change at each event here, or...
+
+    // default particle: 1-GeV geantino originating from the centre of the world, within a transverse square of side 5 mm and with a divergence of 1 mrad
 
     // beam source position - uniform square
     G4double zFixed = 0 * cm;

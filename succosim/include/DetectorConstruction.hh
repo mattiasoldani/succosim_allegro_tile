@@ -116,11 +116,11 @@ private:
     G4double z_FZU_rear = z_FZU_front + TILEFZU_N*(gen_thk+gen_gap);  // z of FZU stack rear
     G4double z_hodo_centre = (817+43.5+4.5)*cm; // z of plastic hodoscope centre
     G4double z_additionalPassive_rear = (817+43.5+9+51.5+29.5-1.5)*cm; // z of rear of extra passive layers in specific runs
-    G4double beamref_beam_shift = -1*cm; // relative vertical offset of the beam reference markings wrt the observed beam
     G4double tileCern_beamref_shift = -1*cm; // relative vertical offset of the CERN stack wrt the beam reference markings
     G4double FZU_beamref_shift = -0.5*cm; // relative vertical offset of the FZU stack wrt the beam reference markings
     G4double passive_S6_shift = 47.17*mm; // relative vertical shift between passive layers and S6 (half) tiles in CERN stack
     G4double passive_trig_shift = 59*mm; // relative vertical shift between passive layers and S2 trigger (half) tiles in CERN stack
+    G4double beamref_beam_shift = 0; // relative (additional to actual beam profiles) vertical offset of the beam reference markings wrt the observed beam - not applied to hodoscope which measured the actual beam profiles
 
 	// tile shapes - CERN S2
 	G4double FZU_ang_x = -90*deg; // angle wrt original x axis
