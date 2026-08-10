@@ -11,6 +11,8 @@
 #include <G4Tubs.hh>
 #include <G4IntersectionSolid.hh>
 #include <G4SubtractionSolid.hh>
+#include <G4Vector3D.hh>
+#include <G4Transform3D.hh>
 
 using namespace std;
 
@@ -31,6 +33,29 @@ private:
 
     // simply pi
     static G4double pi;
+
+    // world size - full sides
+    G4double worldSizeX = 3 * m;
+    G4double worldSizeY = 3 * m;
+    G4double worldSizeZ = 30 * m;
+
+    //// specific for this application ////
+
+	// tile shape and orientation
+    G4double height = 50*mm;
+    G4double radius = 2.8*m + 10*mm + height/2;
+    G4double angle = 2*pi/128;
+    G4double thickness = 3*mm;
+    G4double sidegap = 2*mm;
+    G4double holeradius = 3*mm;
+    G4double holey = height/2 - 6*mm;
+    G4double holex = 6*mm;
+    G4double fibreradius = 0.5*mm;
+    G4double rot_x_ang = -90*deg;
+    G4double rot_y_ang = 0*deg;
+    G4double rot_z_ang = 0*deg;
+		
+	//// specific for DetectorConstruction_tile ////
 
     // all about isosceles trapezoids (full or half)
     class geomTrapezoid{
@@ -191,7 +216,7 @@ private:
         G4double holeY
     );
 
-    G4LogicalVolume* fLogPlaceFibreCirc(
+    G4LogicalVolume* fLogPlaceFibreCirc( // defined in DetectorConstruction_tile.cc
         G4String name, 
         G4Material* pMaterial, 
         G4VisAttributes* pColour,
@@ -202,6 +227,19 @@ private:
         G4double extraRLOut,
         G4ThreeVector tilePos,
         G4RotationMatrix* pTileRot,
+        G4int signHalf
+    );
+	
+    G4LogicalVolume* fLogPlaceFibreCirc( // defined in DetectorConstruction_tile.cc
+        G4String name, 
+        G4Material* pMaterial, 
+        G4VisAttributes* pColour,
+        geomTrapezoid* pTileGeom, 
+        G4LogicalVolume* pEnvelope,
+        G4double sectionR,
+        G4double extraRIn,
+        G4double extraRLOut,
+        G4Transform3D tilePosRot,
         G4int signHalf
     );
 	

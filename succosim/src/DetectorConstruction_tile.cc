@@ -99,6 +99,7 @@ G4LogicalVolume* DetectorConstruction::fLogTile(
 }
 
 // create and place the optical fibre next to a tile
+// overloaded version using G4ThreeVector+G4RotationMatrix* for envelope roto-translation instead of G4Transform3D, for back-compatibility
 G4LogicalVolume* DetectorConstruction::fLogPlaceFibreCirc(
     G4String name, 
     G4Material* pMaterial, 
@@ -112,6 +113,26 @@ G4LogicalVolume* DetectorConstruction::fLogPlaceFibreCirc(
 
     G4ThreeVector tilePos, // central coordinates used for tile placement
     G4RotationMatrix* pTileRot = nullptr, // rotation matrix used for tile placement
+    G4int signHalf = 0 // see signHalf in tile logical volume creation
+){
+	G4Transform3D tilePosRot = G4Translate3D(tilePos) * G4Rotate3D(*pTileRot);
+	
+	return fLogPlaceFibreCirc(name, pMaterial, pColour, pTileGeom, pEnvelope, sectionR, extraRIn, extraROut, tilePosRot, signHalf);
+}
+
+// create and place the optical fibre next to a tile
+G4LogicalVolume* DetectorConstruction::fLogPlaceFibreCirc(
+    G4String name, 
+    G4Material* pMaterial, 
+    G4VisAttributes* pColour,
+    geomTrapezoid* pTileGeom, 
+    G4LogicalVolume* pEnvelope, // logical volume in which to place the fibre
+
+    G4double sectionR, // fibre section radius
+    G4double extraRIn, // fibre extension (along the wedge side) towards inner radii (i.e. towards collision point)
+    G4double extraROut, // fibre extension (along the wedge side) towards outer radii
+
+    G4Transform3D tilePosRot, // general 3D transformation for tile placement
     G4int signHalf = 0 // see signHalf in tile logical volume creation
 ){
     // create shape and logical volume (the latter will be returned)
@@ -164,8 +185,8 @@ G4LogicalVolume* DetectorConstruction::fLogPlaceFibreCirc(
         new G4PVPlacement(rot_internal, pos_internal, logvol, name + "_Phys_EnvIntNoRot", pEnvelopeInternal, false, 0);
     }
 
-    pTileRot->setAxis(tilePos);
-    new G4PVPlacement(pTileRot, tilePos, pEnvelopeInternal, name_phys, pEnvelope, false, 0);
+    //pTileRot->setAxis(tilePos);
+    new G4PVPlacement(tilePosRot, pEnvelopeInternal, name_phys, pEnvelope, false, 0);
 
     return logvol;
 }

@@ -1,10 +1,13 @@
 # initialise the simulation
 /run/initialize
 
-# graphical settings
+# basic graphical settings
 /vis/open OGLSQt
 /vis/drawVolume
 /vis/scene/add/trajectories smooth
 /vis/scene/endOfEventAction accumulate
+
+# optional: cartesian reference (at the centre of the world)
+# /vis/scene/add/axes 0 0 0
 
 # don't shot anything --> waiting for manual input from the GUI

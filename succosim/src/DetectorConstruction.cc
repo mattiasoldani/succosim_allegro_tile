@@ -27,162 +27,103 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     // define the world and all the setup stuff (materials, volumes) here, or...
 	
     // colors
+    G4VisAttributes* invisible = new G4VisAttributes(false);
     G4VisAttributes* cyan = new G4VisAttributes(G4Colour::Cyan());
     G4VisAttributes* blue = new G4VisAttributes(G4Colour::Blue());
     G4VisAttributes* red = new G4VisAttributes(G4Colour::Red());
     G4VisAttributes* green = new G4VisAttributes(G4Colour::Green());
     G4VisAttributes* magenta = new G4VisAttributes(G4Colour::Magenta());
+	G4VisAttributes* grey = new G4VisAttributes(G4Colour::Grey());
+    G4VisAttributes* brown = new G4VisAttributes(true, G4Colour::Brown());
 	
     // off-the-shelf materials (from NIST)
     G4Material* air = nist->FindOrBuildMaterial("G4_AIR"); // air
-	
-    // manual material: BC400 scintillator
-    G4Element* elH = new G4Element("Hydrogen", "H", 1., 1.0079 * g/mole);
-    G4Element* elC = new G4Element("Carbon", "C", 6., 12.01 * g/mole);
-    G4Material* bc400 = new G4Material("BC400", 1.032*g/cm3, 2);
-    bc400->AddElement(elH, 0.085);
-    bc400->AddElement(elC, 0.915);
+	G4Material* SS = nist->FindOrBuildMaterial("G4_STAINLESS-STEEL"); // steel
+	G4Material* plastic = nist->FindOrBuildMaterial("G4_POLYSTYRENE"); // plastic for scintillating tiles
+	G4Material* plastic_fibre = nist->FindOrBuildMaterial("G4_POLYSTYRENE"); // plastic for WLS fibres
+	G4Material* pbGl = nist->FindOrBuildMaterial("G4_GLASS_LEAD"); // Pb glass
+    G4Material* vacuum = nist->FindOrBuildMaterial("G4_Galactic"); // vacuum
 	
     // world
-    G4double worldSizeX = 2 * m;
-    G4double worldSizeY = 2 * m;
-    G4double worldSizeZ = 2 * m;
     G4RotationMatrix* worldRotation = new G4RotationMatrix();
-    worldRotation->rotateX(90 * deg);
     G4VSolid* worldBox = new G4Box("world_Shape", worldSizeX / 2, worldSizeY / 2, worldSizeZ / 2);
-    G4LogicalVolume* worldLog = new G4LogicalVolume(worldBox, air, "world_Logical");
+    G4LogicalVolume* worldLog = new G4LogicalVolume(worldBox, air, "world_Log");
     G4VisAttributes* visAttrWorld = new G4VisAttributes();
-    visAttrWorld->SetVisibility(false);
-    worldLog->SetVisAttributes(visAttrWorld);
+    worldLog->SetVisAttributes(invisible);
     G4VPhysicalVolume* worldPhys = new G4PVPlacement(nullptr, {}, worldLog, "world", nullptr, false, 0);
-
-    // 2nd world layer, rotated to have the beam travelling horizontally along z
-    G4LogicalVolume* worldLog_rot = new G4LogicalVolume(worldBox, air, "world_Logical_Rot");
-    G4VisAttributes* visAttrWorld_rot = new G4VisAttributes();
-    visAttrWorld_rot->SetVisibility(false);
-    worldLog_rot->SetVisAttributes(visAttrWorld_rot);
-    new G4PVPlacement(worldRotation, {}, worldLog_rot, "world_Rot", worldLog, false, 0);
 	
-	// tile shapes
-    G4double height = 50*mm;
-    G4double radius = 2.8*m + 10*mm + height/2;
-    G4double angle = 2*pi/128;
-    G4double thickness = 3*mm;
-    G4double sidegap = 2*mm;
-    G4double holeradius = 3*mm;
-    G4double holey = height/2 - 6*mm;
-    G4double holex = 6*mm;
-    G4double fibreradius = 0.5*mm;
+	// generic translation and roto-translation, to be applied element-by-element
+	G4ThreeVector pos_temp;
+	G4Transform3D pos_rot_temp;
 
-    G4RotationMatrix* tileRotation = new G4RotationMatrix();
-    tileRotation->rotateY(20 * deg);
+    ////////////////////////////
+    //////// test tiles ////////
+
+    G4double offset;
+    G4int sign;
 
 	geomTrapezoid* tileTestGeom = new geomTrapezoid(radius, height, angle);
 
-	geomTrapezoid* tileTestGeomRect = new geomRectangle(height, height);
-
-    G4double offset;
-    G4ThreeVector pos;
-    G4int sign;
-
-    //// preliminary tests 00 ////
-
-    // // full tile
-    // G4LogicalVolume* tileTest0Log = fLogTile(tileTestGeom, "tile0", thickness, bc400, cyan, 0, holeradius, 0, holey);
-    // new G4PVPlacement(nullptr, G4ThreeVector(0, 0, 0), tileTest0Log, "tile0", worldLog_rot, false, 0);
-
-    // tileTestGeom->AddHorGaps(sidegap);
-    // G4LogicalVolume* tileTest1Log = fLogTile(tileTestGeom, "tile1", thickness, bc400, cyan, 0, holeradius, holex, holey);
-    // new G4PVPlacement(nullptr, G4ThreeVector(0, -2*thickness, 0), tileTest1Log, "tile1", worldLog_rot, false, 0);
-    // tileTestGeom->RmHorGaps();
-
-    // // half tile, positive horizontal side
-    // G4LogicalVolume* tileTest2Log = fLogTile(tileTestGeom, "tile2", thickness, bc400, blue, 1, holeradius, 0, holey);
-    // new G4PVPlacement(nullptr, G4ThreeVector(0, -4*thickness, 0), tileTest2Log, "tile2", worldLog_rot, false, 0);
-
-    // tileTestGeom->AddHorGaps(sidegap);
-    // G4LogicalVolume* tileTest3Log = fLogTile(tileTestGeom, "tile3", thickness, bc400, blue, 1, holeradius, holex, holey);
-    // new G4PVPlacement(nullptr, G4ThreeVector(0, -6*thickness, 0), tileTest3Log, "tile3", worldLog_rot, false, 0);
-    // tileTestGeom->RmHorGaps();
-
-    // // half tile, negative horizontal side
-    // G4LogicalVolume* tileTest4Log = fLogTile(tileTestGeom, "tile4", thickness, bc400, red, -1, holeradius, 0, holey);
-    // new G4PVPlacement(nullptr, G4ThreeVector(0, -8*thickness, 0), tileTest4Log, "tile4", worldLog_rot, false, 0);
-
-    // tileTestGeom->AddHorGaps(sidegap);
-    // G4LogicalVolume* tileTest5Log = fLogTile(tileTestGeom, "tile5", thickness, bc400, red, -1, holeradius, holex, holey);
-    // new G4PVPlacement(nullptr, G4ThreeVector(0, -10*thickness, 0), tileTest5Log, "tile5", worldLog_rot, false, 0);
-    // tileTestGeom->RmHorGaps();
-
-    // // half tile, positive horizontal side, centred (notice the -offset)
-    // offset = tileTestGeom->GetFullToHalfCentreOffset();
-    // G4LogicalVolume* tileTest6Log = fLogTile(tileTestGeom, "tile6", thickness, bc400, green, 1, holeradius, 0, holey);
-    // new G4PVPlacement(nullptr, G4ThreeVector(-offset, -12*thickness, 0), tileTest6Log, "tile6", worldLog_rot, false, 0);
-
-    // tileTestGeom->AddHorGaps(sidegap);
-    // offset = tileTestGeom->GetFullToHalfCentreOffset();
-    // G4LogicalVolume* tileTest7Log = fLogTile(tileTestGeom, "tile7", thickness, bc400, green, 1, holeradius, holex, holey);
-    // new G4PVPlacement(nullptr, G4ThreeVector(-offset, -14*thickness, 0), tileTest7Log, "tile7", worldLog_rot, false, 0);
-    // tileTestGeom->RmHorGaps();
-
-    // // half tile, negative horizontal side, centred (notice the +offset)
-    // offset = tileTestGeom->GetFullToHalfCentreOffset();
-    // G4LogicalVolume* tileTest8Log = fLogTile(tileTestGeom, "tile8", thickness, bc400, magenta, -1, holeradius, 0, holey);
-    // new G4PVPlacement(nullptr, G4ThreeVector(offset, -16*thickness, 0), tileTest8Log, "tile8", worldLog_rot, false, 0);
-
-    // tileTestGeom->AddHorGaps(sidegap);
-    // offset = tileTestGeom->GetFullToHalfCentreOffset();
-    // G4LogicalVolume* tileTest9Log = fLogTile(tileTestGeom, "tile9", thickness, bc400, magenta, -1, holeradius, holex, holey);
-    // new G4PVPlacement(nullptr, G4ThreeVector(offset, -18*thickness, 0), tileTest9Log, "tile9", worldLog_rot, false, 0);
-    // tileTestGeom->RmHorGaps();
-
-    //// preliminary tests 01 ////
+    // vvvvvvvvvv trapezoidal tiles, w/ fibre gap correction
 
     tileTestGeom->AddHorGaps(sidegap);
 
     sign = 1;
-    pos = G4ThreeVector(-sign*0.5*cm, 0*thickness, 0);
-    G4LogicalVolume* tileTest000Log = fLogTile("tile000", bc400, cyan, tileTestGeom, thickness, sign, holeradius, holex, holey);
-    new G4PVPlacement(tileRotation, pos, tileTest000Log, "tile000", worldLog_rot, false, 0);
+    pos_temp = G4ThreeVector(-sign*0.5*cm, 0, 0*thickness);
+    pos_rot_temp = G4Translate3D(pos_temp) * G4Rotate3D(rot_x_ang, G4Vector3D(1,0,0)) * G4Rotate3D(rot_y_ang, G4Vector3D(0,1,0)) * G4Rotate3D(rot_z_ang, G4Vector3D(0,0,1));
+    G4LogicalVolume* tileTest000Log = fLogTile("tile000", plastic, cyan, tileTestGeom, thickness, sign, holeradius, holex, holey);
+    new G4PVPlacement(pos_rot_temp, tileTest000Log, "tile000", worldLog, false, 0);
 
-    G4LogicalVolume* tileTest000FibreLog = fLogPlaceFibreCirc("fibre000", bc400, green, tileTestGeom, worldLog_rot, fibreradius, 5., 50., pos, tileRotation, sign);
-
-    sign = -1;
-    pos = G4ThreeVector(-sign*0.5*cm, 10*thickness, 0);
-    G4LogicalVolume* tileTest001Log = fLogTile("tile001", bc400, cyan, tileTestGeom, thickness, sign, holeradius, holex, holey);
-    new G4PVPlacement(tileRotation, pos, tileTest001Log, "tile001", worldLog_rot, false, 0);
-
-    G4LogicalVolume* tileTest001FibreLog = fLogPlaceFibreCirc("fibre001", bc400, green, tileTestGeom, worldLog_rot, fibreradius, 5., 50., pos, tileRotation, sign);
-
-    sign = 0;
-    pos = G4ThreeVector(-3*cm, -10*thickness, 0);
-    G4LogicalVolume* tileTest002Log = fLogTile("tile002", bc400, cyan, tileTestGeom, thickness, sign, holeradius, holex, holey);
-    new G4PVPlacement(tileRotation, pos, tileTest002Log, "tile002", worldLog_rot, false, 0);
-
-    G4LogicalVolume* tileTest002FibreLog = fLogPlaceFibreCirc("fibre002", bc400, green, tileTestGeom, worldLog_rot, fibreradius, 5., 50., pos, tileRotation, sign);
-
-    sign = 1;
-    pos = G4ThreeVector(-sign*0.5*cm, 0*thickness - 200*mm, 0);
-    G4LogicalVolume* tileTest003Log = fLogTile("tile003", bc400, cyan, tileTestGeomRect, thickness, sign, holeradius, holex, holey);
-    new G4PVPlacement(tileRotation, pos, tileTest003Log, "tile003", worldLog_rot, false, 0);
-
-    G4LogicalVolume* tileTest003FibreLog = fLogPlaceFibreCirc("fibre003", bc400, green, tileTestGeomRect, worldLog_rot, fibreradius, 5., 50., pos, tileRotation, sign);
+    G4LogicalVolume* tileTest000FibreLog = fLogPlaceFibreCirc("fibre000", plastic_fibre, green, tileTestGeom, worldLog, fibreradius, 5., 50., pos_rot_temp, sign);
 
     sign = -1;
-    pos = G4ThreeVector(-sign*0.5*cm, 10*thickness - 200*mm, 0);
-    G4LogicalVolume* tileTest004Log = fLogTile("tile004", bc400, cyan, tileTestGeomRect, thickness, sign, holeradius, holex, holey);
-    new G4PVPlacement(tileRotation, pos, tileTest004Log, "tile004", worldLog_rot, false, 0);
+    pos_temp = G4ThreeVector(-sign*0.5*cm, 0, 10*thickness);
+    pos_rot_temp = G4Translate3D(pos_temp) * G4Rotate3D(rot_x_ang, G4Vector3D(1,0,0)) * G4Rotate3D(rot_y_ang, G4Vector3D(0,1,0)) * G4Rotate3D(rot_z_ang, G4Vector3D(0,0,1));
+    G4LogicalVolume* tileTest001Log = fLogTile("tile001", plastic, cyan, tileTestGeom, thickness, sign, holeradius, holex, holey);
+    new G4PVPlacement(pos_rot_temp, tileTest001Log, "tile001", worldLog, false, 0);
 
-    G4LogicalVolume* tileTest004FibreLog = fLogPlaceFibreCirc("fibre004", bc400, green, tileTestGeomRect, worldLog_rot, fibreradius, 5., 50., pos, tileRotation, sign);
+    G4LogicalVolume* tileTest001FibreLog = fLogPlaceFibreCirc("fibre001", plastic_fibre, green, tileTestGeom, worldLog, fibreradius, 5., 50., pos_rot_temp, sign);
 
     sign = 0;
-    pos = G4ThreeVector(-3*cm, -10*thickness - 200*mm, 0);
-    G4LogicalVolume* tileTest005Log = fLogTile("tile005", bc400, cyan, tileTestGeomRect, thickness, sign, holeradius, holex, holey);
-    new G4PVPlacement(tileRotation, pos, tileTest005Log, "tile005", worldLog_rot, false, 0);
+    pos_temp = G4ThreeVector(-3*cm, 0, -10*thickness);
+    pos_rot_temp = G4Translate3D(pos_temp) * G4Rotate3D(rot_x_ang, G4Vector3D(1,0,0)) * G4Rotate3D(rot_y_ang, G4Vector3D(0,1,0)) * G4Rotate3D(rot_z_ang, G4Vector3D(0,0,1));
+    G4LogicalVolume* tileTest002Log = fLogTile("tile002", plastic, cyan, tileTestGeom, thickness, sign, holeradius, holex, holey);
+    new G4PVPlacement(pos_rot_temp, tileTest002Log, "tile002", worldLog, false, 0);
 
-    G4LogicalVolume* tileTest005FibreLog = fLogPlaceFibreCirc("fibre005", bc400, green, tileTestGeomRect, worldLog_rot, fibreradius, 5., 50., pos, tileRotation, sign);
+    G4LogicalVolume* tileTest002FibreLog = fLogPlaceFibreCirc("fibre002", plastic_fibre, green, tileTestGeom, worldLog, fibreradius, 5., 50., pos_rot_temp, sign);
 
     tileTestGeom->RmHorGaps();
+
+    // vvvvvvvvvv rectangular tiles, w/o fibre gap correction
+
+	geomTrapezoid* tileTestGeomRect = new geomRectangle(height, height);
+
+    sign = 1;
+    pos_temp = G4ThreeVector(-sign*0.5*cm, 0, 0*thickness + 200*mm);
+    pos_rot_temp = G4Translate3D(pos_temp) * G4Rotate3D(rot_x_ang, G4Vector3D(1,0,0)) * G4Rotate3D(rot_y_ang, G4Vector3D(0,1,0)) * G4Rotate3D(rot_z_ang, G4Vector3D(0,0,1));
+    G4LogicalVolume* tileTest003Log = fLogTile("tile003", plastic, cyan, tileTestGeomRect, thickness, sign, holeradius, holex, holey);
+    new G4PVPlacement(pos_rot_temp, tileTest003Log, "tile003", worldLog, false, 0);
+
+    G4LogicalVolume* tileTest003FibreLog = fLogPlaceFibreCirc("fibre003", plastic_fibre, green, tileTestGeomRect, worldLog, fibreradius, 5., 50., pos_rot_temp, sign);
+
+    sign = -1;
+    pos_temp = G4ThreeVector(-sign*0.5*cm, 0, 10*thickness + 200*mm);
+    pos_rot_temp = G4Translate3D(pos_temp) * G4Rotate3D(rot_x_ang, G4Vector3D(1,0,0)) * G4Rotate3D(rot_y_ang, G4Vector3D(0,1,0)) * G4Rotate3D(rot_z_ang, G4Vector3D(0,0,1));
+    G4LogicalVolume* tileTest004Log = fLogTile("tile004", plastic, cyan, tileTestGeomRect, thickness, sign, holeradius, holex, holey);
+    new G4PVPlacement(pos_rot_temp, tileTest004Log, "tile004", worldLog, false, 0);
+
+    G4LogicalVolume* tileTest004FibreLog = fLogPlaceFibreCirc("fibre004", plastic_fibre, green, tileTestGeomRect, worldLog, fibreradius, 5., 50., pos_rot_temp, sign);
+
+    sign = 0;
+    pos_temp = G4ThreeVector(-3*cm, 0, -10*thickness + 200*mm);
+    pos_rot_temp = G4Translate3D(pos_temp) * G4Rotate3D(rot_x_ang, G4Vector3D(1,0,0)) * G4Rotate3D(rot_y_ang, G4Vector3D(0,1,0)) * G4Rotate3D(rot_z_ang, G4Vector3D(0,0,1));
+    G4LogicalVolume* tileTest005Log = fLogTile("tile005", plastic, cyan, tileTestGeomRect, thickness, sign, holeradius, holex, holey);
+    new G4PVPlacement(pos_rot_temp, tileTest005Log, "tile005", worldLog, false, 0);
+
+    G4LogicalVolume* tileTest005FibreLog = fLogPlaceFibreCirc("fibre005", plastic_fibre, green, tileTestGeomRect, worldLog, fibreradius, 5., 50., pos_rot_temp, sign);
+
+    //////// test tiles ////////
+    ////////////////////////////
 
     // --------------------------------------------------
     // ...uncomment this line for the test setup (implemented in src/TestMode.cc) 
@@ -207,8 +148,6 @@ void DetectorConstruction::ConstructSDandField()
 
     // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
     // create the sensitive detectors and bin them to the logical volumes here, or...
-
-    //// preliminary tests 01 ////
 
     VolumeEDepSD* tileTest000SD = new VolumeEDepSD("tile000_SD");
     SetSensitiveDetector("tile000_Log", tileTest000SD);
