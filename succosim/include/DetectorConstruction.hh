@@ -14,6 +14,9 @@
 #include <G4Vector3D.hh>
 #include <G4Transform3D.hh>
 
+#define NPERIODS 13
+#define BSHOWSUPPORT 1
+
 using namespace std;
 
 // class for logical volumes
@@ -35,25 +38,50 @@ private:
     static G4double pi;
 
     // world size - full sides
-    G4double worldSizeX = 3 * m;
-    G4double worldSizeY = 3 * m;
-    G4double worldSizeZ = 30 * m;
+    G4double worldSizeX = 10 * m;
+    G4double worldSizeY = 10 * m;
+    G4double worldSizeZ = 10 * m;
 
     //// specific for this application ////
 
-	// tile shape and orientation
-    G4double height = 50*mm;
-    G4double radius = 2.8*m + 10*mm + height/2;
-    G4double angle = 2*pi/128;
-    G4double thickness = 3*mm;
-    G4double sidegap = 2*mm;
-    G4double holeradius = 3*mm;
-    G4double holey = height/2 - 6*mm;
-    G4double holex = 6*mm;
-    G4double fibreradius = 0.5*mm;
-    G4double rot_x_ang = -90*deg;
-    G4double rot_y_ang = 0*deg;
-    G4double rot_z_ang = 0*deg;
+    // module general parameters
+    G4double mst_thk = 5*mm; // master thickness
+    G4double spc_thk = 4*mm; // spacer thickness
+    G4double sci_thk = 3*mm; // tile thickness
+    G4double period_thk = 2*(mst_thk + spc_thk); // thickness of the full period
+    G4double mst_transv(G4int i), til_transv(G4int i); // functions for iterative element placing, defined in DetectorConstruction.cc
+
+    G4double front_thk = 5*mm; // thickness (along radial direction) of the front plate
+    G4double back_thk = 20*cm; // thickness (along radial direction) of the back structure
+    G4double side_thk = 5*mm; // thickness (along longitudinal direction) of the side plates
+
+    G4double mod_rmin = 2.8*m; // module minimum radius - net (sensitive volume only)
+    G4double mod_radial = 1.441*m; // module radial extension - net (sensitive volume only)
+    G4double mod_radial_env = mod_radial + front_thk + back_thk; // module radial extension - gross (envelope volume)
+    G4double mod_thk = NPERIODS * period_thk - mst_thk; // module thickness along longitudinal direction (orthogonal to tiles) - net (sensitive volume only)
+    G4double mod_thk_env = mod_thk + 2*side_thk; // module thickness along longitudinal direction (orthogonal to tiles) - gross (envelope volume)
+    G4double mod_centre_rel = front_thk + mod_radial/2 - mod_radial_env/2; // radial centre of the module net part relative to the gross size
+    G4double mod_dphi = 2*pi/128; // module full azimuthal opening - readout segmentation will be halved
+    G4double mod_ang_x = 0*deg; // module rotation wrt world x axis
+    G4double mod_ang_y = 0*deg; // module rotation wrt world y axis
+    G4double mod_ang_z = 90*deg; // module rotation wrt world z axis
+
+    // spacer cross-section shapes
+    G4double spc_hgt[13] = {55, 55, 55, 55, 105, 105, 105, 105, 105, 105, 205, 205, 205}; // per-layer heights
+    G4double spc_sidegap[13] = {2.6, 2.6, 2.6, 2.6, 2.6, 2.6, 2.6, 2.6, 5.2, 5.2, 5.2, 5.2, 5.2}; // per-layer width of the side gap
+    G4double spc_r[13], spc_r_rel[13]; // per-layer radius (absolute and relative to the gross radial position) - filled in DetectorConstruction.cc
+
+	// scintillating tile cross-section shapes
+    G4double sci_hgt[13] = {49, 49, 49, 49, 99, 99, 99, 99, 99, 99, 199, 199, 199}; // per-layer heights
+    G4double* sci_sidegap = spc_sidegap; // per-layer width of the side gap
+    G4double sci_r[13], sci_r_rel[13]; // per-layer radius (absolute and relative to the gross radial position) - filled in DetectorConstruction.cc
+
+    // other miscellaneous geometric parameters
+    G4double inner_gap = 1*mm; // gap between adjacent scintillating tiles in the same module slot (full)
+    G4double fibre_r = 0.65*mm; // WLS fibre radius 
+    G4double hole_r = 0; // radius of the pipe/rod holes in the tiles
+    G4double hole_x = 0; // x position of the pipe/rod holes in the tiles
+    G4double hole_y = 0; // y position of the pipe/rod holes in the tiles
 		
 	//// specific for DetectorConstruction_tile ////
 

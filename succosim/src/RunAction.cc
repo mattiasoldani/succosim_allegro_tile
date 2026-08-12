@@ -25,8 +25,8 @@ RunAction::RunAction() :  G4UserRunAction()
     //// preliminary tests 01 ////
 
     analysis->CreateNtupleDColumn("NEvent");
-    analysis->CreateNtupleDColumn("E_tileTest000");
-    analysis->CreateNtupleDColumn("E_tileTest001");
+    // analysis->CreateNtupleDColumn("E_tileTest000");
+
     // --------------------------------------------------
     // ...uncomment this line for the test ntuple columns (implemented in src/TestMode.cc)
     //OutputNtupleTest(analysis);

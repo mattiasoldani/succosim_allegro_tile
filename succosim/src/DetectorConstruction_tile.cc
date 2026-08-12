@@ -115,8 +115,10 @@ G4LogicalVolume* DetectorConstruction::fLogPlaceFibreCirc(
     G4RotationMatrix* pTileRot = nullptr, // rotation matrix used for tile placement
     G4int signHalf = 0 // see signHalf in tile logical volume creation
 ){
-	G4Transform3D tilePosRot = G4Translate3D(tilePos) * G4Rotate3D(*pTileRot);
-	
+	G4Transform3D tilePosRot = pTileRot
+        ? G4Translate3D(tilePos) * G4Rotate3D(*pTileRot)
+        : G4Translate3D(tilePos);
+		
 	return fLogPlaceFibreCirc(name, pMaterial, pColour, pTileGeom, pEnvelope, sectionR, extraRIn, extraROut, tilePosRot, signHalf);
 }
 
