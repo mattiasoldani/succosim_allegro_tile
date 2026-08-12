@@ -30,22 +30,24 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 	
     // colors
     G4VisAttributes* invisible = new G4VisAttributes(false);
+    G4VisAttributes* white = new G4VisAttributes(G4Colour::White());
     G4VisAttributes* cyan = new G4VisAttributes(G4Colour::Cyan());
     G4VisAttributes* blue = new G4VisAttributes(G4Colour::Blue());
     G4VisAttributes* red = new G4VisAttributes(G4Colour::Red());
     G4VisAttributes* green = new G4VisAttributes(G4Colour::Green());
     G4VisAttributes* magenta = new G4VisAttributes(G4Colour::Magenta());
-	G4VisAttributes* grey = new G4VisAttributes(G4Colour::Grey());
+    G4VisAttributes* grey = new G4VisAttributes(G4Colour::Grey());
     G4VisAttributes* brown = new G4VisAttributes(true, G4Colour::Brown());
 	
     // off-the-shelf materials (from NIST)
     G4Material* air = nist->FindOrBuildMaterial("G4_AIR"); // air
-	G4Material* SS = nist->FindOrBuildMaterial("G4_STAINLESS-STEEL"); // steel
-	G4Material* plastic = nist->FindOrBuildMaterial("G4_POLYSTYRENE"); // plastic for scintillating tiles
-	G4Material* plastic_ancillary = nist->FindOrBuildMaterial("G4_POLYSTYRENE"); // plastic for ancillary detectors
-	G4Material* plastic_fibre = nist->FindOrBuildMaterial("G4_POLYSTYRENE"); // plastic for WLS fibres
-	G4Material* pbGl = nist->FindOrBuildMaterial("G4_GLASS_LEAD"); // Pb glass
+    G4Material* SS = nist->FindOrBuildMaterial("G4_STAINLESS-STEEL"); // steel
+    G4Material* plastic = nist->FindOrBuildMaterial("G4_POLYSTYRENE"); // plastic
+    G4Material* pbGl = nist->FindOrBuildMaterial("G4_GLASS_LEAD"); // Pb glass
     G4Material* vacuum = nist->FindOrBuildMaterial("G4_Galactic"); // vacuum
+
+    G4Material* plastic_ancillary = plastic; // plastic for ancillary detectors
+    G4Material* plastic_fibre = plastic; // plastic for WLS fibres
 
     // manual material: CO2 for Cherenkov pipes
     G4Element* elC = new G4Element("Carbon", "C", 6., 12.01*g/mole);
@@ -62,9 +64,9 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     worldLog->SetVisAttributes(invisible);
     G4VPhysicalVolume* worldPhys = new G4PVPlacement(nullptr, {}, worldLog, "world", nullptr, false, 0);
 	
-	// generic translation and roto-translation, to be applied element-by-element
-	G4ThreeVector pos_temp;
-	G4Transform3D pos_rot_temp;
+    // generic translation and roto-translation, to be applied element-by-element
+    G4ThreeVector pos_temp;
+    G4Transform3D pos_rot_temp;
 
     ///////////////////
     //// FZU stack ////
