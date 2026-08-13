@@ -526,7 +526,7 @@ void DetectorConstruction::ConstructSDandField()
 
 G4double DetectorConstruction::pi = acos(-1);
 
-
+// tile shapes - CERN S2 - declared in DetectorConstruction.hh
 G4double DetectorConstruction::S2_fzrel(G4int i){ // longitudinal position of single tiles, relative to front
 	return floor(i/2)*(passive_thk_gross + S2_thk) + passive_thk_gross + S2_thk/2;
 } 
@@ -537,6 +537,7 @@ G4double DetectorConstruction::S2_fyrel(G4int i){ // transverse (y) position of 
 	return 0;
 }
 
+// tile shapes - CERN S6 - declared in DetectorConstruction.hh
 G4double DetectorConstruction::S6_fzrel(G4int i) { // longitudinal position of single tiles, relative to front
 	return i*(passive_thk_gross + S6_thk) + passive_thk_gross + S6_thk/2;
 } 
