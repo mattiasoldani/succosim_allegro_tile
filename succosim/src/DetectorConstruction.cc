@@ -504,7 +504,7 @@ void DetectorConstruction::ConstructSDandField()
 
     ////////////////////////////
     //// beamline hodoscope ////
-    if (IsHodo()) {
+    if (IsHodo() && B_HODO_DET) {
         VolumeTrackingSD* hodoSD = new VolumeTrackingSD("SD_hodo");
         SetSensitiveDetector("hodo_Log", hodoSD);
         sdm->AddNewDetector(hodoSD);

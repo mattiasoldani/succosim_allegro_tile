@@ -40,7 +40,7 @@ void EventAction::EndOfEventAction(const G4Event* event)
 
     ////////////////////////////
     //// beamline hodoscope ////
-    if (det->IsHodo()) {
+    if (det->IsHodo() && B_HODO_DET) {
         G4double thresholdHodoEDep = 50 * keV;
 
         G4int fHodo = sdm->GetCollectionID("SD_hodo/VolumeTracking");

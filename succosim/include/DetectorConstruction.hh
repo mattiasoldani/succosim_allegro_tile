@@ -33,6 +33,9 @@
 // activate Cherenkov detection
 #define B_CHER_DET 0
 
+// activate hodoscope detection
+#define B_HODO_DET 0
+
 using namespace std;
 
 // class for logical volumes
