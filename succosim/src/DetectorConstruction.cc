@@ -70,21 +70,13 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     G4Material* mat_scintillator = plastic;
     G4Material* mat_fibre = plastic;
 
-    // first of all, fill some arrays with info from different parts of the module (initialised in DetectorConstruction.hh)
-    G4double spc_rmin_temp = mod_rmin;
-    for(G4int i=0; i<13; i++) {
-        spc_r[i] = spc_rmin_temp + spc_hgt[i]/2;
-        spc_r_rel[i] = spc_r[i] - mod_rmin - mod_radial/2 + mod_centre_rel;
-        sci_r[i] = spc_r[i];
-        sci_r_rel[i] = spc_r_rel[i];
-        spc_rmin_temp += spc_hgt[i];
-    }
-
     // create module envelope
     geomTrapezoid* modEnvGeom = new geomTrapezoid(mod_rmin + mod_radial_env / 2 - front_thk, mod_radial_env, mod_dphi);
     G4LogicalVolume* modEnvLog = fLogTile("module_Envelope", vacuum , invisible, modEnvGeom, mod_thk_env, 0, 0, 0, 0);
 
     // place elements in the envelope...
+
+    if (BPLACEONLYTILES) {goto label_tiles;}
 
     // --> front plate
     if (front_thk > 0) {
@@ -97,9 +89,11 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     // --> back plate
     if (back_thk > 0) {
         geomTrapezoid* backGeom = new geomTrapezoid(mod_rmin + mod_radial_env - back_thk / 2, back_thk, mod_dphi);
+        backGeom->AddHorGaps(spc_sidegap(NLAYERS-1)>sci_sidegap(NLAYERS-1) ? spc_sidegap(NLAYERS-1) : sci_sidegap(NLAYERS-1));
         G4LogicalVolume* backLog = fLogTile("back", mat_support , col_support, backGeom, mod_thk, 0, 0, 0, 0);
         pos_temp = G4ThreeVector(0, 0, mod_radial_env / 2 - back_thk / 2);
         new G4PVPlacement(nullptr, pos_temp, backLog, "back", modEnvLog, false, 0);
+        backGeom->RmHorGaps();
     }
 
     // --> side plates
@@ -113,28 +107,32 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     }
     
     // --> master plates
-    geomTrapezoid* mstGeom = new geomTrapezoid(mod_rmin + mod_radial / 2, mod_radial, mod_dphi);
-    G4LogicalVolume* mstLog = fLogTile("master", mat_passive , col_passive, mstGeom, mst_thk, 0, 0, 0, 0);
-    for (G4int i = 0; i < NPERIODS * 2 - 1; i++) {
-        pos_temp = G4ThreeVector(0, mst_transv(i), mod_centre_rel);
-        new G4PVPlacement(nullptr, pos_temp, mstLog, "master", modEnvLog, false, i);
+    {
+        geomTrapezoid* mstGeom = new geomTrapezoid(mod_rmin + mod_radial() / 2, mod_radial(), mod_dphi);
+        G4LogicalVolume* mstLog = fLogTile("master", mat_passive , col_passive, mstGeom, mst_thk, 0, 0, 0, 0);
+        for (G4int i = 0; i < NPERIODS * 2 - 1; i++) {
+            pos_temp = G4ThreeVector(0, mst_transv(i), mod_centre_rel);
+            new G4PVPlacement(nullptr, pos_temp, mstLog, "master", modEnvLog, false, i);
+        }
     }
+
+    label_tiles: {;}
 
     // --> scintillating tiles and spacer plates
     G4int b_spc; // if true (false) place spacer (tile)
     G4double til_hgt, til_r, til_r_rel, til_sidegap, til_thk;
     G4VisAttributes* til_col;
     G4Material* til_mat;
-    G4LogicalVolume* til_lvols[NPERIODS*13*2];
-    G4LogicalVolume* ril_lvols_fibres[NPERIODS*13*2];
+    G4LogicalVolume* til_lvols[NPERIODS*NLAYERS*2];
+    G4LogicalVolume* ril_lvols_fibres[NPERIODS*NLAYERS*2];
     G4int q = 0;
     for (G4int i = 0; i < NPERIODS * 2; i++) {
-        for (G4int j = 0; j < 13; j++) {
+        for (G4int j = 0; j < NLAYERS; j++) {
             b_spc = ((i%2) + (j%2)) % 2;
-            til_hgt = b_spc ? spc_hgt[j] : sci_hgt[j];
-            til_r = b_spc ? spc_r[j] : sci_r[j]; 
-            til_r_rel = b_spc ? spc_r_rel[j] : sci_r_rel[j];
-            til_sidegap = b_spc ? spc_sidegap[j] : sci_sidegap[j];
+            til_hgt = b_spc ? spc_hgt(j) : sci_hgt(j);
+            til_r = b_spc ? spc_r(j) : sci_r(j); 
+            til_r_rel = b_spc ? spc_r_rel(j) : sci_r_rel(j);
+            til_sidegap = b_spc ? spc_sidegap(j) : sci_sidegap(j);
             til_thk = b_spc ? spc_thk : sci_thk;
             til_col = b_spc ? col_passive : col_scintillator;
             til_mat = b_spc ? mat_passive : mat_scintillator;
@@ -144,24 +142,21 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
             G4String fibre_name = "fibre_P" + std::to_string(i) + "_L" + std::to_string(j);
             G4LogicalVolume* tilLogTemp;
 
-            tilGeom->AddHorGaps(til_sidegap);
-            for (G4int k = 0; k<2; k++) {
-                G4int til_idx = 2*(i*13+j)+k;
-                if (b_spc) {
-                    tilLogTemp = fLogTile(til_name, til_mat , til_col, tilGeom, til_thk, 0, hole_r, hole_x, hole_y);
-                    pos_temp = G4ThreeVector(0, til_transv(i), til_r_rel);
-                    new G4PVPlacement(nullptr, pos_temp, tilLogTemp, til_name, modEnvLog, false, til_idx);
-                    break;
-                }else{
+            G4double til_sidegap_extra = b_spc ? 0 : inner_gap/2; // extra side gap for scintillating tiles to account for central gap
+            tilGeom->AddHorGaps(til_sidegap + til_sidegap_extra*cos(tilGeom->GetTheta()));
+            if (b_spc) {
+                tilLogTemp = fLogTile(til_name, til_mat , til_col, tilGeom, til_thk, 0, hole_r, hole_x, hole_y);
+                pos_temp = G4ThreeVector(0, til_transv(i), til_r_rel);
+                new G4PVPlacement(nullptr, pos_temp, tilLogTemp, til_name, modEnvLog, false, 2*(i*NLAYERS+j));
+            }else{
+                for (G4int k = 0; k<2; k++) {
                     G4int til_sign = k ? -1 : 1;
                     tilLogTemp = fLogTile(til_name, til_mat , til_col, tilGeom, til_thk, til_sign, hole_r, hole_x, hole_y);
                     pos_temp = G4ThreeVector(til_sign*inner_gap/2, til_transv(i), til_r_rel);
-                    new G4PVPlacement(nullptr, pos_temp, tilLogTemp, til_name, modEnvLog, false, til_idx);
-                    if (!b_spc) {
-                        til_lvols[q] = tilLogTemp;
-                        ril_lvols_fibres[q] = fLogPlaceFibreCirc(fibre_name, mat_fibre, col_fibre, tilGeom, modEnvLog, fibre_r, 0, 3*cm, pos_temp, nullptr, til_sign);
-                        q++;
-                    }
+                    new G4PVPlacement(nullptr, pos_temp, tilLogTemp, til_name, modEnvLog, false, 2*(i*NLAYERS+j)+k);
+                    til_lvols[q] = tilLogTemp;
+                    ril_lvols_fibres[q] = fLogPlaceFibreCirc(fibre_name, mat_fibre, col_fibre, tilGeom, modEnvLog, fibre_r, 0, 3*cm, pos_temp, nullptr, til_sign);
+                    q++;
                 }
             }
             tilGeom->RmHorGaps();
@@ -217,6 +212,51 @@ void DetectorConstruction::ConstructSDandField()
 // DetectorConstruction methods ///////////////////////////////
 
 G4double DetectorConstruction::pi = acos(-1);
+
+// module radial extension - net (sensitive volume only) - function initialised in DetectorConstruction.hh
+G4double DetectorConstruction::mod_radial() {
+    G4double mod_radial_temp = 0;
+    for (G4int j=0; j<NLAYERS; j++) {
+        mod_radial_temp += (j%2) ? spc_hgt(j) : (sci_hgt(j) + 2*sci_r_gap);
+        if (NLAYERS%2) {mod_radial_temp += spc_r_overlap;}
+    }
+    return mod_radial_temp;
+}
+
+// spacer cross-section shapes (vs layer ID) - functions initialised in DetectorConstruction.hh
+G4double DetectorConstruction::spc_hgt(G4int j){
+    if (j<4) {return 55*mm;}
+    else if (j<10) {return 105*mm;}
+    else {return 205*mm;}
+}
+G4double DetectorConstruction::spc_sidegap(G4int j){
+    G4int nstep = static_cast<G4int>(floor(j/8));
+    return 2.6*mm*(nstep+1);
+}
+G4double DetectorConstruction::spc_r(G4int j){
+    G4double spc_rmin_temp = mod_rmin;
+    if (j>0) {
+        for (G4int k=0; k<j; k++) {spc_rmin_temp += spc_hgt(k);}
+    }
+    return spc_rmin_temp + spc_hgt(j)/2;
+}
+G4double DetectorConstruction::spc_r_rel(G4int j){
+    return spc_r(j) - mod_rmin - mod_radial()/2 + mod_centre_rel;
+}
+
+// scintillating tile cross-section shapes (vs layer ID) - functions initialised in DetectorConstruction.hh
+G4double DetectorConstruction::sci_hgt(G4int j){
+    return spc_hgt(j) - 2*(spc_r_overlap + sci_r_gap);
+}
+G4double DetectorConstruction::sci_sidegap(G4int j){
+    return spc_sidegap(j);
+}
+G4double DetectorConstruction::sci_r(G4int j){
+    return spc_r(j);
+}
+G4double DetectorConstruction::sci_r_rel(G4int j){
+    return spc_r_rel(j);
+}
 
 // transverse positions (vs period ID) - functions initialised in DetectorConstruction.hh
 G4double DetectorConstruction::mst_transv(G4int i){
