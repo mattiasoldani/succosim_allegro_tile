@@ -6,6 +6,7 @@
 
 // class for particle gun, i.e. the beam source
 class G4ParticleGun;
+class G4GeneralParticleSource;
 
 // PrimaryGeneratorAction, i.e. the class with all the beam features
 class PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction
@@ -17,6 +18,7 @@ public:
 
 private:
     G4ParticleGun* fGun;
+    G4GeneralParticleSource* fGPS;
 	
     // test beam (implemented in src/TestMode.cc)
     void BeamFeaturesFxdTest(G4ParticleGun* fGunTest);
