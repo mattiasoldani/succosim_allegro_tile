@@ -17,14 +17,19 @@
 // numbers of
 // - periods (along barrel z)
 // - layers (along barrel radius)
+// - modules (stacked one on top of the other à la beamtest area)
 #define NPERIODS 39
 #define NLAYERS 13
+#define NSTACKEDMODS 6
 
 // if 1, only scintillating tiles and spacers are placed (no masters, no support)
 #define BPLACEONLYTILES 0
 
-// if 1 (0), support is (not) shown in graphical mode - note that support is placed anyway
-#define BSHOWSUPPORT 0
+// if 1 (0), support is (not) shown in graphical mode - note that volumes are placed anyway
+#define BSHOWSUPPORT 1
+
+// if 1 (0), inner structure (masters, spacers, scintillators, fibres) is (not) shown in graphical mode - note that volumes are placed anyway
+#define BSHOWINNER 0
 
 using namespace std;
 
@@ -70,9 +75,6 @@ private:
     G4double mod_thk_env = mod_thk + 2*side_thk; // module thickness along longitudinal direction (orthogonal to tiles) - gross (envelope volume)
     G4double mod_centre_rel = front_thk + mod_radial()/2 - mod_radial_env/2; // radial centre of the module net part relative to the gross size
     G4double mod_dphi = 2*pi/128; // module full azimuthal opening - readout segmentation will be halved
-    G4double mod_ang_x = 0*deg; // module rotation wrt world x axis
-    G4double mod_ang_y = 0*deg; // module rotation wrt world y axis
-    G4double mod_ang_z = 90*deg; // module rotation wrt world z axis
     G4double mod_radial(); // module radial extension - net (sensitive volume only), defined in DetectorConstruction.cc
 
     // spacer cross-section shapes
@@ -96,11 +98,12 @@ private:
 
     // function to create and place a whole module, defined in DetectorConstruction.cc
     G4LogicalVolume* CreateModule(
-        G4LogicalVolume* frontLog, 
-        G4LogicalVolume* backLog, 
-        G4LogicalVolume* sideLog, 
-        G4LogicalVolume* mstLog, 
-        G4LogicalVolume* spcLog,
+        G4String id,
+        G4LogicalVolume*& frontLog, 
+        G4LogicalVolume*& backLog, 
+        G4LogicalVolume*& sideLog, 
+        G4LogicalVolume*& mstLog, 
+        G4LogicalVolume*& spcLog,
         G4LogicalVolume** sciLogs,
         G4LogicalVolume** fibreLogs, 
         G4Material* mat_envelope, G4VisAttributes* col_envelope,
