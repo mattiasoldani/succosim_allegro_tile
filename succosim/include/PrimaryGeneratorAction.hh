@@ -17,7 +17,7 @@ public:
     void GeneratePrimaries(G4Event* anEvent) override;
 
 private:
-    //G4ParticleGun* fGun;
+    G4ParticleGun* fGun;
     G4GeneralParticleSource* fGPS;
 	
     // test beam (implemented in src/TestMode.cc)
