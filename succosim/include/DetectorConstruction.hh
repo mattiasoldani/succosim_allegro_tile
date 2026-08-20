@@ -14,11 +14,16 @@
 #include <G4Vector3D.hh>
 #include <G4Transform3D.hh>
 
+// numbers of
+// - periods (along barrel z)
+// - layers (along barrel radius)
 #define NPERIODS 39
 #define NLAYERS 13
 
+// if 1, only scintillating tiles and spacers are placed (no masters, no support)
 #define BPLACEONLYTILES 0
 
+// if 1 (0), support is (not) shown in graphical mode - note that support is placed anyway
 #define BSHOWSUPPORT 0
 
 using namespace std;
@@ -88,6 +93,22 @@ private:
     G4double hole_r = 0; // radius of the pipe/rod holes in the tiles
     G4double hole_x = 0; // x position of the pipe/rod holes in the tiles
     G4double hole_y = 0; // y position of the pipe/rod holes in the tiles
+
+    // function to create and place a whole module, defined in DetectorConstruction.cc
+    G4LogicalVolume* CreateModule(
+        G4LogicalVolume* frontLog, 
+        G4LogicalVolume* backLog, 
+        G4LogicalVolume* sideLog, 
+        G4LogicalVolume* mstLog, 
+        G4LogicalVolume* spcLog,
+        G4LogicalVolume** sciLogs,
+        G4LogicalVolume** fibreLogs, 
+        G4Material* mat_envelope, G4VisAttributes* col_envelope,
+        G4Material* mat_passive, G4VisAttributes* col_passive,
+        G4Material* mat_support, G4VisAttributes* col_support,
+        G4Material* mat_scintillator, G4VisAttributes* col_scintillator,
+        G4Material* mat_fibre, G4VisAttributes* col_fibre
+    );
 		
 	//// specific for DetectorConstruction_tile ////
 
