@@ -72,14 +72,14 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     G4Material* mat_fibre = plastic;
     G4Material* mat_envelope = vacuum;
 
-    G4LogicalVolume* frontLogs[NSTACKEDMODS] = {};
-    G4LogicalVolume* backLogs[NSTACKEDMODS] = {};
-    G4LogicalVolume* sideLogs[NSTACKEDMODS] = {};
-    G4LogicalVolume* mstLogs[NSTACKEDMODS] = {};
-    G4LogicalVolume* spcLogs[NSTACKEDMODS] = {};
-    G4LogicalVolume* modEnvLogs[NSTACKEDMODS] = {};
+    G4LogicalVolume* frontLog[NSTACKEDMODS] = {};
+    G4LogicalVolume* backLog[NSTACKEDMODS] = {};
+    G4LogicalVolume* sideLogs[NSTACKEDMODS][2] = {};
+    G4LogicalVolume* mstLogs[NSTACKEDMODS][NPERIODS*NLAYERS*2] = {};
+    G4LogicalVolume* spcLogs[NSTACKEDMODS][NPERIODS*NLAYERS] = {};
     G4LogicalVolume* sciLogs[NSTACKEDMODS][NPERIODS*NLAYERS*2] = {};
     G4LogicalVolume* fibreLogs[NSTACKEDMODS][NPERIODS*NLAYERS*2] = {};
+    G4LogicalVolume* modEnvLogs[NSTACKEDMODS] = {};
 
     for (G4int i = 0; i < NSTACKEDMODS; i++) {
         G4double ang_x_temp = ((2*i - NSTACKEDMODS + 1) / 2.) * mod_dphi;
@@ -93,8 +93,8 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
             G4Translate3D(G4ThreeVector(0, 0, mod_rmin)) ;
         modEnvLogs[i] = CreateModule(
             "M" + std::to_string(i),
-            frontLogs[i],
-            backLogs[i],
+            frontLog[i],
+            backLog[i],
             sideLogs[i],
             mstLogs[i],
             spcLogs[i],
@@ -136,9 +136,99 @@ void DetectorConstruction::ConstructSDandField()
     // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
     // create the sensitive detectors and bin them to the logical volumes here, or...
 
-    // VolumeEDepSD* tileTest000SD = new VolumeEDepSD("tile000_SD");
-    // SetSensitiveDetector("tile000_Log", tileTest000SD);
-    // sdm->AddNewDetector(tileTest000SD);
+    // function to create SD
+    auto SetVolumeEDepSD = [this, sdm](const G4String& volumeName) {
+        VolumeEDepSD* volumeSD = new VolumeEDepSD(volumeName + "_SD");
+        SetSensitiveDetector(volumeName + "_Log", volumeSD);
+        sdm->AddNewDetector(volumeSD);
+    };
+
+    // function to attach a new logical volume to existing SD
+    auto AttachVolumeEDepSD = [this](const G4String& volumeName, VolumeEDepSD* volumeSD) {
+        SetSensitiveDetector(volumeName + "_Log", volumeSD);
+    };
+
+    for (G4int imod = 0; imod < NSTACKEDMODS; imod++) {
+        G4String mod_prefix = "M" + std::to_string(imod);
+        VolumeEDepSD* coarseSD = nullptr;
+        if (COARSERO == 2) {
+            coarseSD = new VolumeEDepSD(mod_prefix + "_Total_SD");
+            sdm->AddNewDetector(coarseSD);
+            AttachVolumeEDepSD(mod_prefix + "_Envelope", coarseSD);
+        }
+        VolumeEDepSD* cellSDs[NLAYERS][NPERIODS] = {};
+        if (COARSERO == 1) {
+            for (G4int j = 0; j < NLAYERS; j++) {
+                for (G4int iperiod = 0; iperiod < NPERIODS; iperiod++) {
+                    G4String cell_name = mod_prefix + "_L" + std::to_string(j) + "_P" + std::to_string(iperiod) + "_Cell";
+                    cellSDs[j][iperiod] = new VolumeEDepSD(cell_name + "_SD");
+                    sdm->AddNewDetector(cellSDs[j][iperiod]);
+                }
+            }
+        }
+
+        if (BPLACEONLYINNER) {goto label_inner_sd;}
+
+        if (front_thk > 0) {
+            if (COARSERO == 2) {AttachVolumeEDepSD(mod_prefix + "_Front", coarseSD);}
+            else {SetVolumeEDepSD(mod_prefix + "_Front");}
+        }
+        if (back_thk > 0) {
+            if (COARSERO == 2) {AttachVolumeEDepSD(mod_prefix + "_Back", coarseSD);}
+            else {SetVolumeEDepSD(mod_prefix + "_Back");}
+        }
+        if (side_thk > 0) {
+            if (COARSERO == 2) {
+                AttachVolumeEDepSD(mod_prefix + "_Side0", coarseSD);
+                AttachVolumeEDepSD(mod_prefix + "_Side1", coarseSD);
+            } else {
+                SetVolumeEDepSD(mod_prefix + "_Side0");
+                SetVolumeEDepSD(mod_prefix + "_Side1");
+            }
+        }
+        
+        label_inner_sd: {;}
+
+        for (G4int j = 0; j < NLAYERS; j++) {
+            for (G4int i = 0; i < NPERIODS * 2 - 1; i++) {
+                G4int iperiod = floor(i/2);
+
+                G4String mst_name = mod_prefix + "_L" + std::to_string(j) + "_P" + std::to_string(iperiod) + "_Master" + std::to_string(i%2);
+                if (COARSERO == 2) {AttachVolumeEDepSD(mst_name, coarseSD);}
+                else if (COARSERO == 1) {AttachVolumeEDepSD(mst_name, cellSDs[j][iperiod]);}
+                else {SetVolumeEDepSD(mst_name);}
+            }
+        }
+
+        for (G4int j = 0; j < NLAYERS; j++) {
+            for (G4int i = 0; i < NPERIODS * 2; i++) {
+                G4int iperiod = floor(i/2);
+            
+                G4int b_spc = ((i%2) + (j%2)) % 2;
+                if (b_spc) {
+                    G4String spc_name = mod_prefix + "_L" + std::to_string(j) + "_P" + std::to_string(iperiod) + "_Spacer";
+                    if (COARSERO == 2) {AttachVolumeEDepSD(spc_name, coarseSD);}
+                    else if (COARSERO == 1) {AttachVolumeEDepSD(spc_name, cellSDs[j][iperiod]);}
+                    else {SetVolumeEDepSD(spc_name);}
+                } else {
+                    for (G4int k = 0; k < 2; k++) {
+                        G4String sci_name = mod_prefix + "_L" + std::to_string(j) + "_P" + std::to_string(iperiod) + "_Scintillator" + std::to_string(k);
+                        G4String fibre_name = mod_prefix + "_L" + std::to_string(j) + "_P" + std::to_string(iperiod) + "_Fibre" + std::to_string(k);
+                        if (COARSERO == 2) {
+                            AttachVolumeEDepSD(sci_name, coarseSD);
+                            AttachVolumeEDepSD(fibre_name, coarseSD);
+                        } else if (COARSERO == 1) {
+                            AttachVolumeEDepSD(sci_name, cellSDs[j][iperiod]);
+                            AttachVolumeEDepSD(fibre_name, cellSDs[j][iperiod]);
+                        } else {
+                            SetVolumeEDepSD(sci_name);
+                            SetVolumeEDepSD(fibre_name);
+                        }
+                    }
+                }
+            }
+        }
+    }
 	
     // --------------------------------------------------
     // ...uncomment this line for the test sensitive detectors (implemented in src/TestMode.cc)
@@ -164,25 +254,36 @@ G4double DetectorConstruction::mod_radial() {
     return mod_radial_temp;
 }
 
-// spacer cross-section shapes (vs layer ID) - functions initialised in DetectorConstruction.hh
-G4double DetectorConstruction::spc_hgt(G4int j){
+// master (partial) cross-section shapes (vs layer ID) - functions initialised in DetectorConstruction.hh
+G4double DetectorConstruction::mst_hgt(G4int j){
     if (j<4) {return 55*mm;}
     else if (j<10) {return 105*mm;}
     else {return 205*mm;}
+}
+G4double DetectorConstruction::mst_r(G4int j){
+    G4double mst_rmin_temp = mod_rmin;
+    if (j>0) {
+        for (G4int k=0; k<j; k++) {mst_rmin_temp += mst_hgt(k);}
+    }
+    return mst_rmin_temp + mst_hgt(j)/2;
+}
+G4double DetectorConstruction::mst_r_rel(G4int j){
+    return mst_r(j) - mod_rmin - mod_radial()/2 + mod_centre_rel;
+}
+
+// spacer cross-section shapes (vs layer ID) - functions initialised in DetectorConstruction.hh
+G4double DetectorConstruction::spc_hgt(G4int j){
+    return mst_hgt(j);
 }
 G4double DetectorConstruction::spc_sidegap(G4int j){
     G4int nstep = static_cast<G4int>(floor(j/8));
     return 2.6*mm*(nstep+1);
 }
 G4double DetectorConstruction::spc_r(G4int j){
-    G4double spc_rmin_temp = mod_rmin;
-    if (j>0) {
-        for (G4int k=0; k<j; k++) {spc_rmin_temp += spc_hgt(k);}
-    }
-    return spc_rmin_temp + spc_hgt(j)/2;
+    return mst_r(j);
 }
 G4double DetectorConstruction::spc_r_rel(G4int j){
-    return spc_r(j) - mod_rmin - mod_radial()/2 + mod_centre_rel;
+    return mst_r_rel(j);
 }
 
 // scintillating tile cross-section shapes (vs layer ID) - functions initialised in DetectorConstruction.hh
@@ -209,12 +310,12 @@ G4double DetectorConstruction::til_transv(G4int i){
 
 // function to create and place a whole module, initialised in DetectorConstruction.hh
 G4LogicalVolume* DetectorConstruction::CreateModule(
-    G4String mod_suffix,
+    G4String mod_id,
     G4LogicalVolume*& frontLog, 
     G4LogicalVolume*& backLog, 
-    G4LogicalVolume*& sideLog, 
-    G4LogicalVolume*& mstLog, 
-    G4LogicalVolume*& spcLog,
+    G4LogicalVolume** sideLogs, 
+    G4LogicalVolume** mstLogs, 
+    G4LogicalVolume** spcLogs,
     G4LogicalVolume** sciLogs,
     G4LogicalVolume** fibreLogs, 
     G4Material* mat_envelope, G4VisAttributes* col_envelope,
@@ -231,61 +332,81 @@ G4LogicalVolume* DetectorConstruction::CreateModule(
 
     // create module envelope
     geomTrapezoid* modEnvGeom = new geomTrapezoid(mod_rmin + mod_radial_env / 2 - front_thk, mod_radial_env, mod_dphi);
-    G4LogicalVolume* modEnvLog = fLogTile("module_envelope_"+mod_suffix, mat_envelope, col_envelope, modEnvGeom, mod_thk_env, 0, 0, 0, 0);
+    G4LogicalVolume* modEnvLog = fLogTile(mod_id+"_Envelope", mat_envelope, col_envelope, modEnvGeom, mod_thk_env, 0, 0, 0, 0);
 
     // place elements in the envelope...
 
-    if (BPLACEONLYTILES) {goto label_tiles;}
+    G4LogicalVolume* tilLogTemp;
+    G4int iperiod;
+
+    if (BPLACEONLYINNER) {goto label_inner_geom;}
 
     // --> front plate
     if (front_thk > 0) {
         geomTrapezoid* frontGeom = new geomTrapezoid(mod_rmin + front_thk / 2, front_thk, mod_dphi);
-        frontLog = fLogTile("front_"+mod_suffix, mat_support , col_support, frontGeom, mod_thk, 0, 0, 0, 0);
+        frontLog = fLogTile(mod_id+"_Front", mat_support , col_support, frontGeom, mod_thk, 0, 0, 0, 0);
         pos_temp = G4ThreeVector(0, 0, -mod_radial_env / 2 + front_thk / 2);
-        new G4PVPlacement(nullptr, pos_temp, frontLog, "front_"+mod_suffix, modEnvLog, false, 0);
+        new G4PVPlacement(nullptr, pos_temp, frontLog, mod_id+"_Front", modEnvLog, false, 0);
     }
 
     // --> back plate
     if (back_thk > 0) {
         geomTrapezoid* backGeom = new geomTrapezoid(mod_rmin + mod_radial_env - back_thk / 2, back_thk, mod_dphi);
         backGeom->AddHorGaps(spc_sidegap(NLAYERS-1)>sci_sidegap(NLAYERS-1) ? spc_sidegap(NLAYERS-1) : sci_sidegap(NLAYERS-1));
-        backLog = fLogTile("back_"+mod_suffix, mat_support , col_support, backGeom, mod_thk, 0, 0, 0, 0);
+        backLog = fLogTile(mod_id+"_Back", mat_support , col_support, backGeom, mod_thk, 0, 0, 0, 0);
         pos_temp = G4ThreeVector(0, 0, mod_radial_env / 2 - back_thk / 2);
-        new G4PVPlacement(nullptr, pos_temp, backLog, "back_"+mod_suffix, modEnvLog, false, 0);
+        new G4PVPlacement(nullptr, pos_temp, backLog, backLog->GetName(), modEnvLog, false, 0);
         backGeom->RmHorGaps();
     }
 
     // --> side plates
     if (side_thk > 0) {
         geomTrapezoid* sideGeom = modEnvGeom; // side plates have the same transverse cross section as envelope
-        sideLog = fLogTile("side_"+mod_suffix, mat_support , col_support, sideGeom, side_thk, 0, 0, 0, 0);
+        tilLogTemp = fLogTile(mod_id+"_Side0", mat_support , col_support, sideGeom, side_thk, 0, 0, 0, 0);
         pos_temp = G4ThreeVector(0, -mod_thk_env / 2 + side_thk / 2, 0);
-        new G4PVPlacement(nullptr, pos_temp, sideLog, "side_"+mod_suffix, modEnvLog, false, 0);
+        new G4PVPlacement(nullptr, pos_temp, tilLogTemp, tilLogTemp->GetName(), modEnvLog, false, 0);
+        sideLogs[0] = tilLogTemp;
+        tilLogTemp = fLogTile(mod_id+"_Side1", mat_support , col_support, sideGeom, side_thk, 0, 0, 0, 0);
         pos_temp = G4ThreeVector(0, mod_thk_env / 2 - side_thk / 2, 0);
-        new G4PVPlacement(nullptr, pos_temp, sideLog, "side_"+mod_suffix, modEnvLog, false, 1);
-    }
-    
-    // --> master plates
-    {
-        geomTrapezoid* mstGeom = new geomTrapezoid(mod_rmin + mod_radial() / 2, mod_radial(), mod_dphi);
-       mstLog = fLogTile("masters_"+mod_suffix, mat_passive , col_passive, mstGeom, mst_thk, 0, 0, 0, 0);
-        for (G4int i = 0; i < NPERIODS * 2 - 1; i++) {
-            pos_temp = G4ThreeVector(0, mst_transv(i), mod_centre_rel);
-            new G4PVPlacement(nullptr, pos_temp, mstLog, "masters_"+mod_suffix, modEnvLog, false, i);
-        }
+        new G4PVPlacement(nullptr, pos_temp, tilLogTemp, tilLogTemp->GetName(), modEnvLog, false, 1);
+        sideLogs[1] = tilLogTemp;
     }
 
-    label_tiles: {;}
+    label_inner_geom: {;}
+    
+    // --> master plates
+    // (splitted in radial segments separate for each layer, in order to measure the energy deposit in each period)
+    G4int q_mst = 0;
+    iperiod = 0;
+
+
+    for (G4int j = 0; j < NLAYERS; j++) {
+        for (G4int i = 0; i < NPERIODS * 2 - 1; i++) {
+            iperiod = floor(i/2);
+
+            geomTrapezoid* mstGeom = new geomTrapezoid(mst_r(j), mst_hgt(j), mod_dphi);
+
+            G4String mst_name = mod_id + "_L" + std::to_string(j) + "_P" + std::to_string(iperiod) + "_Master" + std::to_string(i%2);
+
+            tilLogTemp = fLogTile(mst_name, mat_passive , col_passive, mstGeom, mst_thk, 0, 0, 0, 0);
+            pos_temp = G4ThreeVector(0, mst_transv(i), mst_r_rel(j));
+            new G4PVPlacement(nullptr, pos_temp, tilLogTemp, mst_name, modEnvLog, false, i);
+            mstLogs[q_mst++] = tilLogTemp;
+        }
+    }
 
     // --> scintillating tiles and spacer plates
     G4int b_spc; // if true (false) place spacer (tile)
     G4double til_hgt, til_r, til_r_rel, til_sidegap, til_thk;
     G4VisAttributes* til_col;
     G4Material* til_mat;
-    G4LogicalVolume* tilLogTemp;
-    G4int q = 0;
-    for (G4int i = 0; i < NPERIODS * 2; i++) {
-        for (G4int j = 0; j < NLAYERS; j++) {
+    G4int q_sci = 0, q_spc = 0;
+    iperiod = 0;
+
+    for (G4int j = 0; j < NLAYERS; j++) {
+        for (G4int i = 0; i < NPERIODS * 2; i++) {
+            iperiod = floor(i/2);
+
             b_spc = ((i%2) + (j%2)) % 2;
             til_hgt = b_spc ? spc_hgt(j) : sci_hgt(j);
             til_r = b_spc ? spc_r(j) : sci_r(j); 
@@ -296,24 +417,27 @@ G4LogicalVolume* DetectorConstruction::CreateModule(
             til_mat = b_spc ? mat_passive : mat_scintillator;
 
             geomTrapezoid* tilGeom = new geomTrapezoid(til_r, til_hgt, mod_dphi);
-            G4String til_name = "tile_" + mod_suffix + "_P" + std::to_string(i) + "_L" + std::to_string(j);
-            G4String fibre_name = "fibre" + mod_suffix + "_P" + std::to_string(i) + "_L" + std::to_string(j);
+            G4String til_name;
+            G4String fibre_name;
 
             G4double til_sidegap_extra = b_spc ? 0 : inner_gap/2; // extra side gap for scintillating tiles to account for central gap
             tilGeom->AddHorGaps(til_sidegap + til_sidegap_extra*cos(tilGeom->GetTheta()));
             if (b_spc) {
-                spcLog = fLogTile(til_name, til_mat , til_col, tilGeom, til_thk, 0, hole_r, hole_x, hole_y);
+                til_name = mod_id + "_L" + std::to_string(j) + "_P" + std::to_string(iperiod) + "_Spacer";
+                tilLogTemp = fLogTile(til_name, til_mat , til_col, tilGeom, til_thk, 0, hole_r, hole_x, hole_y);
                 pos_temp = G4ThreeVector(0, til_transv(i), til_r_rel);
-                new G4PVPlacement(nullptr, pos_temp, spcLog, til_name, modEnvLog, false, 2*(i*NLAYERS+j));
+                new G4PVPlacement(nullptr, pos_temp, tilLogTemp, til_name, modEnvLog, false, 2*(i*NLAYERS+j));
+                spcLogs[q_spc++] = tilLogTemp;
             }else{
                 for (G4int k = 0; k<2; k++) {
                     G4int til_sign = k ? -1 : 1;
+                    til_name = mod_id + "_L" + std::to_string(j) + "_P" + std::to_string(iperiod) + "_Scintillator" + std::to_string(k);
+                    fibre_name = mod_id + "_L" + std::to_string(j) + "_P" + std::to_string(iperiod) + "_Fibre" + std::to_string(k);
                     tilLogTemp = fLogTile(til_name, til_mat , til_col, tilGeom, til_thk, til_sign, hole_r, hole_x, hole_y);
                     pos_temp = G4ThreeVector(til_sign*inner_gap/2, til_transv(i), til_r_rel);
                     new G4PVPlacement(nullptr, pos_temp, tilLogTemp, til_name, modEnvLog, false, 2*(i*NLAYERS+j)+k);
-                    sciLogs[q] = tilLogTemp;
-                    fibreLogs[q] = fLogPlaceFibreCirc(fibre_name, mat_fibre, col_fibre, tilGeom, modEnvLog, fibre_r, 0, 3*cm, pos_temp, nullptr, til_sign);
-                    q++;
+                    sciLogs[q_sci] = tilLogTemp;
+                    fibreLogs[q_sci++] = fLogPlaceFibreCirc(fibre_name, mat_fibre, col_fibre, tilGeom, modEnvLog, fibre_r, 0, 3*cm, pos_temp, nullptr, til_sign);
                 }
             }
             tilGeom->RmHorGaps();

@@ -6,6 +6,7 @@
 #include "EventAction.hh"
 #include "Analysis.hh"
 #include "CustomHit.hh"
+#include "DetectorConstruction.hh"
 
 using namespace std;
 
@@ -25,22 +26,76 @@ void EventAction::EndOfEventAction(const G4Event* event)
     // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
     // implement cast of the data collections, operations on them and ntuple filling here, or... 
 
-    // G4int fIdETileTest000 = sdm->GetCollectionID("tile000_SD/VolumeEDep");
+    // function to extract hits and fill the corresponding ntuple column
+    auto FillVolumeEDep = [sdm, hcofEvent, analysis](G4int& col, const G4String& volumeName) {
+        G4double eDep = 0.;
+        G4int collectionId = sdm->GetCollectionID(volumeName + "_SD/VolumeEDep");
+        VolumeEDepHitsCollection* hitCollection = nullptr;
+        if (collectionId >= 0) {
+            hitCollection = dynamic_cast<VolumeEDepHitsCollection*>(hcofEvent->GetHC(collectionId));
+        }
 
-    // VolumeEDepHitsCollection* hitCollectionTileTest000 = dynamic_cast<VolumeEDepHitsCollection*>(hcofEvent->GetHC(fIdETileTest000));
+        if (hitCollection) {
+            for (auto hit: *hitCollection->GetVector()) {
+                eDep += hit->GetEDep();
+            }
+            analysis->FillNtupleDColumn(0, col, eDep / MeV);
+        } else {
+            analysis->FillNtupleDColumn(0, col, -1.);
+        }
+        col++;
+    };
 
-    int colNEv = 0;
-    int colETileTest000 = 1;
+    G4int col = 0;
 
-    G4double E000 = 0.0;
+    analysis->FillNtupleDColumn(0, col++, event->GetEventID());
 
-    analysis->FillNtupleDColumn(0, colNEv, event->GetEventID());
-    // if (hitCollectionTileTest000)
-    // {
-    //     for (auto hit: *hitCollectionTileTest000->GetVector())
-    //     {E000 += hit->GetEDep();}
-    //     analysis->FillNtupleDColumn(0, colETileTest000, E000 / MeV);
-    // }else{analysis->FillNtupleDColumn(0, colETileTest000, -1.0);}
+    for (G4int imod = 0; imod < NSTACKEDMODS; imod++) {
+        G4String mod_prefix = "M" + std::to_string(imod);
+
+        if (COARSERO == 2) {
+            FillVolumeEDep(col, mod_prefix + "_Total");
+            continue;
+        }
+
+        FillVolumeEDep(col, mod_prefix + "_Front");
+        FillVolumeEDep(col, mod_prefix + "_Back");
+        FillVolumeEDep(col, mod_prefix + "_Side0");
+        FillVolumeEDep(col, mod_prefix + "_Side1");
+
+        if (COARSERO == 1) {
+            for (G4int j = 0; j < NLAYERS; j++) {
+                for (G4int iperiod = 0; iperiod < NPERIODS; iperiod++) {
+                    FillVolumeEDep(col, mod_prefix + "_L" + std::to_string(j) + "_P" + std::to_string(iperiod) + "_Cell");
+                }
+            }
+            continue;
+        }
+
+        for (G4int j = 0; j < NLAYERS; j++) {
+            for (G4int i = 0; i < NPERIODS * 2 - 1; i++) {
+                G4int iperiod = floor(i/2);
+
+                FillVolumeEDep(col, mod_prefix + "_L" + std::to_string(j) + "_P" + std::to_string(iperiod) + "_Master" + std::to_string(i%2));
+            }
+        }
+
+        for (G4int j = 0; j < NLAYERS; j++) {
+            for (G4int i = 0; i < NPERIODS * 2; i++) {
+                G4int iperiod = floor(i/2);
+
+                G4int b_spc = ((i%2) + (j%2)) % 2;
+                if (b_spc) {
+                    FillVolumeEDep(col, mod_prefix + "_L" + std::to_string(j) + "_P" + std::to_string(iperiod) + "_Spacer");
+                } else {
+                    for (G4int k = 0; k < 2; k++) {
+                        FillVolumeEDep(col, mod_prefix + "_L" + std::to_string(j) + "_P" + std::to_string(iperiod) + "_Scintillator" + std::to_string(k));
+                        FillVolumeEDep(col, mod_prefix + "_L" + std::to_string(j) + "_P" + std::to_string(iperiod) + "_Fibre" + std::to_string(k));
+                    }
+                }
+            }
+        }
+    }
 
     analysis->AddNtupleRow(0);
 

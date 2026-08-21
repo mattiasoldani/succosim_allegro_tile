@@ -20,16 +20,22 @@
 // - modules (stacked one on top of the other à la beamtest area)
 #define NPERIODS 39
 #define NLAYERS 13
-#define NSTACKEDMODS 6
+#define NSTACKEDMODS 3
 
-// if 1, only scintillating tiles and spacers are placed (no masters, no support)
-#define BPLACEONLYTILES 0
+// readout granularity of each module:
+// - 0: single-element readout
+// - 1: one readout channel per cell for the inner structure, support read out separately
+// - 2: just the total energy in the module
+#define COARSERO 1
+
+// if 1, only inner part (scintillating tiles, spacers, masters, fibres) is placed (no support)
+#define BPLACEONLYINNER 0
+
+// if 1 (0), inner structure (masters, spacers, scintillators, fibres) is (not) shown in graphical mode - note that volumes are placed anyway
+#define BSHOWINNER 1
 
 // if 1 (0), support is (not) shown in graphical mode - note that volumes are placed anyway
 #define BSHOWSUPPORT 1
-
-// if 1 (0), inner structure (masters, spacers, scintillators, fibres) is (not) shown in graphical mode - note that volumes are placed anyway
-#define BSHOWINNER 0
 
 using namespace std;
 
@@ -63,7 +69,6 @@ private:
     G4double spc_thk = 4*mm; // spacer thickness
     G4double sci_thk = 3*mm; // tile thickness
     G4double period_thk = 2*(mst_thk + spc_thk); // thickness of the full period
-    G4double mst_transv(G4int i), til_transv(G4int i); // functions for iterative element placing, defined in DetectorConstruction.cc
 
     G4double front_thk = 20*mm; // thickness (along radial direction) of the front plate
     G4double back_thk = 191*mm; // thickness (along radial direction) of the back structure
@@ -76,6 +81,12 @@ private:
     G4double mod_centre_rel = front_thk + mod_radial()/2 - mod_radial_env/2; // radial centre of the module net part relative to the gross size
     G4double mod_dphi = 2*pi/128; // module full azimuthal opening - readout segmentation will be halved
     G4double mod_radial(); // module radial extension - net (sensitive volume only), defined in DetectorConstruction.cc
+
+    G4double mst_transv(G4int i), til_transv(G4int i); // functions for iterative element placing, defined in DetectorConstruction.cc
+
+    // master (partial) cross-section shapes
+    G4double mst_hgt(G4int j); // per-layer heights, defined in DetectorConstruction.cc
+    G4double mst_r(G4int j), mst_r_rel(G4int j); // per-layer radius (absolute and relative to the gross radial position), defined in DetectorConstruction.cc
 
     // spacer cross-section shapes
     G4double spc_r_overlap = 2*mm; // overlapping portion between spacers in two successive columns along radius
@@ -98,12 +109,12 @@ private:
 
     // function to create and place a whole module, defined in DetectorConstruction.cc
     G4LogicalVolume* CreateModule(
-        G4String id,
+        G4String mod_id,
         G4LogicalVolume*& frontLog, 
         G4LogicalVolume*& backLog, 
-        G4LogicalVolume*& sideLog, 
-        G4LogicalVolume*& mstLog, 
-        G4LogicalVolume*& spcLog,
+        G4LogicalVolume** sideLogs, 
+        G4LogicalVolume** mstLogs, 
+        G4LogicalVolume** spcLogs,
         G4LogicalVolume** sciLogs,
         G4LogicalVolume** fibreLogs, 
         G4Material* mat_envelope, G4VisAttributes* col_envelope,

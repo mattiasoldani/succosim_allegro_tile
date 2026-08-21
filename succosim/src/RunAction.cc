@@ -3,6 +3,7 @@
 
 #include "RunAction.hh"
 #include "Analysis.hh"
+#include "DetectorConstruction.hh"
 
 using namespace std;
 
@@ -25,7 +26,53 @@ RunAction::RunAction() :  G4UserRunAction()
     //// preliminary tests 01 ////
 
     analysis->CreateNtupleDColumn("NEvent");
-    // analysis->CreateNtupleDColumn("E_tileTest000");
+
+    for (G4int imod = 0; imod < NSTACKEDMODS; imod++) {
+        G4String mod_prefix = "M" + std::to_string(imod);
+
+        if (COARSERO == 2) {
+            analysis->CreateNtupleDColumn("Edep_" + mod_prefix + "_Total");
+            continue;
+        }
+
+        analysis->CreateNtupleDColumn("Edep_" + mod_prefix + "_Front");
+        analysis->CreateNtupleDColumn("Edep_" + mod_prefix + "_Back");
+        analysis->CreateNtupleDColumn("Edep_" + mod_prefix + "_Side0");
+        analysis->CreateNtupleDColumn("Edep_" + mod_prefix + "_Side1");
+
+        if (COARSERO == 1) {
+            for (G4int j = 0; j < NLAYERS; j++) {
+                for (G4int iperiod = 0; iperiod < NPERIODS; iperiod++) {
+                    analysis->CreateNtupleDColumn("Edep_" + mod_prefix + "_L" + std::to_string(j) + "_P" + std::to_string(iperiod) + "_Cell");
+                }
+            }
+            continue;
+        }
+
+        for (G4int j = 0; j < NLAYERS; j++) {
+            for (G4int i = 0; i < NPERIODS * 2 - 1; i++) {
+                G4int iperiod = floor(i/2);
+
+                analysis->CreateNtupleDColumn("Edep_" + mod_prefix + "_L" + std::to_string(j) + "_P" + std::to_string(iperiod) + "_Master" + std::to_string(i%2));
+            }
+        }
+
+        for (G4int j = 0; j < NLAYERS; j++) {
+            for (G4int i = 0; i < NPERIODS * 2; i++) {
+                G4int iperiod = floor(i/2);
+
+                G4int b_spc = ((i%2) + (j%2)) % 2;
+                if (b_spc) {
+                    analysis->CreateNtupleDColumn("Edep_" + mod_prefix + "_L" + std::to_string(j) + "_P" + std::to_string(iperiod) + "_Spacer");
+                } else {
+                    for (G4int k = 0; k < 2; k++) {
+                        analysis->CreateNtupleDColumn("Edep_" + mod_prefix + "_L" + std::to_string(j) + "_P" + std::to_string(iperiod) + "_Scintillator" + std::to_string(k));
+                        analysis->CreateNtupleDColumn("Edep_" + mod_prefix + "_L" + std::to_string(j) + "_P" + std::to_string(iperiod) + "_Fibre" + std::to_string(k));
+                    }
+                }
+            }
+        }
+    }
 
     // --------------------------------------------------
     // ...uncomment this line for the test ntuple columns (implemented in src/TestMode.cc)
