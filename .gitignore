@@ -34,8 +34,9 @@
 ########################################
 # CUSTOM
 
-# build directory
+# build directories
 build/
+build*/
 
 # references directory
 references/
