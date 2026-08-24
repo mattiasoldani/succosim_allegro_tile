@@ -48,7 +48,6 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     G4RotationMatrix* worldRotation = new G4RotationMatrix();
     G4VSolid* worldBox = new G4Box("world_Shape", worldSizeX / 2, worldSizeY / 2, worldSizeZ / 2);
     G4LogicalVolume* worldLog = new G4LogicalVolume(worldBox, air, "world_Log");
-    G4VisAttributes* visAttrWorld = new G4VisAttributes();
     worldLog->SetVisAttributes(invisible);
     G4VPhysicalVolume* worldPhys = new G4PVPlacement(nullptr, {}, worldLog, "world", nullptr, false, 0);
 	
