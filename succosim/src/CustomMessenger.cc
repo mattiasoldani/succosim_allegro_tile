@@ -33,6 +33,15 @@ CustomMessenger::CustomMessenger()
     // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
     // implement custom macro parameter parser here
 
+    /* instructions for IdConfig:
+    - 0 --> calibration mode
+    - 1 --> physics mode for Bethe-Bloch
+    - 2 --> physics mode with CERN S2
+    - 3 --> physics mode with CERN S6 (no upstream steel)
+    - 4 --> physics mode with CERN S6 (x1 upstream steel)
+    - 5 --> physics mode with CERN S6 (x2 upstream steel)
+    - 6 --> physics mode with CERN S6 (x4 upstream steel)
+    */
     fMessenger->DeclareProperty(
         "IdConfig", id_config,
         "setup configuration - int: [0] calib, [1] Bethe-Bloch, [2] CERN S2, [3] CERN S6, [4/5/6] CERN S6 with 1/2/4 upstream steel layers"

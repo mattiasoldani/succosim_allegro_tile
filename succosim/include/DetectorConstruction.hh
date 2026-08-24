@@ -16,20 +16,15 @@
 
 #include "CustomMessenger.hh"
 
-
-/* instructions for ICONFIG:
-- 0 --> calibration mode
-- 1 --> physics mode for Bethe-Bloch
-- 2 --> physics mode with CERN S2
-- 3 --> physics mode with CERN S6 (no upstream steel)
-- 4 --> physics mode with CERN S6 (x1 upstream steel)
-- 5 --> physics mode with CERN S6 (x2 upstream steel)
-- 6 --> physics mode with CERN S6 (x4 upstream steel)
-*/
+// vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+// define hard-coded parameters
+// e.g. #define NLAYERS 10
 
 // number of tiles in stacks
 #define TILECERN_N 10
 #define TILEFZU_N 32
+
+// ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 using namespace std;
 
