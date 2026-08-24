@@ -342,7 +342,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     //// beamline hodoscope ////
     if (IsHodo()) {
 
-        G4double hodoThickness = 1 * cm;
+        G4double hodoThickness = 2 * cm;
         G4double hodoWidth = 10 * cm;
         G4double hodoHeight = 10 * cm;
 
