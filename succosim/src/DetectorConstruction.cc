@@ -168,11 +168,4 @@ void DetectorConstruction::ConstructSDandField()
 // ============================================================
 // implement custom methods here
 
-// DetectorConstruction methods ///////////////////////////////
-
-G4double DetectorConstruction::pi = acos(-1);
-
 // --> tile-specific stuff in DetectorConstruction_tile.cc
-
-
-
