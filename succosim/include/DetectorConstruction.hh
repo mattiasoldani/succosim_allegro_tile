@@ -18,15 +18,15 @@
 // - periods (along barrel z)
 // - layers (along barrel radius)
 // - modules (stacked one on top of the other à la beamtest area)
-#define NPERIODS 39
+#define NPERIODS 13
 #define NLAYERS 13
-#define NSTACKEDMODS 3
+#define NSTACKEDMODS 1
 
 // readout granularity of each module:
 // - 0: single-element readout
 // - 1: one readout channel per cell for the inner structure, support read out separately
 // - 2: just the total energy in the module
-#define COARSERO 1
+#define COARSERO 2
 
 // if 1, only inner part (scintillating tiles, spacers, masters, fibres) is placed (no support)
 #define BPLACEONLYINNER 0
