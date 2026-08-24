@@ -43,7 +43,11 @@ public:
     G4VPhysicalVolume* Construct() override;
     void ConstructSDandField() override;
 
-    // custom addition: getters related to private booleans defined below
+    // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+    // define custom public methods/members here
+    // e.g. getters for private stuff
+
+    // getters related to private booleans defined below
     G4bool IsConfigCalib() const { return b_config_calib; }
     G4bool IsConfigBB() const { return b_config_BB; }
     G4bool IsConfigCERNS2() const { return b_config_CERN_S2; }
@@ -67,12 +71,14 @@ public:
     G4bool IsCherDet() const { return b_cher && b_cher_det; }
     G4bool IsHodoDet() const { return b_hodo && b_hodo_det; }
 
+    // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 private:
     // custom messenger
     CustomMessenger* custom = CustomMessenger::Instance();
 
     // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-    // define custom methods here
+    // define custom private methods/members here
     // e.g. void ConstructCalo(G4LogicalVolume* worldLog);
 
     // simply pi
