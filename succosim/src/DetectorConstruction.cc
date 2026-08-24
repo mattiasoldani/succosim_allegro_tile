@@ -241,8 +241,6 @@ void DetectorConstruction::ConstructSDandField()
 
 // DetectorConstruction methods ///////////////////////////////
 
-G4double DetectorConstruction::pi = acos(-1);
-
 // module radial extension - net (sensitive volume only) - function initialised in DetectorConstruction.hh
 G4double DetectorConstruction::mod_radial() {
     G4double mod_radial_temp = 0;

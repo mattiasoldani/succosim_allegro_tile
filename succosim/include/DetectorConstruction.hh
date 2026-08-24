@@ -5,6 +5,8 @@
 #include <G4VUserDetectorConstruction.hh>
 #include <G4NistManager.hh>
 #include <G4SDManager.hh>
+#include <CLHEP/Units/PhysicalConstants.h>
+
 
 #include <G4Trd.hh>
 #include <G4Box.hh>
@@ -19,6 +21,7 @@
 // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 // define hard-coded parameters
 // e.g. #define NLAYERS 10
+
 // numbers of
 // - periods (along barrel z)
 // - layers (along barrel radius)
@@ -41,9 +44,12 @@
 
 // if 1 (0), support is (not) shown in graphical mode - note that volumes are placed anyway
 #define BSHOWSUPPORT 1
+
 // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 using namespace std;
+
+inline const G4double pi = CLHEP::pi;
 
 // class for logical volumes
 class G4LogicalVolume;
@@ -68,9 +74,6 @@ private:
     // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
     // define custom methods here
     // e.g. void ConstructCalo(G4LogicalVolume* worldLog);
-
-    // simply pi
-    static G4double pi;
 
     // world size - full sides
     G4double worldSizeX = 10 * m;
@@ -205,8 +208,6 @@ private:
             void RmHorGaps(); // defined in DetectorConstruction_tile.cc
 
         protected:
-            G4double pi = DetectorConstruction::pi;
-
             G4double H;
             G4double R;
             G4double Theta;
