@@ -16,6 +16,9 @@
 
 #include "CustomMessenger.hh"
 
+// vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+// define hard-coded parameters
+// e.g. #define NLAYERS 10
 // numbers of
 // - periods (along barrel z)
 // - layers (along barrel radius)
@@ -38,6 +41,7 @@
 
 // if 1 (0), support is (not) shown in graphical mode - note that volumes are placed anyway
 #define BSHOWSUPPORT 1
+// ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 using namespace std;
 
@@ -50,6 +54,12 @@ class DetectorConstruction : public G4VUserDetectorConstruction
 public:
     G4VPhysicalVolume* Construct() override;
     void ConstructSDandField() override;
+
+    // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+    // define custom public methods/members here
+    // e.g. getters for private stuff
+
+    // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 private:
     // custom messenger
