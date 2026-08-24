@@ -81,15 +81,7 @@ private:
 	
     //// specific for this application ////
 
-    // configuration booleans
-    G4int id_config = 2;
-    G4bool b_config_calib = false;
-    G4bool b_config_BB = false;
-    G4bool b_config_CERN_S2 = true;
-    G4bool b_config_CERN_S6 = false;
-    G4bool b_config_CERN_S6_upstr1 = false;
-    G4bool b_config_CERN_S6_upstr2 = false;
-    G4bool b_config_CERN_S6_upstr4 = false;
+    // configuration boleans and other settings
     G4bool b_CERN_any = true;
     G4bool b_FZU = true;
     G4bool b_CERN_trig = true;
@@ -98,6 +90,15 @@ private:
     G4bool b_PbGl = true;
     G4bool b_scinti_big = true;
     G4bool b_hodo = true;
+
+    G4int id_config = 0; // redefined in DetectorConstruction.cc (from custom macro parameter)
+    G4bool b_config_calib = true; // redefined in DetectorConstruction.cc (from custom macro parameter)
+    G4bool b_config_BB = false; // redefined in DetectorConstruction.cc (from custom macro parameter)
+    G4bool b_config_CERN_S2 = false; // redefined in DetectorConstruction.cc (from custom macro parameter)
+    G4bool b_config_CERN_S6 = false; // redefined in DetectorConstruction.cc (from custom macro parameter)
+    G4bool b_config_CERN_S6_upstr1 = false; // redefined in DetectorConstruction.cc (from custom macro parameter)
+    G4bool b_config_CERN_S6_upstr2 = false; // redefined in DetectorConstruction.cc (from custom macro parameter)
+    G4bool b_config_CERN_S6_upstr4 = false; // redefined in DetectorConstruction.cc (from custom macro parameter)
     G4bool b_scinti_small = false; // redefined in DetectorConstruction.cc (from custom macro parameter)
     G4bool b_cher = false; // redefined in DetectorConstruction.cc (from custom macro parameter)
 
