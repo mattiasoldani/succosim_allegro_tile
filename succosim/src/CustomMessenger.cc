@@ -33,31 +33,6 @@ CustomMessenger::CustomMessenger()
     // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
     // implement custom macro parameter parser here
 
-    fMessenger->DeclareProperty(
-        "IdConfig", id_config,
-        "setup configuration - int: [0] calib, [1] Bethe-Bloch, [2] CERN S2, [3] CERN S6, [4/5/6] CERN S6 with 1/2/4 upstream steel layers"
-    );
-
-    fMessenger->DeclareProperty(
-        "BPlaceUpstream", b_place_upstream,
-        "place all detectors upstream of the hodoscope - true/false"
-    );
-
-    fMessenger->DeclareProperty(
-        "BScintiSmallDet", b_scinti_small_det,
-        "activate upstream scintillator (small; S0-1) detection - true/false"
-    );
-
-    fMessenger->DeclareProperty(
-        "BCherDet", b_cher_det,
-        "activate Cherenkov detection - true/false"
-    );
-
-    fMessenger->DeclareProperty(
-        "BHodoDet", b_hodo_det,
-        "activate hodoscope detection - true/false"
-    );
-
     // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 }

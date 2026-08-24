@@ -14,6 +14,8 @@
 #include <G4Vector3D.hh>
 #include <G4Transform3D.hh>
 
+#include "CustomMessenger.hh"
+
 // numbers of
 // - periods (along barrel z)
 // - layers (along barrel radius)
@@ -50,6 +52,9 @@ public:
     void ConstructSDandField() override;
 
 private:
+    // custom messenger
+    CustomMessenger* custom = CustomMessenger::Instance();
+
     // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
     // define custom methods here
     // e.g. void ConstructCalo(G4LogicalVolume* worldLog);

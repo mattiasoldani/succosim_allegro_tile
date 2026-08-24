@@ -22,13 +22,7 @@ public:
 
     // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
     // implement custom macro parameter value getters here
-    G4int IdConfig() const { return id_config; }
 
-    G4bool BPlaceUpstream() const { return b_place_upstream; }
-    G4bool BScintiSmallDet() const { return b_scinti_small_det; }
-    G4bool BCherDet() const { return b_cher_det; }
-
-    G4bool BHodoDet() const { return b_hodo_det; }
     // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 private:
@@ -39,11 +33,7 @@ private:
 
     // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
     // implement custom macro parameter internal variables here
-    G4int id_config = 2;
-    G4bool b_place_upstream = false;
-    G4bool b_scinti_small_det = false;
-    G4bool b_cher_det = false;
-    G4bool b_hodo_det = true;
+
     // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
     G4GenericMessenger* fMessenger;
