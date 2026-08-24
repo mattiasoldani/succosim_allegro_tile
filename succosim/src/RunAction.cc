@@ -1,8 +1,11 @@
 #include <G4SystemOfUnits.hh>
 #include <G4String.hh>
 
+#include <string>
+
 #include "RunAction.hh"
 #include "Analysis.hh"
+#include "CustomMessenger.hh"
 
 using namespace std;
 
@@ -10,34 +13,41 @@ using namespace std;
 
 RunAction::RunAction() :  G4UserRunAction()
 {
-    // load the analysis manager for data output
+}
+
+void RunAction::BeginOfRunAction(const G4Run*)
+{
     G4AnalysisManager* analysis = G4AnalysisManager::Instance();
     analysis->SetNtupleMerging(true);
-    analysis->SetVerboseLevel(1);  // set analysis manager verbosity here
-  
-    // create output ntuple
-    analysis->SetFirstNtupleId(0);
-    analysis->CreateNtuple("outData", "output data");
-    // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-    // create the ntuple columns (remember the order, it is needed to fill them) here, or...
-    // e.g. analysis->CreateNtupleDColumn("NEvent");
+    analysis->SetVerboseLevel(0);  // set analysis manager verbosity here
 
-    //// preliminary tests 01 ////
+    if (!b_ntuple_created) {
+        analysis->SetFirstNtupleId(0);
+        analysis->CreateNtuple(
+            CustomMessenger::Instance()->OutTreeName(),
+            CustomMessenger::Instance()->OutTreeTitle()
+        );
 
-    analysis->CreateNtupleDColumn("NEvent");
-    analysis->CreateNtupleDColumn("E_tileTest000");
-    analysis->CreateNtupleDColumn("E_tileTest001");
-    // --------------------------------------------------
-    // ...uncomment this line for the test ntuple columns (implemented in src/TestMode.cc)
-    //OutputNtupleTest(analysis);
-    // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    analysis->FinishNtuple(0);
-	
-    // open output file
-    // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-    // choose output file name here --> file will have extension .root and and will be in ./out_data/
-    G4String outFileName = "OutData";
-    // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+        // create the ntuple columns (remember the order, it is needed to fill them) here, or...
+        // e.g. analysis->CreateNtupleDColumn("NEvent");
+
+        //// preliminary tests 01 ////
+
+        analysis->CreateNtupleDColumn("NEvent");
+        analysis->CreateNtupleDColumn("E_tileTest000");
+        analysis->CreateNtupleDColumn("E_tileTest001");
+        // --------------------------------------------------
+        // ...uncomment this line for the test ntuple columns (implemented in src/TestMode.cc)
+        //OutputNtupleTest(analysis);
+        // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+		
+        analysis->FinishNtuple(0);
+        b_ntuple_created = true;
+    }
+
+    // open output file - output file will have extension .root and and will be in ./out_data/
+    G4String outFileName = CustomMessenger::Instance()->OutFileName();
     analysis->OpenFile("./out_data/"+outFileName+".root");
 }
 

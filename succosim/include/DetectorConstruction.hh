@@ -14,6 +14,8 @@
 #include <G4Vector3D.hh>
 #include <G4Transform3D.hh>
 
+#include "CustomMessenger.hh"
+
 using namespace std;
 
 // class for logical volumes
@@ -27,6 +29,9 @@ public:
     void ConstructSDandField() override;
 
 private:
+    // custom messenger
+    CustomMessenger* custom = CustomMessenger::Instance();
+
     // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
     // define custom methods here
     // e.g. void ConstructCalo(G4LogicalVolume* worldLog);
