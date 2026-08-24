@@ -24,8 +24,17 @@ RunAction::RunAction() :  G4UserRunAction()
     // create the ntuple columns (remember the order, it is needed to fill them) here, or...
     // e.g. analysis->CreateNtupleDColumn("NEvent");
 
-
     analysis->CreateNtupleDColumn("NEvent");
+    
+    ///////////////////////////
+    //// true primary info ////
+    analysis->CreateNtupleDColumn("true_KE");
+    analysis->CreateNtupleDColumn("true_X");
+    analysis->CreateNtupleDColumn("true_Y");
+    analysis->CreateNtupleDColumn("true_thetaX");
+    analysis->CreateNtupleDColumn("true_thetaY");
+    //// true primary info ////
+    ///////////////////////////
 
     ////////////////////////////
     //// beamline hodoscope ////
@@ -36,14 +45,14 @@ RunAction::RunAction() :  G4UserRunAction()
 
     ///////////////////////
     //// Pb glass calo ////
-    analysis->CreateNtupleDColumn("E_PbGl");
+    analysis->CreateNtupleDColumn("Edep_PbGl");
     //// Pb glass calo ////
     ///////////////////////
 
     ////////////////////////////
     //// scintillating pads ////
     for (G4int i = 0; i < 4; i++) {
-        analysis->CreateNtupleDColumn("E_S" + std::to_string(i));
+        analysis->CreateNtupleDColumn("Edep_S" + std::to_string(i));
     }
     //// scintillating pads ////
     ////////////////////////////
@@ -51,7 +60,7 @@ RunAction::RunAction() :  G4UserRunAction()
     /////////////////////////
     //// Cherenkov pipes ////
     for (G4int i = 0; i < 2; i++) {
-        analysis->CreateNtupleDColumn("E_cher_" + std::to_string(i));
+        analysis->CreateNtupleDColumn("Edep_cher_" + std::to_string(i));
     }
     //// Cherenkov pipes ////
     /////////////////////////
@@ -59,7 +68,7 @@ RunAction::RunAction() :  G4UserRunAction()
     ///////////////////
     //// FZU stack ////
     for (G4int i = 0; i < TILEFZU_N; i++) {
-        analysis->CreateNtupleDColumn("E_FZU_" + std::to_string(i));
+        analysis->CreateNtupleDColumn("Edep_FZU_" + std::to_string(i));
     }
     //// FZU stack ////
     ///////////////////
@@ -67,7 +76,7 @@ RunAction::RunAction() :  G4UserRunAction()
     ////////////////////////////////////
     //// CERN stack - trigger tiles ////
     for (G4int i = 0; i < 2; i++) {
-        analysis->CreateNtupleDColumn("E_CERNTrig_" + std::to_string(i));
+        analysis->CreateNtupleDColumn("Edep_CERNTrig_" + std::to_string(i));
     }
     //// CERN stack - trigger tiles ////
     ////////////////////////////////////
@@ -75,7 +84,7 @@ RunAction::RunAction() :  G4UserRunAction()
     ////////////////////
     //// CERN stack ////
     for (G4int i = 0; i < TILECERN_N; i++) {
-        analysis->CreateNtupleDColumn("E_CERN_" + std::to_string(i));
+        analysis->CreateNtupleDColumn("Edep_CERN_" + std::to_string(i));
     }
     //// CERN stack ////
     ////////////////////

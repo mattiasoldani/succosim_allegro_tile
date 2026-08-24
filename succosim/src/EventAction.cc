@@ -2,7 +2,11 @@
 #include <G4SDManager.hh>
 #include <G4THitsMap.hh>
 #include <G4Event.hh>
+#include <G4PrimaryParticle.hh>
+#include <G4PrimaryVertex.hh>
+#include <G4ThreeVector.hh>
 
+#include <cmath>
 #include <string>
 
 #include "EventAction.hh"
@@ -37,6 +41,27 @@ void EventAction::EndOfEventAction(const G4Event* event)
     auto det = static_cast<const DetectorConstruction*>(
         G4RunManager::GetRunManager()->GetUserDetectorConstruction());
     if(!det) return;
+
+    ///////////////////////////
+    //// true primary info ////
+    const G4PrimaryVertex* primaryVertex = event->GetPrimaryVertex(0);
+    const G4PrimaryParticle* primaryParticle = primaryVertex ? primaryVertex->GetPrimary(0) : nullptr;
+    if (primaryVertex && primaryParticle) {
+        const G4ThreeVector momentumDirection = primaryParticle->GetMomentumDirection();
+        analysis->FillNtupleDColumn(0, itemp, primaryParticle->GetKineticEnergy() / MeV); itemp++;
+        analysis->FillNtupleDColumn(0, itemp, primaryVertex->GetX0() / mm); itemp++;
+        analysis->FillNtupleDColumn(0, itemp, primaryVertex->GetY0() / mm); itemp++;
+        analysis->FillNtupleDColumn(0, itemp, std::atan2(momentumDirection.x(), momentumDirection.z())); itemp++;
+        analysis->FillNtupleDColumn(0, itemp, std::atan2(momentumDirection.y(), momentumDirection.z())); itemp++;
+    } else {
+        analysis->FillNtupleDColumn(0, itemp, -9999.0); itemp++;
+        analysis->FillNtupleDColumn(0, itemp, -9999.0); itemp++;
+        analysis->FillNtupleDColumn(0, itemp, -9999.0); itemp++;
+        analysis->FillNtupleDColumn(0, itemp, -9999.0); itemp++;
+        analysis->FillNtupleDColumn(0, itemp, -9999.0); itemp++;
+    }
+    //// true primary info ////
+    ///////////////////////////
 
     ////////////////////////////
     //// beamline hodoscope ////
@@ -110,8 +135,9 @@ void EventAction::EndOfEventAction(const G4Event* event)
 
     ////////////////////////////
     //// scintillating pads ////
-    if (det->IsScinti()) {
-        for (G4int i = 0; i < 4; i++) {
+    for (G4int i = 0; i < 4; i++) {
+        const G4bool isScinti = (i < 2) ? (det->IsScintiSmall() && B_SCINTISMALL_DET) : det->IsScintiBig();
+        if (isScinti) {
             G4int fIdEScinti = sdm->GetCollectionID("SD_scinti" + std::to_string(i) + "/VolumeEDep");
             VolumeEDepHitsCollection* hitCollectionScinti = fIdEScinti >= 0 ? dynamic_cast<VolumeEDepHitsCollection*>(hcofEvent->GetHC(fIdEScinti)) : nullptr;
 
@@ -122,30 +148,27 @@ void EventAction::EndOfEventAction(const G4Event* event)
                 {eScinti += hit->GetEDep();}
                 analysis->FillNtupleDColumn(0, itemp, eScinti / MeV);
             }else{analysis->FillNtupleDColumn(0, itemp, -1.0);}
-            itemp++;
-        }
-    } else {
-        for (G4int i = 0; i < 4; i++) {
+        } else {
             analysis->FillNtupleDColumn(0, itemp, -1.0);
-            itemp++;
         }
+        itemp++;
     }
     //// scintillating pads ////
     ////////////////////////////
 
     /////////////////////////
     //// Cherenkov pipes ////
-    if (det->IsPipe() && B_CHER_DET) {
+    if (det->IsCher() && B_CHER_DET) {
         for (G4int i = 0; i < 2; i++) {
-            G4int fIdEPipe = sdm->GetCollectionID("SD_pipe" + std::to_string(i) + "/VolumeEDep");
-            VolumeEDepHitsCollection* hitCollectionPipe = fIdEPipe >= 0 ? dynamic_cast<VolumeEDepHitsCollection*>(hcofEvent->GetHC(fIdEPipe)) : nullptr;
+            G4int fIdECher = sdm->GetCollectionID("SD_cher" + std::to_string(i) + "/VolumeEDep");
+            VolumeEDepHitsCollection* hitCollectionCher = fIdECher >= 0 ? dynamic_cast<VolumeEDepHitsCollection*>(hcofEvent->GetHC(fIdECher)) : nullptr;
 
-            G4double ePipe = 0.0;
-            if (hitCollectionPipe)
+            G4double eCher = 0.0;
+            if (hitCollectionCher)
             {
-                for (auto hit: *hitCollectionPipe->GetVector())
-                {ePipe += hit->GetEDep();}
-                analysis->FillNtupleDColumn(0, itemp, ePipe / MeV);
+                for (auto hit: *hitCollectionCher->GetVector())
+                {eCher += hit->GetEDep();}
+                analysis->FillNtupleDColumn(0, itemp, eCher / MeV);
             }else{analysis->FillNtupleDColumn(0, itemp, -1.0);}
             itemp++;
         }

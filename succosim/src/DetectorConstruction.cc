@@ -52,9 +52,9 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     // manual material: CO2 for Cherenkov pipes
     G4Element* elC = new G4Element("Carbon", "C", 6., 12.01*g/mole);
     G4Element* elO  = new G4Element("Oxygen","O" , 8., 16.00*g/mole);
-    G4Material* pipeGas = new G4Material("CO2", 1.977*273.*mg/cm3/293., 2);
-    pipeGas->AddElement(elC, 1);
-    pipeGas->AddElement(elO, 2);
+    G4Material* cherGas = new G4Material("CO2", 1.977*273.*mg/cm3/293., 2);
+    cherGas->AddElement(elC, 1);
+    cherGas->AddElement(elO, 2);
 	
     // world
     G4RotationMatrix* worldRotation = new G4RotationMatrix();
@@ -89,7 +89,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 
             // tiles...
 
-            pos_temp = G4ThreeVector(0, beamref_beam_shift + FZU_beamref_shift, z_FZU_front + i*(FZU_thk + FZU_zgap) + FZU_thk/2);
+            pos_temp = G4ThreeVector(0, FZU_beamref_shift, z_FZU_front + i*(FZU_thk + FZU_zgap) + FZU_thk/2);
             pos_rot_temp = G4Translate3D(pos_temp) * G4Rotate3D(FZU_ang_x, G4Vector3D(1,0,0)) * G4Rotate3D(FZU_ang_y, G4Vector3D(0,1,0)) * G4Rotate3D(FZU_ang_z, G4Vector3D(0,0,1));
             FZU_lvols[i] = fLogTile(FZUName, plastic, cyan, FZU_geom, FZU_thk, 0, FZU_holeradius, FZU_holex, FZU_holey);
             new G4PVPlacement(pos_rot_temp, FZU_lvols[i], FZUName + "_Phys", worldLog, false, i);
@@ -129,7 +129,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
             G4double z_temp = (IsConfigBB()) ? z_FZU_rear + (i==0 ? 17.5*cm : 51.5*cm) : (z_tileCern_front - i*(S2_thk + gen_gap) - S2_thk/2);
 
             // tiles...
-            pos_temp = G4ThreeVector(0, beamref_beam_shift + tileCern_beamref_shift - passive_h/2 + passive_trig_shift, z_temp);
+            pos_temp = G4ThreeVector(0, tileCern_beamref_shift - passive_h/2 + passive_trig_shift, z_temp);
             pos_rot_temp = G4Translate3D(pos_temp) * G4Rotate3D(S6_ang_x, G4Vector3D(1,0,0)) * G4Rotate3D(S6_ang_y, G4Vector3D(0,1,0)) * G4Rotate3D(S6_ang_z, G4Vector3D(0,0,1)); // note: trigger tiles are oriented like those in S6 stack
             tileCernTrigger_lvols[i] = fLogTile(tileTriggerName, plastic, cyan, tileCernTrigger_geom, S2_thk, tileCernTrigger_sign, S2_holeradius, S2_holex, S2_holey);
             new G4PVPlacement(pos_rot_temp, tileCernTrigger_lvols[i], tileTriggerName + "_Phys", worldLog, false, i);
@@ -217,18 +217,18 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
             G4String fibreName = "tileCern_fibre" + std::to_string(i);
 
             // passive layers
-            pos_temp = G4ThreeVector(0, beamref_beam_shift + tileCern_beamref_shift, z_tileCern_front + tileCern_fzrel(i) - (passive_thk_gross + tileCern_thk)/2 - (passive_thk_gross - 2*passive_thk_gap - passive_thk_u)/2);
+            pos_temp = G4ThreeVector(0, tileCern_beamref_shift, z_tileCern_front + tileCern_fzrel(i) - (passive_thk_gross + tileCern_thk)/2 - (passive_thk_gross - 2*passive_thk_gap - passive_thk_u)/2);
             pos_rot_temp = G4Translate3D(pos_temp) * G4Rotate3D(passive_ang_x, G4Vector3D(1,0,0)) * G4Rotate3D(passive_ang_y, G4Vector3D(0,1,0)) * G4Rotate3D(passive_ang_z, G4Vector3D(0,0,1));
             tileCern_lvols_passive[2*i] = fLogTile(passiveName, SS, grey, passive_geom_u, passive_thk_u, 0, 0, 0, 0);
             new G4PVPlacement(pos_rot_temp, tileCern_lvols_passive[2*i], passiveName + "_Phys", worldLog, false, i);
 
-            pos_temp = G4ThreeVector(0, beamref_beam_shift + tileCern_beamref_shift, z_tileCern_front + tileCern_fzrel(i) - (passive_thk_gross + tileCern_thk)/2 + (passive_thk_gross - 2*passive_thk_gap - passive_thk_d)/2);
+            pos_temp = G4ThreeVector(0, tileCern_beamref_shift, z_tileCern_front + tileCern_fzrel(i) - (passive_thk_gross + tileCern_thk)/2 + (passive_thk_gross - 2*passive_thk_gap - passive_thk_d)/2);
             pos_rot_temp = G4Translate3D(pos_temp) * G4Rotate3D(passive_ang_x, G4Vector3D(1,0,0)) * G4Rotate3D(passive_ang_y, G4Vector3D(0,1,0)) * G4Rotate3D(passive_ang_z, G4Vector3D(0,0,1));
             tileCern_lvols_passive[2*i+1] = fLogTile(passiveName, SS, grey, passive_geom_d, passive_thk_d, 0, 0, 0, 0);
             new G4PVPlacement(pos_rot_temp, tileCern_lvols_passive[2*i+1], passiveName + "_Phys", worldLog, false, i);
 
             // tiles...
-            pos_temp = G4ThreeVector(tileCern_fxrel(i), beamref_beam_shift + tileCern_beamref_shift + tileCern_fyrel(i), z_tileCern_front + tileCern_fzrel(i));
+            pos_temp = G4ThreeVector(tileCern_fxrel(i), tileCern_beamref_shift + tileCern_fyrel(i), z_tileCern_front + tileCern_fzrel(i));
             pos_rot_temp = G4Translate3D(pos_temp) * G4Rotate3D(tileCern_ang_x, G4Vector3D(1,0,0)) * G4Rotate3D(tileCern_ang_y, G4Vector3D(0,1,0)) * G4Rotate3D(tileCern_ang_z, G4Vector3D(0,0,1));
             tileCern_lvols[i] = fLogTile(tileName, plastic, cyan, tileCern_geom, tileCern_thk, tileCern_sign, tileCern_holeradius, tileCern_holex, tileCern_holey);
             new G4PVPlacement(pos_rot_temp, tileCern_lvols[i], tileName + "_Phys", worldLog, false, i);
@@ -256,7 +256,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
         G4VSolid* pbGlBox = new G4Box("pbGl", pbGlWidth / 2, pbGlHeight / 2, pbGlThickness / 2);
         G4LogicalVolume* pbGlLog = new G4LogicalVolume(pbGlBox, pbGl, "pbGl_Log");
         pbGlLog->SetVisAttributes(brown);
-        new G4PVPlacement(nullptr, G4ThreeVector(pbGlOffsetHorizontal, beamref_beam_shift + pbGlOffsetVertical, z_pbGl_front + pbGlThickness / 2), pbGlLog, "pbGl_Phys", worldLog, false, 0);
+        new G4PVPlacement(nullptr, G4ThreeVector(pbGlOffsetHorizontal, pbGlOffsetVertical, z_pbGl_front + pbGlThickness / 2), pbGlLog, "pbGl_Phys", worldLog, false, 0);
 
     }
     //// Pb glass calo ////
@@ -264,8 +264,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 
     ////////////////////////////
     //// scintillating pads ////
-    if (IsScinti()) {
-
+    if (IsScintiSmall()) {
         G4double scintiSmallThickness = 0.5*cm;
         G4double scintiSmallWidth = 10.5*cm;
         G4double scintiSmallHeight = 11.5*cm;
@@ -275,15 +274,17 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
         G4VSolid* scintiSmall0Box = new G4Box("scintiSmall0", scintiSmallWidth / 2, scintiSmallHeight / 2, scintiSmallThickness / 2);
         G4LogicalVolume* scintiSmall0Log = new G4LogicalVolume(scintiSmall0Box, plastic_ancillary, "scintiSmall0_Log");
         scintiSmall0Log->SetVisAttributes(blue);
-        new G4PVPlacement(nullptr, G4ThreeVector(scintiSmall0OffsetHorizontal, beamref_beam_shift + scintiSmall0OffsetVertical, z_scintiSmall0_front + scintiSmallThickness / 2), scintiSmall0Log, "scintiSmall0_Phys", worldLog, false, 0);
+        new G4PVPlacement(nullptr, G4ThreeVector(scintiSmall0OffsetHorizontal, scintiSmall0OffsetVertical, z_scintiSmall0_front + scintiSmallThickness / 2), scintiSmall0Log, "scintiSmall0_Phys", worldLog, false, 0);
 
         G4double scintiSmall1OffsetHorizontal = 0*cm;
         G4double scintiSmall1OffsetVertical = -0.25*cm;
         G4VSolid* scintiSmall1Box = new G4Box("scintiSmall1", scintiSmallWidth / 2, scintiSmallHeight / 2, scintiSmallThickness / 2);
         G4LogicalVolume* scintiSmall1Log = new G4LogicalVolume(scintiSmall1Box, plastic_ancillary, "scintiSmall1_Log");
         scintiSmall1Log->SetVisAttributes(blue);
-        new G4PVPlacement(nullptr, G4ThreeVector(scintiSmall1OffsetHorizontal, beamref_beam_shift + scintiSmall1OffsetVertical, z_scintiSmall1_front + scintiSmallThickness / 2), scintiSmall1Log, "scintiSmall1_Phys", worldLog, false, 0);
+        new G4PVPlacement(nullptr, G4ThreeVector(scintiSmall1OffsetHorizontal, scintiSmall1OffsetVertical, z_scintiSmall1_front + scintiSmallThickness / 2), scintiSmall1Log, "scintiSmall1_Phys", worldLog, false, 0);
+    }
 
+    if (IsScintiBig()) {
         G4double scintiBigThickness = 1*cm;
         G4double scintiBigWidth = 12*cm;
         G4double scintiBigHeight = 11*cm;
@@ -293,14 +294,14 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
         G4VSolid* scintiBig0Box = new G4Box("scintiBig0", scintiBigWidth / 2, scintiBigHeight / 2, scintiBigThickness / 2);
         G4LogicalVolume* scintiBig0Log = new G4LogicalVolume(scintiBig0Box, plastic_ancillary, "scintiBig0_Log");
         scintiBig0Log->SetVisAttributes(blue);
-        new G4PVPlacement(nullptr, G4ThreeVector(scintiBig0OffsetHorizontal, beamref_beam_shift + scintiBig0OffsetVertical, z_scintiBig0_front + scintiBigThickness / 2), scintiBig0Log, "scintiBig0_Phys", worldLog, false, 0);
+        new G4PVPlacement(nullptr, G4ThreeVector(scintiBig0OffsetHorizontal, scintiBig0OffsetVertical, z_scintiBig0_front + scintiBigThickness / 2), scintiBig0Log, "scintiBig0_Phys", worldLog, false, 0);
 
         G4double scintiBig1OffsetHorizontal = 0*cm;
         G4double scintiBig1OffsetVertical = 0*cm;
         G4VSolid* scintiBig1Box = new G4Box("scintiBig1", scintiBigWidth / 2, scintiBigHeight / 2, scintiBigThickness / 2);
         G4LogicalVolume* scintiBig1Log = new G4LogicalVolume(scintiBig1Box, plastic_ancillary, "scintiBig1_Log");
         scintiBig1Log->SetVisAttributes(blue);
-        new G4PVPlacement(nullptr, G4ThreeVector(scintiBig1OffsetHorizontal, beamref_beam_shift + scintiBig1OffsetVertical, z_scintiBig1_front + scintiBigThickness / 2), scintiBig1Log, "scintiBig1_Phys", worldLog, false, 0);
+        new G4PVPlacement(nullptr, G4ThreeVector(scintiBig1OffsetHorizontal, scintiBig1OffsetVertical, z_scintiBig1_front + scintiBigThickness / 2), scintiBig1Log, "scintiBig1_Phys", worldLog, false, 0);
 
     }
     //// scintillating pads ////
@@ -308,30 +309,30 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 
     /////////////////////////
     //// Cherenkov pipes ////
-    if (IsPipe()) {
+    if (IsCher()) {
 
-        G4double pipeOuterRadius = 9*cm;
-        G4double pipeInnerRadius = 8*cm;
+        G4double cherOuterRadius = 9*cm;
+        G4double cherInnerRadius = 8*cm;
 
-        G4double pipe0Length = 298*cm;
-        G4VSolid* pipe0Solid = new G4Tubs("pipe0", pipeInnerRadius, pipeOuterRadius, pipe0Length/2, 0, 2*pi);
-        G4VSolid* pipe0VacuumSolid = new G4Tubs("pipe0Vacuum", 0, pipeInnerRadius, (pipe0Length-2*cm)/2, 0, 2*pi);
-        G4LogicalVolume* pipe0Log = new G4LogicalVolume(pipe0Solid, SS, "pipe0_Log");
-        G4LogicalVolume* pipe0VacuumLog = new G4LogicalVolume(pipe0VacuumSolid, pipeGas, "pipe0Vacuum_Log");
-        pipe0Log->SetVisAttributes(grey);
-        pipe0VacuumLog->SetVisAttributes(invisible);
-	    new G4PVPlacement(nullptr, G4ThreeVector(0, beamref_beam_shift, z_pipe0_front + pipe0Length/2), pipe0Log, "pipe0_Phys", worldLog, false, 0);
-        new G4PVPlacement(nullptr, G4ThreeVector(0, beamref_beam_shift, z_pipe0_front + pipe0Length/2), pipe0VacuumLog, "pipe0Vacuum_Phys", worldLog, false, 0);
+        G4double cher0Length = 298*cm;
+        G4VSolid* cher0Solid = new G4Tubs("cher0", cherInnerRadius, cherOuterRadius, cher0Length/2, 0, 2*pi);
+        G4VSolid* cher0VacuumSolid = new G4Tubs("cher0Vacuum", 0, cherInnerRadius, (cher0Length-2*cm)/2, 0, 2*pi);
+        G4LogicalVolume* cher0Log = new G4LogicalVolume(cher0Solid, SS, "cher0_Log");
+        G4LogicalVolume* cher0VacuumLog = new G4LogicalVolume(cher0VacuumSolid, cherGas, "cher0Vacuum_Log");
+        cher0Log->SetVisAttributes(grey);
+        cher0VacuumLog->SetVisAttributes(invisible);
+	    new G4PVPlacement(nullptr, G4ThreeVector(0, 0, z_cher0_front + cher0Length/2), cher0Log, "cher0_Phys", worldLog, false, 0);
+        new G4PVPlacement(nullptr, G4ThreeVector(0, 0, z_cher0_front + cher0Length/2), cher0VacuumLog, "cher0Vacuum_Phys", worldLog, false, 0);
 
-        G4double pipe1Length = 259*cm;
-        G4VSolid* pipe1Solid = new G4Tubs("pipe1", pipeInnerRadius, pipeOuterRadius, pipe1Length/2, 0, 2*pi);
-        G4VSolid* pipe1VacuumSolid = new G4Tubs("pipe1Vacuum", 0, pipeInnerRadius, (pipe1Length-2*cm)/2, 0, 2*pi);
-        G4LogicalVolume* pipe1Log = new G4LogicalVolume(pipe1Solid, SS, "pipe1_Log");
-        G4LogicalVolume* pipe1VacuumLog = new G4LogicalVolume(pipe1VacuumSolid, pipeGas, "pipe1Vacuum_Log");
-        pipe1Log->SetVisAttributes(grey);
-        pipe1VacuumLog->SetVisAttributes(invisible);
-	    new G4PVPlacement(nullptr, G4ThreeVector(0, beamref_beam_shift, z_pipe1_front + pipe1Length/2), pipe1Log, "pipe1_Phys", worldLog, false, 0);
-        new G4PVPlacement(nullptr, G4ThreeVector(0, beamref_beam_shift, z_pipe1_front + pipe1Length/2), pipe1VacuumLog, "pipe1Vacuum_Phys", worldLog, false, 0);
+        G4double cher1Length = 259*cm;
+        G4VSolid* cher1Solid = new G4Tubs("cher1", cherInnerRadius, cherOuterRadius, cher1Length/2, 0, 2*pi);
+        G4VSolid* cher1VacuumSolid = new G4Tubs("cher1Vacuum", 0, cherInnerRadius, (cher1Length-2*cm)/2, 0, 2*pi);
+        G4LogicalVolume* cher1Log = new G4LogicalVolume(cher1Solid, SS, "cher1_Log");
+        G4LogicalVolume* cher1VacuumLog = new G4LogicalVolume(cher1VacuumSolid, cherGas, "cher1Vacuum_Log");
+        cher1Log->SetVisAttributes(grey);
+        cher1VacuumLog->SetVisAttributes(invisible);
+	    new G4PVPlacement(nullptr, G4ThreeVector(0, 0, z_cher1_front + cher1Length/2), cher1Log, "cher1_Phys", worldLog, false, 0);
+        new G4PVPlacement(nullptr, G4ThreeVector(0, 0, z_cher1_front + cher1Length/2), cher1VacuumLog, "cher1Vacuum_Phys", worldLog, false, 0);
 
     }
     //// Cherenkov pipes ////
@@ -377,12 +378,12 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 
             G4String passiveName = "tileCern_additionalPassive" + std::to_string(i);
 
-            pos_temp = G4ThreeVector(0, beamref_beam_shift + addPassiveOffsetVertical, z_additionalPassive_rear - (i+0.5)*passive_thk_gross - (passive_thk_gross - 2*passive_thk_gap - passive_thk_u)/2);
+            pos_temp = G4ThreeVector(0, addPassiveOffsetVertical, z_additionalPassive_rear - (i+0.5)*passive_thk_gross - (passive_thk_gross - 2*passive_thk_gap - passive_thk_u)/2);
             pos_rot_temp = G4Translate3D(pos_temp) * G4Rotate3D(passive_ang_x, G4Vector3D(1,0,0)) * G4Rotate3D(passive_ang_y, G4Vector3D(0,1,0)) * G4Rotate3D(passive_ang_z, G4Vector3D(0,0,1));
             tileCern_lvols_passive_additional[2*i] = fLogTile(passiveName, SS, grey, passive_geom_u, passive_thk_u, 0, 0, 0, 0);
             new G4PVPlacement(pos_rot_temp, tileCern_lvols_passive_additional[2*i], passiveName + "_Phys", worldLog, false, i);
 
-            pos_temp = G4ThreeVector(0, beamref_beam_shift + addPassiveOffsetVertical, z_additionalPassive_rear - (i+0.5)*passive_thk_gross + (passive_thk_gross - 2*passive_thk_gap - passive_thk_d)/2);
+            pos_temp = G4ThreeVector(0, addPassiveOffsetVertical, z_additionalPassive_rear - (i+0.5)*passive_thk_gross + (passive_thk_gross - 2*passive_thk_gap - passive_thk_d)/2);
             pos_rot_temp = G4Translate3D(pos_temp) * G4Rotate3D(passive_ang_x, G4Vector3D(1,0,0)) * G4Rotate3D(passive_ang_y, G4Vector3D(0,1,0)) * G4Rotate3D(passive_ang_z, G4Vector3D(0,0,1));
             tileCern_lvols_passive_additional[2*i+1] = fLogTile(passiveName, SS, grey, passive_geom_d, passive_thk_d, 0, 0, 0, 0);
             new G4PVPlacement(pos_rot_temp, tileCern_lvols_passive_additional[2*i+1], passiveName + "_Phys", worldLog, false, i);
@@ -468,7 +469,7 @@ void DetectorConstruction::ConstructSDandField()
 
     ////////////////////////////
     //// scintillating pads ////
-    if (IsScinti()) {
+    if (IsScintiSmall() && B_SCINTISMALL_DET) {
         VolumeEDepSD* scintiSmall0SD = new VolumeEDepSD("SD_scinti0");
         SetSensitiveDetector("scintiSmall0_Log", scintiSmall0SD);
         sdm->AddNewDetector(scintiSmall0SD);
@@ -476,7 +477,9 @@ void DetectorConstruction::ConstructSDandField()
         VolumeEDepSD* scintiSmall1SD = new VolumeEDepSD("SD_scinti1");
         SetSensitiveDetector("scintiSmall1_Log", scintiSmall1SD);
         sdm->AddNewDetector(scintiSmall1SD);
+    }
 
+    if (IsScintiBig()) {
         VolumeEDepSD* scintiBig0SD = new VolumeEDepSD("SD_scinti2");
         SetSensitiveDetector("scintiBig0_Log", scintiBig0SD);
         sdm->AddNewDetector(scintiBig0SD);
@@ -490,14 +493,14 @@ void DetectorConstruction::ConstructSDandField()
 
     /////////////////////////
     //// Cherenkov pipes ////
-    if (IsPipe() && B_CHER_DET) {
-        VolumeEDepSD* pipe0SD = new VolumeEDepSD("SD_pipe0");
-        SetSensitiveDetector("pipe0Vacuum_Log", pipe0SD);
-        sdm->AddNewDetector(pipe0SD);
+    if (IsCher() && B_CHER_DET) {
+        VolumeEDepSD* cher0SD = new VolumeEDepSD("SD_cher0");
+        SetSensitiveDetector("cher0Vacuum_Log", cher0SD);
+        sdm->AddNewDetector(cher0SD);
 
-        VolumeEDepSD* pipe1SD = new VolumeEDepSD("SD_pipe1");
-        SetSensitiveDetector("pipe1Vacuum_Log", pipe1SD);
-        sdm->AddNewDetector(pipe1SD);
+        VolumeEDepSD* cher1SD = new VolumeEDepSD("SD_cher1");
+        SetSensitiveDetector("cher1Vacuum_Log", cher1SD);
+        sdm->AddNewDetector(cher1SD);
     }
     //// Cherenkov pipes ////
     /////////////////////////

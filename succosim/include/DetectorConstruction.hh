@@ -30,6 +30,12 @@
 #define TILECERN_N 10
 #define TILEFZU_N 32
 
+// place all detectors upstream of the hodoscope
+#define B_PLACE_UPSTREAM 0
+
+// activate upstream scintillator (small; S0-1) detection
+#define B_SCINTISMALL_DET 0
+
 // activate Cherenkov detection
 #define B_CHER_DET 0
 
@@ -62,8 +68,10 @@ public:
     G4bool IsCERNS2() const { return b_CERN_S2; }
     G4bool IsCERNS6() const { return b_CERN_S6; }
     G4bool IsPbGl() const { return b_PbGl; }
-    G4bool IsScinti() const { return b_scinti; }
-    G4bool IsPipe() const { return b_pipe; }
+    G4bool IsScintiSmall() const { return b_scinti_small; }
+    G4bool IsScintiBig() const { return b_scinti_big; }
+    G4bool IsScinti() const { return IsScintiSmall() || IsScintiBig(); }
+    G4bool IsCher() const { return b_cher; }
     G4bool IsHodo() const { return b_hodo; }
 
 private:
@@ -90,8 +98,9 @@ private:
     G4bool b_CERN_S2 = b_config_CERN_S2;
     G4bool b_CERN_S6 = b_config_CERN_S6 || b_config_CERN_S6_upstr1 || b_config_CERN_S6_upstr2 || b_config_CERN_S6_upstr4;
     G4bool b_PbGl = !b_config_BB;
-    G4bool b_scinti = true;
-    G4bool b_pipe = true;
+    G4bool b_scinti_small = B_PLACE_UPSTREAM;
+    G4bool b_scinti_big = true;
+    G4bool b_cher = B_PLACE_UPSTREAM;
     G4bool b_hodo = true;
 
     // world size - full sides
@@ -111,8 +120,8 @@ private:
     G4double z_scintiSmall1_front = (817)*cm; // z of S1 front
     G4double z_scintiBig0_front = (817+43.5+9+51.5+29.5-46-8.3)*cm; // z of S2 front
     G4double z_scintiBig1_front = (817+43.5+9+51.5+29.5+91.5+70.1+49.5+57.4)*cm; // z of S3 front
-    G4double z_pipe0_front = (30)*cm; // z of front of 1st Cherenkov - not measured
-    G4double z_pipe1_front = (817-34.5-259)*cm; // z of front of 2nd Cherenkov
+    G4double z_cher0_front = (30)*cm; // z of front of 1st Cherenkov - not measured
+    G4double z_cher1_front = (817-34.5-259)*cm; // z of front of 2nd Cherenkov
     G4double z_pbGl_front = (817+43.5+9+51.5+29.5+91.5+70.1)*cm; // z of Pb glass front
     G4double z_tileCern_front = (817+43.5+9+51.5+29.5+36)*cm; // z of CERN stack front
     G4double z_FZU_front = (817+43.5+9+51.5+29.5+7)*cm; // z of FZU stack front
@@ -123,7 +132,6 @@ private:
     G4double FZU_beamref_shift = -0.5*cm; // relative vertical offset of the FZU stack wrt the beam reference markings
     G4double passive_S6_shift = 47.17*mm; // relative vertical shift between passive layers and S6 (half) tiles in CERN stack
     G4double passive_trig_shift = 59*mm; // relative vertical shift between passive layers and S2 trigger (half) tiles in CERN stack
-    G4double beamref_beam_shift = 0; // relative (additional to actual beam profiles) vertical offset of the beam reference markings wrt the observed beam - not applied to hodoscope which measured the actual beam profiles
 
 	// tile shapes - CERN S2
 	G4double FZU_ang_x = -90*deg; // angle wrt original x axis
