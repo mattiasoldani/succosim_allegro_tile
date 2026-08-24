@@ -7,7 +7,6 @@
 #include <G4SDManager.hh>
 #include <CLHEP/Units/PhysicalConstants.h>
 
-
 #include <G4Trd.hh>
 #include <G4Box.hh>
 #include <G4Tubs.hh>
