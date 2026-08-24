@@ -28,6 +28,12 @@ public:
     G4VPhysicalVolume* Construct() override;
     void ConstructSDandField() override;
 
+    // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+    // define custom public methods/members here
+    // e.g. getters for private stuff
+
+    // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 private:
     // custom messenger
     CustomMessenger* custom = CustomMessenger::Instance();
