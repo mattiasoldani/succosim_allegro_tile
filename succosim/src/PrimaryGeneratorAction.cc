@@ -53,16 +53,16 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 
     // default particle: 1-GeV geantino originating from the centre of the world, within a transverse square of side 5 mm and with a divergence of 1 mrad
 
-    // beam source position - uniform square
-    G4double zFixed = 0 * cm;
-    G4double xRnd = (5*mm) * (G4UniformRand()-0.5);
-    G4double yRnd = (5*mm) * (G4UniformRand()-0.5);
-    fGPS->SetParticlePosition(G4ThreeVector(xRnd, yRnd, zFixed));
+    // // beam source position - uniform square
+    // G4double zFixed = 0 * cm;
+    // G4double xRnd = (5*mm) * (G4UniformRand()-0.5);
+    // G4double yRnd = (5*mm) * (G4UniformRand()-0.5);
+    // fGPS->SetParticlePosition(G4ThreeVector(xRnd, yRnd, zFixed));
 
-    // angle wrt the longitudinal axis - gaussian
-    G4double thRnd = G4RandGauss::shoot(0, 0.001);
-    G4double phiRnd = 2 * 3.1415926535 * G4UniformRand();
-    fGPS->GetCurrentSource()->GetAngDist()->SetParticleMomentumDirection(G4ThreeVector(sin(thRnd)*cos(phiRnd), sin(thRnd)*sin(phiRnd), cos(thRnd)));
+    // // angle wrt the longitudinal axis - gaussian
+    // G4double thRnd = G4RandGauss::shoot(0, 0.001);
+    // G4double phiRnd = 2 * 3.1415926535 * G4UniformRand();
+    // fGPS->GetCurrentSource()->GetAngDist()->SetParticleMomentumDirection(G4ThreeVector(sin(thRnd)*cos(phiRnd), sin(thRnd)*sin(phiRnd), cos(thRnd)));
 
     // --------------------------------------------------
     // ...uncomment this line for the test beam (implemented in src/TestMode.cc)

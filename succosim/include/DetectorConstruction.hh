@@ -40,7 +40,7 @@
 #define B_CHER_DET 0
 
 // activate hodoscope detection
-#define B_HODO_DET 0
+#define B_HODO_DET 1
 
 using namespace std;
 
