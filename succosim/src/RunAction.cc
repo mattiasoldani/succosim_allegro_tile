@@ -101,6 +101,7 @@ void RunAction::BeginOfRunAction(const G4Run*)
         // ...uncomment this line for the test ntuple columns (implemented in src/TestMode.cc)
         //OutputNtupleTest(analysis);
         // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        
         analysis->FinishNtuple(0);
         b_ntuple_created = true;
     }

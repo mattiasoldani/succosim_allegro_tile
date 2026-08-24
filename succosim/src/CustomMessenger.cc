@@ -13,6 +13,7 @@ CustomMessenger* CustomMessenger::Instance()
 CustomMessenger::CustomMessenger()
 {
     fMessenger = new G4GenericMessenger(this, "/custom/", "custom macro parameters");
+    // usage: /custom/[PROPERTY] [VALUE] (before /run/initialize)
 
     fMessenger->DeclareProperty(
         "OutFileName", out_file_name,
