@@ -7,6 +7,7 @@
 
 #include "Analysis.hh"
 #include "DetectorConstruction.hh"
+#include "CustomMessenger.hh"
 
 // RunAction, actions executed at each run
 
