@@ -559,8 +559,6 @@ void DetectorConstruction::ConstructSDandField()
 
 // DetectorConstruction methods ///////////////////////////////
 
-G4double DetectorConstruction::pi = acos(-1);
-
 // tile shapes - CERN S2 - declared in DetectorConstruction.hh
 G4double DetectorConstruction::S2_fzrel(G4int i){ // longitudinal position of single tiles, relative to front
 	return floor(i/2)*(passive_thk_gross + S2_thk) + passive_thk_gross + S2_thk/2;
