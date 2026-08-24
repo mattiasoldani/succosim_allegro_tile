@@ -1,10 +1,23 @@
-# initialise the simulation
-/run/initialize
-
 # select run type - [beam config (e.g. bb_0.5p)]_[particle (e.g. pi)]
 /control/alias beam mu_5p_mu
 
-# beam features
+# first of all, load custom parameters
+/custom/IdConfig 3
+
+/custom/BPlaceUpstream false
+/custom/BScintiSmallDet false
+/custom/BCherDet false
+
+/custom/BHodoDet true
+
+/custom/OutFileName test
+/custom/OutTreeName t
+/custom/OutTreeTitle {beam}
+
+# initialise the simulation
+/run/initialize
+
+# load all beam features
 /control/execute /eos/experiment/newtile/beamtests/26_05_t10/sim_utils/beams/g4_macros/{beam}_noupstream_withdiv_xybias.mac
 
 # shoot!

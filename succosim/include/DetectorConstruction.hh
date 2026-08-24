@@ -14,8 +14,10 @@
 #include <G4Vector3D.hh>
 #include <G4Transform3D.hh>
 
+#include "CustomMessenger.hh"
 
-/* instructions for B_CONFIG:
+
+/* instructions for ICONFIG:
 - 0 --> calibration mode
 - 1 --> physics mode for Bethe-Bloch
 - 2 --> physics mode with CERN S2
@@ -23,24 +25,11 @@
 - 4 --> physics mode with CERN S6 (x1 upstream steel)
 - 5 --> physics mode with CERN S6 (x2 upstream steel)
 - 6 --> physics mode with CERN S6 (x4 upstream steel)
-*/ 
-#define B_CONFIG 2
+*/
 
 // number of tiles in stacks
 #define TILECERN_N 10
 #define TILEFZU_N 32
-
-// place all detectors upstream of the hodoscope
-#define B_PLACE_UPSTREAM 0
-
-// activate upstream scintillator (small; S0-1) detection
-#define B_SCINTISMALL_DET 0
-
-// activate Cherenkov detection
-#define B_CHER_DET 0
-
-// activate hodoscope detection
-#define B_HODO_DET 1
 
 using namespace std;
 
@@ -73,8 +62,15 @@ public:
     G4bool IsScinti() const { return IsScintiSmall() || IsScintiBig(); }
     G4bool IsCher() const { return b_cher; }
     G4bool IsHodo() const { return b_hodo; }
+    
+    G4bool IsScintiSmallDet() const { return b_scinti_small && b_scinti_small_det; }
+    G4bool IsCherDet() const { return b_cher && b_cher_det; }
+    G4bool IsHodoDet() const { return b_hodo && b_hodo_det; }
 
 private:
+    // custom messenger
+    CustomMessenger* custom = CustomMessenger::Instance();
+
     // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
     // define custom methods here
     // e.g. void ConstructCalo(G4LogicalVolume* worldLog);
@@ -82,26 +78,32 @@ private:
     // simply pi
     static G4double pi;
 	
-	//// specific for this application ////
+    //// specific for this application ////
 
     // configuration booleans
-    G4bool b_config_calib = B_CONFIG==0;
-    G4bool b_config_BB = B_CONFIG==1;
-    G4bool b_config_CERN_S2 = B_CONFIG==2;
-    G4bool b_config_CERN_S6 = B_CONFIG==3;
-    G4bool b_config_CERN_S6_upstr1 = B_CONFIG==4;
-    G4bool b_config_CERN_S6_upstr2 = B_CONFIG==5;
-    G4bool b_config_CERN_S6_upstr4 = B_CONFIG==6;
-    G4bool b_CERN_any = b_config_CERN_S2 || b_config_CERN_S6 || b_config_CERN_S6_upstr1 || b_config_CERN_S6_upstr2 || b_config_CERN_S6_upstr4;
-    G4bool b_FZU = b_config_BB || b_CERN_any;
-    G4bool b_CERN_trig = b_config_BB || b_CERN_any;
-    G4bool b_CERN_S2 = b_config_CERN_S2;
-    G4bool b_CERN_S6 = b_config_CERN_S6 || b_config_CERN_S6_upstr1 || b_config_CERN_S6_upstr2 || b_config_CERN_S6_upstr4;
-    G4bool b_PbGl = !b_config_BB;
-    G4bool b_scinti_small = B_PLACE_UPSTREAM;
+    G4int id_config = 2;
+    G4bool b_config_calib = false;
+    G4bool b_config_BB = false;
+    G4bool b_config_CERN_S2 = true;
+    G4bool b_config_CERN_S6 = false;
+    G4bool b_config_CERN_S6_upstr1 = false;
+    G4bool b_config_CERN_S6_upstr2 = false;
+    G4bool b_config_CERN_S6_upstr4 = false;
+    G4bool b_CERN_any = true;
+    G4bool b_FZU = true;
+    G4bool b_CERN_trig = true;
+    G4bool b_CERN_S2 = true;
+    G4bool b_CERN_S6 = false;
+    G4bool b_PbGl = true;
     G4bool b_scinti_big = true;
-    G4bool b_cher = B_PLACE_UPSTREAM;
     G4bool b_hodo = true;
+    G4bool b_scinti_small = false; // redefined in DetectorConstruction.cc (from custom macro parameter)
+    G4bool b_cher = false; // redefined in DetectorConstruction.cc (from custom macro parameter)
+
+    // sensitive-detector booleans (subordinate to the respective detector-placement booleans)
+    G4bool b_scinti_small_det = false; // redefined in DetectorConstruction.cc (from custom macro parameter)
+    G4bool b_cher_det = false; // redefined in DetectorConstruction.cc (from custom macro parameter)
+    G4bool b_hodo_det = true; // redefined in DetectorConstruction.cc (from custom macro parameter)
 
     // world size - full sides
     G4double worldSizeX = 3 * m;
@@ -114,6 +116,8 @@ private:
     G4double gen_thk = 3*mm; // thickness
     G4double gen_holeradius = 0*mm; // radius of the pipe/rod hole
     G4double gen_sidegap = 0*mm; // side reduction to account for the fibres
+    G4double thk_cher0_cap = 1.4 * mm; // thickness of front/rear caps of 1st Cherenkov
+    G4double thk_cher1_cap = 0.25 * mm; // thickness of front/rear caps of 2nd Cherenkov
 
     // general positioning (source will be in world centre)
     G4double z_scintiSmall0_front = (0)*cm; // z of S0 front

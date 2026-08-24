@@ -45,6 +45,8 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     G4Material* plastic = nist->FindOrBuildMaterial("G4_POLYSTYRENE"); // plastic
     G4Material* pbGl = nist->FindOrBuildMaterial("G4_GLASS_LEAD"); // Pb glass
     G4Material* vacuum = nist->FindOrBuildMaterial("G4_Galactic"); // vacuum
+    G4Material* aluminium = nist->FindOrBuildMaterial("G4_Al"); // aluminium
+    G4Material* mylar = nist->FindOrBuildMaterial("G4_MYLAR"); // Mylar
 
     G4Material* plastic_ancillary = plastic; // plastic for ancillary detectors
     G4Material* plastic_fibre = plastic; // plastic for WLS fibres
@@ -55,6 +57,27 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     G4Material* cherGas = new G4Material("CO2", 1.977*273.*mg/cm3/293., 2);
     cherGas->AddElement(elC, 1);
     cherGas->AddElement(elO, 2);
+
+    // custom parameters
+    id_config = CustomMessenger::Instance()->IdConfig();
+    b_config_calib = id_config == 0;
+    b_config_BB = id_config == 1;
+    b_config_CERN_S2 = id_config == 2;
+    b_config_CERN_S6 = id_config == 3;
+    b_config_CERN_S6_upstr1 = id_config == 4;
+    b_config_CERN_S6_upstr2 = id_config == 5;
+    b_config_CERN_S6_upstr4 = id_config == 6;
+    b_CERN_any = b_config_CERN_S2 || b_config_CERN_S6 || b_config_CERN_S6_upstr1 || b_config_CERN_S6_upstr2 || b_config_CERN_S6_upstr4;
+    b_FZU = b_config_BB || b_CERN_any;
+    b_CERN_trig = b_config_BB || b_CERN_any;
+    b_CERN_S2 = b_config_CERN_S2;
+    b_CERN_S6 = b_config_CERN_S6 || b_config_CERN_S6_upstr1 || b_config_CERN_S6_upstr2 || b_config_CERN_S6_upstr4;
+    b_PbGl = !b_config_BB;
+    b_scinti_small = CustomMessenger::Instance()->BPlaceUpstream();
+    b_cher = CustomMessenger::Instance()->BPlaceUpstream();
+    b_scinti_small_det = CustomMessenger::Instance()->BScintiSmallDet();
+    b_cher_det = CustomMessenger::Instance()->BCherDet();
+    b_hodo_det = CustomMessenger::Instance()->BHodoDet();
 	
     // world
     G4RotationMatrix* worldRotation = new G4RotationMatrix();
@@ -316,22 +339,32 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
         G4double cher0Length = 298*cm;
         G4VSolid* cher0Solid = new G4Tubs("cher0", cherInnerRadius, cherOuterRadius, cher0Length/2, 0, 2*pi);
         G4VSolid* cher0VacuumSolid = new G4Tubs("cher0Vacuum", 0, cherInnerRadius, (cher0Length-2*cm)/2, 0, 2*pi);
+        G4VSolid* cher0CapSolid = new G4Tubs("cher0", 0, cherOuterRadius, thk_cher0_cap, 0, 2*pi);
         G4LogicalVolume* cher0Log = new G4LogicalVolume(cher0Solid, SS, "cher0_Log");
         G4LogicalVolume* cher0VacuumLog = new G4LogicalVolume(cher0VacuumSolid, cherGas, "cher0Vacuum_Log");
+        G4LogicalVolume* cher0CapLog = new G4LogicalVolume(cher0CapSolid, aluminium, "cher0Cap_Log"); // Cherenkov #1 has aluminium windows
         cher0Log->SetVisAttributes(grey);
         cher0VacuumLog->SetVisAttributes(invisible);
+        cher0CapLog->SetVisAttributes(grey); // Cherenkov #1 has aluminium windows
 	    new G4PVPlacement(nullptr, G4ThreeVector(0, 0, z_cher0_front + cher0Length/2), cher0Log, "cher0_Phys", worldLog, false, 0);
         new G4PVPlacement(nullptr, G4ThreeVector(0, 0, z_cher0_front + cher0Length/2), cher0VacuumLog, "cher0Vacuum_Phys", worldLog, false, 0);
+        new G4PVPlacement(nullptr, G4ThreeVector(0, 0, z_cher0_front - thk_cher0_cap/2), cher0CapLog, "cher0Cap_Phys_0", worldLog, false, 0);
+        new G4PVPlacement(nullptr, G4ThreeVector(0, 0, z_cher0_front + cher0Length + thk_cher0_cap/2), cher0CapLog, "cher0Cap_Phys_1", worldLog, false, 0);
 
         G4double cher1Length = 259*cm;
         G4VSolid* cher1Solid = new G4Tubs("cher1", cherInnerRadius, cherOuterRadius, cher1Length/2, 0, 2*pi);
         G4VSolid* cher1VacuumSolid = new G4Tubs("cher1Vacuum", 0, cherInnerRadius, (cher1Length-2*cm)/2, 0, 2*pi);
+        G4VSolid* cher1CapSolid = new G4Tubs("cher1", 0, cherOuterRadius, thk_cher1_cap, 0, 2*pi);
         G4LogicalVolume* cher1Log = new G4LogicalVolume(cher1Solid, SS, "cher1_Log");
         G4LogicalVolume* cher1VacuumLog = new G4LogicalVolume(cher1VacuumSolid, cherGas, "cher1Vacuum_Log");
+        G4LogicalVolume* cher1CapLog = new G4LogicalVolume(cher1CapSolid, mylar, "cher1Cap_Log"); // Cherenkov #2 has Mylar windows
         cher1Log->SetVisAttributes(grey);
         cher1VacuumLog->SetVisAttributes(invisible);
+        cher1CapLog->SetVisAttributes(brown); // Cherenkov #2 has Mylar windows
 	    new G4PVPlacement(nullptr, G4ThreeVector(0, 0, z_cher1_front + cher1Length/2), cher1Log, "cher1_Phys", worldLog, false, 0);
         new G4PVPlacement(nullptr, G4ThreeVector(0, 0, z_cher1_front + cher1Length/2), cher1VacuumLog, "cher1Vacuum_Phys", worldLog, false, 0);
+        new G4PVPlacement(nullptr, G4ThreeVector(0, 0, z_cher1_front - thk_cher1_cap/2), cher1CapLog, "cher1Cap_Phys_0", worldLog, false, 0);
+        new G4PVPlacement(nullptr, G4ThreeVector(0, 0, z_cher1_front + cher1Length + thk_cher1_cap/2), cher1CapLog, "cher1Cap_Phys_1", worldLog, false, 0);
 
     }
     //// Cherenkov pipes ////
@@ -468,7 +501,7 @@ void DetectorConstruction::ConstructSDandField()
 
     ////////////////////////////
     //// scintillating pads ////
-    if (IsScintiSmall() && B_SCINTISMALL_DET) {
+    if (IsScintiSmall() && IsScintiSmallDet()) {
         VolumeEDepSD* scintiSmall0SD = new VolumeEDepSD("SD_scinti0");
         SetSensitiveDetector("scintiSmall0_Log", scintiSmall0SD);
         sdm->AddNewDetector(scintiSmall0SD);
@@ -492,7 +525,7 @@ void DetectorConstruction::ConstructSDandField()
 
     /////////////////////////
     //// Cherenkov pipes ////
-    if (IsCher() && B_CHER_DET) {
+    if (IsCher() && IsCherDet()) {
         VolumeEDepSD* cher0SD = new VolumeEDepSD("SD_cher0");
         SetSensitiveDetector("cher0Vacuum_Log", cher0SD);
         sdm->AddNewDetector(cher0SD);
@@ -506,7 +539,7 @@ void DetectorConstruction::ConstructSDandField()
 
     ////////////////////////////
     //// beamline hodoscope ////
-    if (IsHodo() && B_HODO_DET) {
+    if (IsHodo() && IsHodoDet()) {
         VolumeTrackingSD* hodoSD = new VolumeTrackingSD("SD_hodo");
         SetSensitiveDetector("hodo_Log", hodoSD);
         sdm->AddNewDetector(hodoSD);

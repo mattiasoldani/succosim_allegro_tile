@@ -65,7 +65,7 @@ void EventAction::EndOfEventAction(const G4Event* event)
 
     ////////////////////////////
     //// beamline hodoscope ////
-    if (det->IsHodo() && B_HODO_DET) {
+    if (det->IsHodo() && det->IsHodoDet()) {
         G4double thresholdHodoEDep = 50 * keV;
 
         G4int fHodo = sdm->GetCollectionID("SD_hodo/VolumeTracking");
@@ -136,7 +136,7 @@ void EventAction::EndOfEventAction(const G4Event* event)
     ////////////////////////////
     //// scintillating pads ////
     for (G4int i = 0; i < 4; i++) {
-        const G4bool isScinti = (i < 2) ? (det->IsScintiSmall() && B_SCINTISMALL_DET) : det->IsScintiBig();
+        const G4bool isScinti = (i < 2) ? (det->IsScintiSmall() && det->IsScintiSmallDet()) : det->IsScintiBig();
         if (isScinti) {
             G4int fIdEScinti = sdm->GetCollectionID("SD_scinti" + std::to_string(i) + "/VolumeEDep");
             VolumeEDepHitsCollection* hitCollectionScinti = fIdEScinti >= 0 ? dynamic_cast<VolumeEDepHitsCollection*>(hcofEvent->GetHC(fIdEScinti)) : nullptr;
@@ -158,7 +158,7 @@ void EventAction::EndOfEventAction(const G4Event* event)
 
     /////////////////////////
     //// Cherenkov pipes ////
-    if (det->IsCher() && B_CHER_DET) {
+    if (det->IsCher() && det->IsCherDet()) {
         for (G4int i = 0; i < 2; i++) {
             G4int fIdECher = sdm->GetCollectionID("SD_cher" + std::to_string(i) + "/VolumeEDep");
             VolumeEDepHitsCollection* hitCollectionCher = fIdECher >= 0 ? dynamic_cast<VolumeEDepHitsCollection*>(hcofEvent->GetHC(fIdECher)) : nullptr;
