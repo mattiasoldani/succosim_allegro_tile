@@ -1,0 +1,23 @@
+# initialise the simulation
+/run/initialize
+
+# beam particle and energy
+/gps/particle e-
+/gps/ene/type Mono
+/gps/energy 200 GeV
+
+# beam profile
+/gps/pos/type Beam
+/gps/pos/centre 0 0 0 m
+/gps/pos/sigma_x 1 cm
+/gps/pos/sigma_y 1 cm
+
+# beam divergence
+/gps/ang/type beam2d
+/gps/ang/rot1 1 0 0
+/gps/ang/rot2 0 -1 0
+/gps/ang/sigma_x 0.5 mrad
+/gps/ang/sigma_y 0.5 mrad
+
+# shot 10 events
+/run/beamOn 100
