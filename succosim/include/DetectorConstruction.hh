@@ -16,6 +16,12 @@
 
 #include "CustomMessenger.hh"
 
+// vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+// define hard-coded parameters
+// e.g. #define NLAYERS 10
+
+// ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 using namespace std;
 
 // class for logical volumes
