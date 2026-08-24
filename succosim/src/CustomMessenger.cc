@@ -32,7 +32,20 @@ CustomMessenger::CustomMessenger()
 
     // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
     // implement custom macro parameter parser here
+    fMessenger->DeclareProperty(
+        "NPeriods", n_periods,
+        "nr. of periods - int"
+    );
 
+    fMessenger->DeclareProperty(
+        "NLayers", n_layers,
+        "nr. of layers - int"
+    );
+
+    fMessenger->DeclareProperty(
+        "NStackedMods", n_stacked_mods,
+        "nr. of modules stacked on top of each other beamtest style - int"
+    );
     // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 }

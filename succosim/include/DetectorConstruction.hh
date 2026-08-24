@@ -21,19 +21,16 @@
 // define hard-coded parameters
 // e.g. #define NLAYERS 10
 
-// numbers of
-// - periods (along barrel z)
-// - layers (along barrel radius)
-// - modules (stacked one on top of the other à la beamtest area)
-#define NPERIODS 13
-#define NLAYERS 13
-#define NSTACKEDMODS 1
+// maximum numbers used for fixed-size array allocation
+#define NPERIODSMAX 50
+#define NLAYERSMAX 50
+#define NSTACKEDMODSMAX 32
 
 // readout granularity of each module:
 // - 0: single-element readout
 // - 1: one readout channel per cell for the inner structure, support read out separately
 // - 2: just the total energy in the module
-#define COARSERO 2
+#define COARSERO 1
 
 // if 1, only inner part (scintillating tiles, spacers, masters, fibres) is placed (no support)
 #define BPLACEONLYINNER 0
@@ -82,40 +79,48 @@ private:
     //// specific for this application ////
 
     // module general parameters
+    G4int nPeriods() const { return custom->nPeriods(); }
+    G4int nLayers() const { return custom->nLayers(); }
+    G4int nStackedMods() const { return custom->nStackedMods(); }
+
     G4double mst_thk = 5*mm; // master thickness
     G4double spc_thk = 4*mm; // spacer thickness
     G4double sci_thk = 3*mm; // tile thickness
     G4double period_thk = 2*(mst_thk + spc_thk); // thickness of the full period
 
     G4double front_thk = 20*mm; // thickness (along radial direction) of the front plate
-    G4double back_thk = 191*mm; // thickness (along radial direction) of the back structure
+    G4double back_thk = 41*mm; // thickness (along radial direction) of the back structure
     G4double side_thk = 20*mm; // thickness (along longitudinal direction) of the side plates
 
     G4double mod_rmin = 2.8*m; // module minimum radius - net (sensitive volume only)
-    G4double mod_radial_env = mod_radial() + front_thk + back_thk; // module radial extension - gross (envelope volume)
-    G4double mod_thk = NPERIODS * period_thk - mst_thk; // module thickness along longitudinal direction (orthogonal to tiles) - net (sensitive volume only)
-    G4double mod_thk_env = mod_thk + 2*side_thk; // module thickness along longitudinal direction (orthogonal to tiles) - gross (envelope volume)
-    G4double mod_centre_rel = front_thk + mod_radial()/2 - mod_radial_env/2; // radial centre of the module net part relative to the gross size
     G4double mod_dphi = 2*pi/128; // module full azimuthal opening - readout segmentation will be halved
     G4double mod_radial(); // module radial extension - net (sensitive volume only), defined in DetectorConstruction.cc
+    G4double mod_radial_env() { return mod_radial() + front_thk + back_thk; } // module radial extension - gross (envelope volume)
+    G4double mod_thk() { return nPeriods() * period_thk - mst_thk; } // module thickness along longitudinal direction (orthogonal to tiles) - net (sensitive volume only)
+    G4double mod_thk_env() { return mod_thk() + 2*side_thk; } // module thickness along longitudinal direction (orthogonal to tiles) - gross
+    G4double mod_centre_rel() { return front_thk + mod_radial()/2 - mod_radial_env()/2; } // radial centre of the module net part relative to the gross size
 
-    G4double mst_transv(G4int i), til_transv(G4int i); // functions for iterative element placing, defined in DetectorConstruction.cc
+    G4double mst_transv(G4int i){ return -mod_thk() / 2 + spc_thk * (1 + i) + mst_thk * (0.5 + i); } // functions for iterative element placing, master
+    G4double til_transv(G4int i){ return mst_transv(i) - (spc_thk + mst_thk) / 2; } // functions for iterative element placing, tile
 
     // master (partial) cross-section shapes
     G4double mst_hgt(G4int j); // per-layer heights, defined in DetectorConstruction.cc
-    G4double mst_r(G4int j), mst_r_rel(G4int j); // per-layer radius (absolute and relative to the gross radial position), defined in DetectorConstruction.cc
+    G4double mst_r(G4int j); // per-layer radius (absolute), defined in DetectorConstruction.cc
+    G4double mst_r_rel(G4int j){ return mst_r(j) - mod_rmin - mod_radial()/2 + mod_centre_rel(); } // per-layer radius (relative to the gross radial position)
 
     // spacer cross-section shapes
     G4double spc_r_overlap = 2*mm; // overlapping portion between spacers in two successive columns along radius
-    G4double spc_hgt(G4int j); // per-layer heights, defined in DetectorConstruction.cc
-    G4double spc_sidegap(G4int j); // per-layer width of the side gap, defined in DetectorConstruction.cc
-    G4double spc_r(G4int j), spc_r_rel(G4int j); // per-layer radius (absolute and relative to the gross radial position), defined in DetectorConstruction.cc
+    G4double spc_hgt(G4int j){ return mst_hgt(j); } // per-layer heights
+    G4double spc_sidegap(G4int j){ return 2.6*mm*(static_cast<G4int>(floor(j/8))+1); } // per-layer width of the side gap
+    G4double spc_r(G4int j){ return mst_r(j); } // per-layer radius (absolute)
+    G4double spc_r_rel(G4int j){ return mst_r_rel(j); } // per-layer radius (relative to the gross radial position)
 
 	// scintillating tile cross-section shapes
     G4double sci_r_gap = 1*mm; // 1-side air gap between spacer and scintillator tile (removed from scintillator) along radius
-    G4double sci_hgt(G4int j); // per-layer heights, defined in DetectorConstruction.cc
-    G4double sci_sidegap(G4int j); // per-layer width of the side gap, defined in DetectorConstruction.cc
-    G4double sci_r(G4int j), sci_r_rel(G4int j); // per-layer radius (absolute and relative to the gross radial position), defined in DetectorConstruction.cc
+    G4double sci_hgt(G4int j){ return spc_hgt(j) - 2*(spc_r_overlap + sci_r_gap); } // per-layer heights
+    G4double sci_sidegap(G4int j){ return spc_sidegap(j); } // per-layer width of the side gap
+    G4double sci_r(G4int j){ return spc_r(j); } // per-layer radius (absolute)
+    G4double sci_r_rel(G4int j){ return spc_r_rel(j); } // per-layer radius (relative to the gross radial position)
 
     // other miscellaneous geometric parameters
     G4double inner_gap = 0.4*mm; // gap between adjacent scintillating tiles in the same module slot (full) - side gap will be increased accordingly, to keep sides aligned with spacers

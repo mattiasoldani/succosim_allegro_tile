@@ -50,7 +50,11 @@ void EventAction::EndOfEventAction(const G4Event* event)
 
     analysis->FillNtupleDColumn(0, col++, event->GetEventID());
 
-    for (G4int imod = 0; imod < NSTACKEDMODS; imod++) {
+    const G4int n_periods = CustomMessenger::Instance()->nPeriods();
+    const G4int n_layers = CustomMessenger::Instance()->nLayers();
+    const G4int n_stacked_mods = CustomMessenger::Instance()->nStackedMods();
+
+    for (G4int imod = 0; imod < n_stacked_mods; imod++) {
         G4String mod_prefix = "M" + std::to_string(imod);
 
         if (COARSERO == 2) {
@@ -64,24 +68,24 @@ void EventAction::EndOfEventAction(const G4Event* event)
         FillVolumeEDep(col, mod_prefix + "_Side1");
 
         if (COARSERO == 1) {
-            for (G4int j = 0; j < NLAYERS; j++) {
-                for (G4int iperiod = 0; iperiod < NPERIODS; iperiod++) {
+            for (G4int j = 0; j < n_layers; j++) {
+                for (G4int iperiod = 0; iperiod < n_periods; iperiod++) {
                     FillVolumeEDep(col, mod_prefix + "_L" + std::to_string(j) + "_P" + std::to_string(iperiod) + "_Cell");
                 }
             }
             continue;
         }
 
-        for (G4int j = 0; j < NLAYERS; j++) {
-            for (G4int i = 0; i < NPERIODS * 2 - 1; i++) {
+        for (G4int j = 0; j < n_layers; j++) {
+            for (G4int i = 0; i < n_periods * 2 - 1; i++) {
                 G4int iperiod = floor(i/2);
 
                 FillVolumeEDep(col, mod_prefix + "_L" + std::to_string(j) + "_P" + std::to_string(iperiod) + "_Master" + std::to_string(i%2));
             }
         }
 
-        for (G4int j = 0; j < NLAYERS; j++) {
-            for (G4int i = 0; i < NPERIODS * 2; i++) {
+        for (G4int j = 0; j < n_layers; j++) {
+            for (G4int i = 0; i < n_periods * 2; i++) {
                 G4int iperiod = floor(i/2);
 
                 G4int b_spc = ((i%2) + (j%2)) % 2;
