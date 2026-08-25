@@ -110,7 +110,7 @@ void RunAction::BeginOfRunAction(const G4Run*)
     // open output file - output file will have extension .root and custom path and name
     G4String outFileName = CustomMessenger::Instance()->OutFileName();
     G4String outFilePath = CustomMessenger::Instance()->OutFilePath();
-    analysis->OpenFile("./"+outFilePath+"/"+outFileName+".root");
+    analysis->OpenFile(outFilePath+"/"+outFileName+".root");
 }
 
 void RunAction::EndOfRunAction(const G4Run* run)
