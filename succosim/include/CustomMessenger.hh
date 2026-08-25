@@ -35,7 +35,7 @@ public:
 private:
 
     G4String out_file_name = "temp";
-    G4String out_file_path = "out_data";
+    G4String out_file_path = "./out_data";
     G4String out_tree_name = "t";
     G4String out_tree_title = "output data";
 
