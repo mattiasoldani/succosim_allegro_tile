@@ -2,6 +2,8 @@
 #include <G4String.hh>
 
 #include <string>
+#include <iomanip>
+#include <sstream>
 
 #include "RunAction.hh"
 #include "Analysis.hh"
