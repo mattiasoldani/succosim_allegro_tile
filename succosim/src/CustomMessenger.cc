@@ -17,12 +17,12 @@ CustomMessenger::CustomMessenger()
 
     fMessenger->DeclareProperty(
         "OutFileName", out_file_name,
-        "output ROOT file basename (./out_data/<OutFileName>.root) - str"
+        "output ROOT file basename - str (<OutFilePath>/<OutFileName>.root)"
     );
 
     fMessenger->DeclareProperty(
         "OutFilePath", out_file_path,
-        "output ROOT file path - str (./<OutFilePath>/<OutFileName>.root)"
+        "output ROOT file path - str (<OutFilePath>/<OutFileName>.root)"
     );
 
     fMessenger->DeclareProperty(
