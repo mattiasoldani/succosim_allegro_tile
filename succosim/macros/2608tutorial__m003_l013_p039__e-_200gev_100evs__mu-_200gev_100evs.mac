@@ -1,0 +1,62 @@
+# first of all, set detector params and other general settings
+/custom/NPeriods 39
+/custom/NLayers 13
+/custom/NStackedMods 3
+/custom/CoarseRO 1
+
+/control/alias energy 200
+/control/alias nevs 100
+
+# initialise the simulation
+/run/initialize
+
+#########################
+# GENERAL BEAM SETTINGS #
+#########################
+
+# beam particle and energy
+/gps/ene/type Mono
+/gps/energy 200 GeV
+
+# beam profile
+/gps/pos/type Beam
+/gps/pos/centre 0 0 0 m
+/gps/pos/sigma_x 1 cm
+/gps/pos/sigma_y 1 cm
+
+# beam divergence
+/gps/ang/type beam2d
+/gps/ang/rot1 1 0 0
+/gps/ang/rot2 0 -1 0
+/gps/ang/sigma_x 0.5 mrad
+/gps/ang/sigma_y 0.5 mrad
+
+#####################
+# RUN 1 - electrons #
+#####################
+
+# specific particle type
+/control/alias particle e-
+/gps/particle {particle}
+
+# output file features
+/custom/OutFileName temp_series_{particle}_{energy}GeV_{nevs}evs
+/custom/OutTreeTitle output data, {energy}-GeV {particle}
+
+# shoot!
+/run/beamOn {nevs}
+
+#################
+# RUN 2 - muons #
+#################
+
+# specific particle type
+/control/alias particle mu-
+/gps/particle {particle}
+
+# output file features
+/custom/OutFileName temp_series_{particle}_{energy}GeV_{nevs}evs
+/custom/OutTreeTitle output data, {energy}-GeV {particle}
+
+# shoot!
+/run/beamOn {nevs}

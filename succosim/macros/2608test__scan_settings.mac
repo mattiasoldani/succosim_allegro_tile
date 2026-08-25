@@ -1,0 +1,23 @@
+# {1} = nmods
+# {2} = nlayers
+# {3} = nperiods
+
+# set level of RO
+# vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+/custom/CoarseRO 1
+# ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+# set event nr per run here
+# vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+/control/alias nevs 10000
+# ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+# set beam positional half-size
+# vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+/control/alias pos_sigma 1
+# ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+# set output file name prefix
+# vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+/control/alias file_prefix m{1}_l{2}_p{3}
+# ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
