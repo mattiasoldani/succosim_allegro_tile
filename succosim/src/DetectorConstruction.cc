@@ -48,6 +48,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     G4Material* aluminium = nist->FindOrBuildMaterial("G4_Al"); // aluminium
     G4Material* mylar = nist->FindOrBuildMaterial("G4_MYLAR"); // Mylar
 
+    G4Material* mat_world = air; // material for world
     G4Material* plastic_ancillary = plastic; // plastic for ancillary detectors
     G4Material* plastic_fibre = plastic; // plastic for WLS fibres
 
@@ -78,11 +79,11 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     b_scinti_small_det = CustomMessenger::Instance()->BScintiSmallDet();
     b_cher_det = CustomMessenger::Instance()->BCherDet();
     b_hodo_det = CustomMessenger::Instance()->BHodoDet();
-	
+		
     // world
     G4RotationMatrix* worldRotation = new G4RotationMatrix();
     G4VSolid* worldBox = new G4Box("world_Shape", worldSizeX / 2, worldSizeY / 2, worldSizeZ / 2);
-    G4LogicalVolume* worldLog = new G4LogicalVolume(worldBox, air, "world_Log");
+    G4LogicalVolume* worldLog = new G4LogicalVolume(worldBox, mat_world, "world_Log");
     worldLog->SetVisAttributes(invisible);
     G4VPhysicalVolume* worldPhys = new G4PVPlacement(nullptr, {}, worldLog, "world", nullptr, false, 0);
 	
