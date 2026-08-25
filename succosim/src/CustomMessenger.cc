@@ -21,6 +21,11 @@ CustomMessenger::CustomMessenger()
     );
 
     fMessenger->DeclareProperty(
+        "OutFilePath", out_file_path,
+        "output ROOT file path - str (./<OutFilePath>/<OutFileName>.root)"
+    );
+
+    fMessenger->DeclareProperty(
         "OutTreeName", out_tree_name,
         "output ROOT tree name - str"
     );
