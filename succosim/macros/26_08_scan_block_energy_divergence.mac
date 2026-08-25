@@ -11,7 +11,7 @@
 # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 /custom/OutFileName {1}__{3}_{energy}GeV_{2}evs
 /custom/OutTreeTitle output data, {energy}-GeV {3}
-/control/execute 2608test__scan_point.mac {2} {3} {energy} {ang_sigma} {ang_sigma} {4} {4}
+/control/execute 26_08_scan_point.mac {2} {3} {energy} {ang_sigma} {ang_sigma} {4} {4}
 
 # --> 0.1 - 5 GeV
 # set beam params here
@@ -21,7 +21,7 @@
 # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 /custom/OutFileName {1}__{3}_{energy}GeV_{2}evs
 /custom/OutTreeTitle output data, {energy}-GeV {3}
-/control/execute 2608test__scan_point.mac {2} {3} {energy} {ang_sigma} {ang_sigma} {4} {4}
+/control/execute 26_08_scan_point.mac {2} {3} {energy} {ang_sigma} {ang_sigma} {4} {4}
 
 # --> 0.2 - 10 GeV
 # set beam params here
@@ -31,7 +31,7 @@
 # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 /custom/OutFileName {1}__{3}_{energy}GeV_{2}evs
 /custom/OutTreeTitle output data, {energy}-GeV {3}
-/control/execute 2608test__scan_point.mac {2} {3} {energy} {ang_sigma} {ang_sigma} {4} {4}
+/control/execute 26_08_scan_point.mac {2} {3} {energy} {ang_sigma} {ang_sigma} {4} {4}
 
 # --> 0.3 - 20 GeV
 # set beam params here
@@ -41,7 +41,7 @@
 # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 /custom/OutFileName {1}__{3}_{energy}GeV_{2}evs
 /custom/OutTreeTitle output data, {energy}-GeV {3}
-/control/execute 2608test__scan_point.mac {2} {3} {energy} {ang_sigma} {ang_sigma} {4} {4}
+/control/execute 26_08_scan_point.mac {2} {3} {energy} {ang_sigma} {ang_sigma} {4} {4}
 
 # --> 0.4 - 50 GeV
 # set beam params here
@@ -51,7 +51,7 @@
 # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 /custom/OutFileName {1}__{3}_{energy}GeV_{2}evs
 /custom/OutTreeTitle output data, {energy}-GeV {3}
-/control/execute 2608test__scan_point.mac {2} {3} {energy} {ang_sigma} {ang_sigma} {4} {4}
+/control/execute 26_08_scan_point.mac {2} {3} {energy} {ang_sigma} {ang_sigma} {4} {4}
 
 # --> 0.5 - 100 GeV
 # set beam params here
@@ -61,7 +61,7 @@
 # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 /custom/OutFileName {1}__{3}_{energy}GeV_{2}evs
 /custom/OutTreeTitle output data, {energy}-GeV {3}
-/control/execute 2608test__scan_point.mac {2} {3} {energy} {ang_sigma} {ang_sigma} {4} {4}
+/control/execute 26_08_scan_point.mac {2} {3} {energy} {ang_sigma} {ang_sigma} {4} {4}
 
 # --> 0.6 - 200 GeV
 # set beam params here
@@ -71,7 +71,7 @@
 # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 /custom/OutFileName {1}__{3}_{energy}GeV_{2}evs
 /custom/OutTreeTitle output data, {energy}-GeV {3}
-/control/execute 2608test__scan_point.mac {2} {3} {energy} {ang_sigma} {ang_sigma} {4} {4}
+/control/execute 26_08_scan_point.mac {2} {3} {energy} {ang_sigma} {ang_sigma} {4} {4}
 
 # --> 0.7 - 300 GeV
 # set beam params here
@@ -81,7 +81,7 @@
 # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 /custom/OutFileName {1}__{3}_{energy}GeV_{2}evs
 /custom/OutTreeTitle output data, {energy}-GeV {3}
-/control/execute 2608test__scan_point.mac {2} {3} {energy} {ang_sigma} {ang_sigma} {4} {4}
+/control/execute 26_08_scan_point.mac {2} {3} {energy} {ang_sigma} {ang_sigma} {4} {4}
 
 # --> 0.8 - 500 GeV
 # set beam params here
@@ -91,4 +91,4 @@
 # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 /custom/OutFileName {1}__{3}_{energy}GeV_{2}evs
 /custom/OutTreeTitle output data, {energy}-GeV {3}
-/control/execute 2608test__scan_point.mac {2} {3} {energy} {ang_sigma} {ang_sigma} {4} {4}
+/control/execute 26_08_scan_point.mac {2} {3} {energy} {ang_sigma} {ang_sigma} {4} {4}

@@ -1,0 +1,44 @@
+# set module settings
+# vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+/control/alias nperiods 39
+/control/alias nlayers 13
+/control/alias nmods 1
+# ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/custom/NPeriods {nperiods}
+/custom/NLayers {nlayers}
+/custom/NStackedMods {nmods}
+
+# set level of RO
+# vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+/custom/CoarseRO 1
+# ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+# set event nr per run here
+# vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+/control/alias nevs 30000
+# ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+# set beam positional half-size
+# vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+/control/alias pos_sigma 1
+# ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+# set output file path and name prefix
+# vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+/custom/OutFilePath /eos/experiment/newtile/simulations/proto_studies/26_08_full_mod_stack
+/control/alias file_prefix m{nmods}_l{nlayers}_p{nperiods}
+# ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+/run/initialize
+
+################
+# SCAN 0 - pi+ #
+################
+/control/alias particle pi+
+/control/execute 26_08_scan_block_energy_divergence.mac {file_prefix} {nevs} {particle} {pos_sigma}
+
+###############
+# SCAN 1 - e+ #
+###############
+/control/alias particle e+
+/control/execute 26_08_scan_block_energy_divergence.mac {file_prefix} {nevs} {particle} {pos_sigma}
