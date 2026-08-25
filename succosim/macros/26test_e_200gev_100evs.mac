@@ -1,7 +1,8 @@
 # first of all, set params
-/custom/NPeriods 13
+/custom/NPeriods 39
 /custom/NLayers 13
-/custom/NStackedMods 2
+/custom/NStackedMods 3
+/custom/CoarseRO 1
 
 # initialise the simulation
 /run/initialize

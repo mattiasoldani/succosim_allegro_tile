@@ -2,10 +2,17 @@
 #include <G4SDManager.hh>
 #include <G4THitsMap.hh>
 #include <G4Event.hh>
+#include <G4PrimaryParticle.hh>
+#include <G4PrimaryVertex.hh>
+#include <G4ThreeVector.hh>
+
+#include <cmath>
+#include <string>
 
 #include "EventAction.hh"
 #include "Analysis.hh"
 #include "CustomHit.hh"
+#include <G4RunManager.hh>
 #include "DetectorConstruction.hh"
 
 using namespace std;
@@ -29,6 +36,7 @@ void EventAction::EndOfEventAction(const G4Event* event)
     const G4int n_periods = CustomMessenger::Instance()->nPeriods();
     const G4int n_layers = CustomMessenger::Instance()->nLayers();
     const G4int n_stacked_mods = CustomMessenger::Instance()->nStackedMods();
+    const G4int coarse_ro = CustomMessenger::Instance()->CoarseRO();
 
     // function to extract hits
     auto GetVolumeEDep = [sdm, hcofEvent](const G4String& volumeName, const G4double missingValue) {
@@ -57,7 +65,7 @@ void EventAction::EndOfEventAction(const G4Event* event)
     };
 
     // function to sum fine-readout hits for a full module
-    auto SumModuleEDep = [GetVolumeEDep, n_periods, n_layers](const G4String& mod_prefix) {
+    auto SumModuleEDep = [GetVolumeEDep, n_periods, n_layers, coarse_ro](const G4String& mod_prefix) {
         G4double eDep = 0.;
 
         eDep += GetVolumeEDep(mod_prefix + "_Front", 0.);
@@ -65,7 +73,7 @@ void EventAction::EndOfEventAction(const G4Event* event)
         eDep += GetVolumeEDep(mod_prefix + "_Side0", 0.);
         eDep += GetVolumeEDep(mod_prefix + "_Side1", 0.);
 
-        if (COARSERO == 1) {
+        if (coarse_ro == 1) {
             for (G4int j = 0; j < n_layers; j++) {
                 for (G4int iperiod = 0; iperiod < n_periods; iperiod++) {
                     eDep += GetVolumeEDep(mod_prefix + "_L" + std::to_string(j) + "_P" + std::to_string(iperiod) + "_Cell", 0.);
@@ -104,10 +112,33 @@ void EventAction::EndOfEventAction(const G4Event* event)
 
     analysis->FillNtupleDColumn(0, col++, event->GetEventID());
 
+    ///////////////////////////
+    //// true primary info ////
+    const G4PrimaryVertex* primaryVertex = event->GetPrimaryVertex(0);
+    const G4PrimaryParticle* primaryParticle = primaryVertex ? primaryVertex->GetPrimary(0) : nullptr;
+    if (primaryVertex && primaryParticle) {
+        const G4ThreeVector momentumDirection = primaryParticle->GetMomentumDirection();
+        analysis->FillNtupleDColumn(0, col, primaryParticle->GetPDGcode()); col++;
+        analysis->FillNtupleDColumn(0, col, primaryParticle->GetKineticEnergy() / MeV); col++;
+        analysis->FillNtupleDColumn(0, col, primaryVertex->GetX0() / mm); col++;
+        analysis->FillNtupleDColumn(0, col, primaryVertex->GetY0() / mm); col++;
+        analysis->FillNtupleDColumn(0, col, std::atan2(momentumDirection.x(), momentumDirection.z())); col++;
+        analysis->FillNtupleDColumn(0, col, std::atan2(momentumDirection.y(), momentumDirection.z())); col++;
+    } else {
+        analysis->FillNtupleDColumn(0, col, -9999.0); col++;
+        analysis->FillNtupleDColumn(0, col, -9999.0); col++;
+        analysis->FillNtupleDColumn(0, col, -9999.0); col++;
+        analysis->FillNtupleDColumn(0, col, -9999.0); col++;
+        analysis->FillNtupleDColumn(0, col, -9999.0); col++;
+        analysis->FillNtupleDColumn(0, col, -9999.0); col++;
+    }
+    //// true primary info ////
+    ///////////////////////////
+
     for (G4int imod = 0; imod < n_stacked_mods; imod++) {
         G4String mod_prefix = "M" + std::to_string(imod);
 
-        if (COARSERO == 2) {
+        if (coarse_ro == 2) {
             FillVolumeEDep(col, mod_prefix + "_Total");
             continue;
         }
@@ -120,7 +151,7 @@ void EventAction::EndOfEventAction(const G4Event* event)
         FillVolumeEDep(col, mod_prefix + "_Side0");
         FillVolumeEDep(col, mod_prefix + "_Side1");
 
-        if (COARSERO == 1) {
+        if (coarse_ro == 1) {
             for (G4int j = 0; j < n_layers; j++) {
                 for (G4int iperiod = 0; iperiod < n_periods; iperiod++) {
                     FillVolumeEDep(col, mod_prefix + "_L" + std::to_string(j) + "_P" + std::to_string(iperiod) + "_Cell");

@@ -26,6 +26,8 @@ public:
     G4int nPeriods() const { return n_periods; }
     G4int nLayers() const { return n_layers; }
     G4int nStackedMods() const { return n_stacked_mods; }
+    G4int CoarseRO() const { return coarse_ro; }
+    G4bool BPlaceOnlyInner() const { return b_place_only_inner; }
     // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 private:
@@ -40,6 +42,8 @@ private:
     G4int n_periods = 13;
     G4int n_layers = 13;
     G4int n_stacked_mods = 1;
+    G4int coarse_ro = 2;
+    G4bool b_place_only_inner = false;
     // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
     G4GenericMessenger* fMessenger;

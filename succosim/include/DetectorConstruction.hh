@@ -26,14 +26,8 @@
 #define NLAYERSMAX 50
 #define NSTACKEDMODSMAX 32
 
-// readout granularity of each module:
-// - 0: single-element readout
-// - 1: one readout channel per cell for the inner structure, support read out separately
-// - 2: just the total energy in the module (always available anyway)
-#define COARSERO 1
-
-// if 1, only inner part (scintillating tiles, spacers, masters, fibres) is placed (no support)
-#define BPLACEONLYINNER 0
+// if true, only inner part (scintillating tiles, spacers, masters, fibres) is placed (no support)
+// set with /custom/BPlaceOnlyInner before /run/initialize
 
 // if 1 (0), inner structure (masters, spacers, scintillators, fibres) is (not) shown in graphical mode - note that volumes are placed anyway
 #define BSHOWINNER 1
@@ -77,12 +71,6 @@ private:
     G4double worldSizeZ = 10 * m;
 
     //// specific for this application ////
-
-    // module general parameters
-    G4int nPeriods() const { return custom->nPeriods(); }
-    G4int nLayers() const { return custom->nLayers(); }
-    G4int nStackedMods() const { return custom->nStackedMods(); }
-
     G4double mst_thk = 5*mm; // master thickness
     G4double spc_thk = 4*mm; // spacer thickness
     G4double sci_thk = 3*mm; // tile thickness
@@ -96,7 +84,7 @@ private:
     G4double mod_dphi = 2*pi/128; // module full azimuthal opening - readout segmentation will be halved
     G4double mod_radial(); // module radial extension - net (sensitive volume only), defined in DetectorConstruction.cc
     G4double mod_radial_env() { return mod_radial() + front_thk + back_thk; } // module radial extension - gross (envelope volume)
-    G4double mod_thk() { return nPeriods() * period_thk - mst_thk; } // module thickness along longitudinal direction (orthogonal to tiles) - net (sensitive volume only)
+    G4double mod_thk() { return custom->nPeriods() * period_thk - mst_thk; } // module thickness along longitudinal direction (orthogonal to tiles) - net (sensitive volume only)
     G4double mod_thk_env() { return mod_thk() + 2*side_thk; } // module thickness along longitudinal direction (orthogonal to tiles) - gross
     G4double mod_centre_rel() { return front_thk + mod_radial()/2 - mod_radial_env()/2; } // radial centre of the module net part relative to the gross size
 

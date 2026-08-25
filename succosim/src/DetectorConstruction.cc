@@ -151,20 +151,22 @@ void DetectorConstruction::ConstructSDandField()
         SetSensitiveDetector(volumeName + "_Log", volumeSD);
     };
 
-    const G4int n_periods = nPeriods();
-    const G4int n_layers = nLayers();
-    const G4int n_stacked_mods = nStackedMods();
+    const G4int n_periods = CustomMessenger::Instance()->nPeriods();
+    const G4int n_layers = CustomMessenger::Instance()->nLayers();
+    const G4int n_stacked_mods = CustomMessenger::Instance()->nStackedMods();
+    const G4int coarse_ro = CustomMessenger::Instance()->coarseRO();
+    const G4bool b_place_only_inner = CustomMessenger::Instance()->bPlaceOnlyInner();
 
     for (G4int imod = 0; imod < n_stacked_mods; imod++) {
         G4String mod_prefix = "M" + std::to_string(imod);
         VolumeEDepSD* coarseSD = nullptr;
-        if (COARSERO == 2) {
+        if (coarse_ro == 2) {
             coarseSD = new VolumeEDepSD(mod_prefix + "_Total_SD");
             sdm->AddNewDetector(coarseSD);
             AttachVolumeEDepSD(mod_prefix + "_Envelope", coarseSD);
         }
         VolumeEDepSD* cellSDs[NLAYERSMAX][NPERIODSMAX] = {};
-        if (COARSERO == 1) {
+        if (coarse_ro == 1) {
             for (G4int j = 0; j < n_layers; j++) {
                 for (G4int iperiod = 0; iperiod < n_periods; iperiod++) {
                     G4String cell_name = mod_prefix + "_L" + std::to_string(j) + "_P" + std::to_string(iperiod) + "_Cell";
@@ -174,18 +176,18 @@ void DetectorConstruction::ConstructSDandField()
             }
         }
 
-        if (BPLACEONLYINNER) {goto label_inner_sd;}
+        if (b_place_only_inner) {goto label_inner_sd;}
 
         if (front_thk > 0) {
-            if (COARSERO == 2) {AttachVolumeEDepSD(mod_prefix + "_Front", coarseSD);}
+            if (coarse_ro == 2) {AttachVolumeEDepSD(mod_prefix + "_Front", coarseSD);}
             else {SetVolumeEDepSD(mod_prefix + "_Front");}
         }
         if (back_thk > 0) {
-            if (COARSERO == 2) {AttachVolumeEDepSD(mod_prefix + "_Back", coarseSD);}
+            if (coarse_ro == 2) {AttachVolumeEDepSD(mod_prefix + "_Back", coarseSD);}
             else {SetVolumeEDepSD(mod_prefix + "_Back");}
         }
         if (side_thk > 0) {
-            if (COARSERO == 2) {
+            if (coarse_ro == 2) {
                 AttachVolumeEDepSD(mod_prefix + "_Side0", coarseSD);
                 AttachVolumeEDepSD(mod_prefix + "_Side1", coarseSD);
             } else {
@@ -201,8 +203,8 @@ void DetectorConstruction::ConstructSDandField()
                 G4int iperiod = floor(i/2);
 
                 G4String mst_name = mod_prefix + "_L" + std::to_string(j) + "_P" + std::to_string(iperiod) + "_Master" + std::to_string(i%2);
-                if (COARSERO == 2) {AttachVolumeEDepSD(mst_name, coarseSD);}
-                else if (COARSERO == 1) {AttachVolumeEDepSD(mst_name, cellSDs[j][iperiod]);}
+                if (coarse_ro == 2) {AttachVolumeEDepSD(mst_name, coarseSD);}
+                else if (coarse_ro == 1) {AttachVolumeEDepSD(mst_name, cellSDs[j][iperiod]);}
                 else {SetVolumeEDepSD(mst_name);}
             }
         }
@@ -214,17 +216,17 @@ void DetectorConstruction::ConstructSDandField()
                 G4int b_spc = ((i%2) + (j%2)) % 2;
                 if (b_spc) {
                     G4String spc_name = mod_prefix + "_L" + std::to_string(j) + "_P" + std::to_string(iperiod) + "_Spacer";
-                    if (COARSERO == 2) {AttachVolumeEDepSD(spc_name, coarseSD);}
-                    else if (COARSERO == 1) {AttachVolumeEDepSD(spc_name, cellSDs[j][iperiod]);}
+                    if (coarse_ro == 2) {AttachVolumeEDepSD(spc_name, coarseSD);}
+                    else if (coarse_ro == 1) {AttachVolumeEDepSD(spc_name, cellSDs[j][iperiod]);}
                     else {SetVolumeEDepSD(spc_name);}
                 } else {
                     for (G4int k = 0; k < 2; k++) {
                         G4String sci_name = mod_prefix + "_L" + std::to_string(j) + "_P" + std::to_string(iperiod) + "_Scintillator" + std::to_string(k);
                         G4String fibre_name = mod_prefix + "_L" + std::to_string(j) + "_P" + std::to_string(iperiod) + "_Fibre" + std::to_string(k);
-                        if (COARSERO == 2) {
+                        if (coarse_ro == 2) {
                             AttachVolumeEDepSD(sci_name, coarseSD);
                             AttachVolumeEDepSD(fibre_name, coarseSD);
-                        } else if (COARSERO == 1) {
+                        } else if (coarse_ro == 1) {
                             AttachVolumeEDepSD(sci_name, cellSDs[j][iperiod]);
                             AttachVolumeEDepSD(fibre_name, cellSDs[j][iperiod]);
                         } else {
@@ -305,7 +307,7 @@ G4LogicalVolume* DetectorConstruction::CreateModule(
     G4LogicalVolume* tilLogTemp;
     G4int iperiod;
 
-    if (BPLACEONLYINNER) {goto label_inner_geom;}
+    if (bPlaceOnlyInner()) {goto label_inner_geom;}
 
     // --> front plate
     if (front_thk > 0) {

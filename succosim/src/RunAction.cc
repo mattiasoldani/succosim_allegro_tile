@@ -33,13 +33,23 @@ void RunAction::BeginOfRunAction(const G4Run*)
         // create the ntuple columns (remember the order, it is needed to fill them) here, or...
         // e.g. analysis->CreateNtupleDColumn("NEvent");
 
-        //// preliminary tests 01 ////
-
         analysis->CreateNtupleDColumn("NEvent");
+
+        ///////////////////////////
+        //// true primary info ////
+        analysis->CreateNtupleDColumn("true_PDG");
+        analysis->CreateNtupleDColumn("true_KE");
+        analysis->CreateNtupleDColumn("true_X");
+        analysis->CreateNtupleDColumn("true_Y");
+        analysis->CreateNtupleDColumn("true_thetaX");
+        analysis->CreateNtupleDColumn("true_thetaY");
+        //// true primary info ////
+        ///////////////////////////
 
         const G4int n_periods = CustomMessenger::Instance()->nPeriods();
         const G4int n_layers = CustomMessenger::Instance()->nLayers();
         const G4int n_stacked_mods = CustomMessenger::Instance()->nStackedMods();
+        const G4int coarse_ro = CustomMessenger::Instance()->CoarseRO();
         auto Id = [](const G4int id) {
             std::ostringstream stream;
             stream << std::setw(3) << std::setfill('0') << id;
@@ -51,7 +61,7 @@ void RunAction::BeginOfRunAction(const G4Run*)
 
             analysis->CreateNtupleDColumn("Edep_" + mod_prefix + "_Total");
 
-            if (COARSERO == 2) {
+            if (coarse_ro == 2) {
                 continue;
             }
 
@@ -60,7 +70,7 @@ void RunAction::BeginOfRunAction(const G4Run*)
             analysis->CreateNtupleDColumn("Edep_" + mod_prefix + "_Side" + Id(0));
             analysis->CreateNtupleDColumn("Edep_" + mod_prefix + "_Side" + Id(1));
 
-            if (COARSERO == 1) {
+            if (coarse_ro == 1) {
                 for (G4int j = 0; j < n_layers; j++) {
                     for (G4int iperiod = 0; iperiod < n_periods; iperiod++) {
                         analysis->CreateNtupleDColumn("Edep_" + mod_prefix + "_L" + Id(j) + "_P" + Id(iperiod) + "_Cell");

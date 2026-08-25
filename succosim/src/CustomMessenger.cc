@@ -51,6 +51,20 @@ CustomMessenger::CustomMessenger()
         "NStackedMods", n_stacked_mods,
         "nr. of modules stacked on top of each other beamtest style - int"
     );
+
+    // readout granularity of each module:
+    // - 0: single-element readout
+    // - 1: one readout channel per cell for the inner structure, support read out separately
+    // - 2: just the total energy in the module (always available anyway)
+    fMessenger->DeclareProperty(
+        "CoarseRO", coarse_ro,
+        "readout granularity: 0 single-element, 1 cell, 2 full-module total - int"
+    );
+
+    fMessenger->DeclareProperty(
+        "BPlaceOnlyInner", b_place_only_inner,
+        "if true, place only inner volumes and skip support - bool"
+    );
     // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 }
