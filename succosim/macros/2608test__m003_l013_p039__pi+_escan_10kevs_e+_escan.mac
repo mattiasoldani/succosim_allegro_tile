@@ -8,11 +8,6 @@
 /custom/NLayers {nlayers}
 /custom/NStackedMods {nmods}
 
-# set output file path
-# vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-/custom/OutFilePath /eos/experiment/newtile/simulations/proto_studies/26_08_full_mod_stack
-# ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
 /control/execute 2608test__scan_settings.mac {nmods} {nlayers} {nperiods}
 
 /run/initialize
