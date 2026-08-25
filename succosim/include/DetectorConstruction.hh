@@ -84,7 +84,7 @@ private:
     G4double mod_dphi = 2*pi/128; // module full azimuthal opening - readout segmentation will be halved
     G4double mod_radial(); // module radial extension - net (sensitive volume only), defined in DetectorConstruction.cc
     G4double mod_radial_env() { return mod_radial() + front_thk + back_thk; } // module radial extension - gross (envelope volume)
-    G4double mod_thk() { return custom->nPeriods() * period_thk - mst_thk; } // module thickness along longitudinal direction (orthogonal to tiles) - net (sensitive volume only)
+    G4double mod_thk() { return custom->NPeriods() * period_thk - mst_thk; } // module thickness along longitudinal direction (orthogonal to tiles) - net (sensitive volume only)
     G4double mod_thk_env() { return mod_thk() + 2*side_thk; } // module thickness along longitudinal direction (orthogonal to tiles) - gross
     G4double mod_centre_rel() { return front_thk + mod_radial()/2 - mod_radial_env()/2; } // radial centre of the module net part relative to the gross size
 

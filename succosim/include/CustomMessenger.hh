@@ -23,9 +23,9 @@ public:
 
     // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
     // implement custom macro parameter value getters here
-    G4int nPeriods() const { return n_periods; }
-    G4int nLayers() const { return n_layers; }
-    G4int nStackedMods() const { return n_stacked_mods; }
+    G4int NPeriods() const { return n_periods; }
+    G4int NLayers() const { return n_layers; }
+    G4int NStackedMods() const { return n_stacked_mods; }
     G4int CoarseRO() const { return coarse_ro; }
     G4bool BPlaceOnlyInner() const { return b_place_only_inner; }
     // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -33,7 +33,7 @@ public:
 private:
 
     G4String out_file_name = "temp";
-    G4String out_file_path = "out_data";
+    G4String out_file_path = "./out_data";
     G4String out_tree_name = "t";
     G4String out_tree_title = "output data";
 

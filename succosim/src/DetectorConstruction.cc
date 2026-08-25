@@ -82,7 +82,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     G4LogicalVolume* fibreLogs[NSTACKEDMODSMAX][NPERIODSMAX*NLAYERSMAX*2] = {};
     G4LogicalVolume* modEnvLogs[NSTACKEDMODSMAX] = {};
 
-    const G4int n_stacked_mods = nStackedMods();
+    const G4int n_stacked_mods = CustomMessenger::Instance()->NStackedMods();
 
     for (G4int i = 0; i < n_stacked_mods; i++) {
         G4double ang_x_temp = ((2*i - n_stacked_mods + 1) / 2.) * mod_dphi;
@@ -151,11 +151,11 @@ void DetectorConstruction::ConstructSDandField()
         SetSensitiveDetector(volumeName + "_Log", volumeSD);
     };
 
-    const G4int n_periods = CustomMessenger::Instance()->nPeriods();
-    const G4int n_layers = CustomMessenger::Instance()->nLayers();
-    const G4int n_stacked_mods = CustomMessenger::Instance()->nStackedMods();
-    const G4int coarse_ro = CustomMessenger::Instance()->coarseRO();
-    const G4bool b_place_only_inner = CustomMessenger::Instance()->bPlaceOnlyInner();
+    const G4int n_periods = CustomMessenger::Instance()->NPeriods();
+    const G4int n_layers = CustomMessenger::Instance()->NLayers();
+    const G4int n_stacked_mods = CustomMessenger::Instance()->NStackedMods();
+    const G4int coarse_ro = CustomMessenger::Instance()->CoarseRO();
+    const G4bool b_place_only_inner = CustomMessenger::Instance()->BPlaceOnlyInner();
 
     for (G4int imod = 0; imod < n_stacked_mods; imod++) {
         G4String mod_prefix = "M" + std::to_string(imod);
@@ -254,7 +254,7 @@ void DetectorConstruction::ConstructSDandField()
 // module radial extension - net (sensitive volume only) - function initialised in DetectorConstruction.hh
 G4double DetectorConstruction::mod_radial() {
     G4double mod_radial_temp = 0;
-    const G4int n_layers = nLayers();
+    const G4int n_layers = CustomMessenger::Instance()->NLayers();
     for (G4int j=0; j<n_layers; j++) {
         mod_radial_temp += (j%2) ? spc_hgt(j) : (sci_hgt(j) + 2*sci_r_gap);
         if (n_layers%2) {mod_radial_temp += spc_r_overlap;}
@@ -297,6 +297,9 @@ G4LogicalVolume* DetectorConstruction::CreateModule(
 	// generic translation and roto-translation, to be applied element-by-element
 	G4ThreeVector pos_temp;
 	G4Transform3D pos_rot_temp;
+    const G4int n_periods = CustomMessenger::Instance()->NPeriods();
+    const G4int n_layers = CustomMessenger::Instance()->NLayers();
+    const G4bool b_place_only_inner = CustomMessenger::Instance()->BPlaceOnlyInner();
 
     // create module envelope
     geomTrapezoid* modEnvGeom = new geomTrapezoid(mod_rmin + mod_radial_env() / 2 - front_thk, mod_radial_env(), mod_dphi);
@@ -307,7 +310,7 @@ G4LogicalVolume* DetectorConstruction::CreateModule(
     G4LogicalVolume* tilLogTemp;
     G4int iperiod;
 
-    if (bPlaceOnlyInner()) {goto label_inner_geom;}
+    if (b_place_only_inner) {goto label_inner_geom;}
 
     // --> front plate
     if (front_thk > 0) {
@@ -320,7 +323,7 @@ G4LogicalVolume* DetectorConstruction::CreateModule(
     // --> back plate
     if (back_thk > 0) {
         geomTrapezoid* backGeom = new geomTrapezoid(mod_rmin + mod_radial_env() - back_thk / 2, back_thk, mod_dphi);
-        const G4int last_layer = nLayers() - 1;
+        const G4int last_layer = n_layers - 1;
         backGeom->AddHorGaps(spc_sidegap(last_layer)>sci_sidegap(last_layer) ? spc_sidegap(last_layer) : sci_sidegap(last_layer));
         backLog = fLogTile(mod_id+"_Back", mat_support , col_support, backGeom, mod_thk(), 0, 0, 0, 0);
         pos_temp = G4ThreeVector(0, 0, mod_radial_env() / 2 - back_thk / 2);
@@ -347,9 +350,6 @@ G4LogicalVolume* DetectorConstruction::CreateModule(
     // (splitted in radial segments separate for each layer, in order to measure the energy deposit in each period)
     G4int q_mst = 0;
     iperiod = 0;
-
-    const G4int n_periods = nPeriods();
-    const G4int n_layers = nLayers();
 
     for (G4int j = 0; j < n_layers; j++) {
         for (G4int i = 0; i < n_periods * 2 - 1; i++) {

@@ -33,9 +33,9 @@ void EventAction::EndOfEventAction(const G4Event* event)
     // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
     // implement cast of the data collections, operations on them and ntuple filling here, or... 
 
-    const G4int n_periods = CustomMessenger::Instance()->nPeriods();
-    const G4int n_layers = CustomMessenger::Instance()->nLayers();
-    const G4int n_stacked_mods = CustomMessenger::Instance()->nStackedMods();
+    const G4int n_periods = CustomMessenger::Instance()->NPeriods();
+    const G4int n_layers = CustomMessenger::Instance()->NLayers();
+    const G4int n_stacked_mods = CustomMessenger::Instance()->NStackedMods();
     const G4int coarse_ro = CustomMessenger::Instance()->CoarseRO();
 
     // function to extract hits

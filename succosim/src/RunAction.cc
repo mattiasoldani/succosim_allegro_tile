@@ -46,9 +46,9 @@ void RunAction::BeginOfRunAction(const G4Run*)
         //// true primary info ////
         ///////////////////////////
 
-        const G4int n_periods = CustomMessenger::Instance()->nPeriods();
-        const G4int n_layers = CustomMessenger::Instance()->nLayers();
-        const G4int n_stacked_mods = CustomMessenger::Instance()->nStackedMods();
+        const G4int n_periods = CustomMessenger::Instance()->NPeriods();
+        const G4int n_layers = CustomMessenger::Instance()->NLayers();
+        const G4int n_stacked_mods = CustomMessenger::Instance()->NStackedMods();
         const G4int coarse_ro = CustomMessenger::Instance()->CoarseRO();
         auto Id = [](const G4int id) {
             std::ostringstream stream;
@@ -123,7 +123,7 @@ void RunAction::BeginOfRunAction(const G4Run*)
     // open output file - output file will have extension .root and custom path and name
     G4String outFileName = CustomMessenger::Instance()->OutFileName();
     G4String outFilePath = CustomMessenger::Instance()->OutFilePath();
-    analysis->OpenFile("./"+outFilePath+"/"+outFileName+".root");
+    analysis->OpenFile(outFilePath+"/"+outFileName+".root");
 }
 
 void RunAction::EndOfRunAction(const G4Run* run)
