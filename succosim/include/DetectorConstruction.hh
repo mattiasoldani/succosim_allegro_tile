@@ -29,7 +29,7 @@
 // readout granularity of each module:
 // - 0: single-element readout
 // - 1: one readout channel per cell for the inner structure, support read out separately
-// - 2: just the total energy in the module
+// - 2: just the total energy in the module (always available anyway)
 #define COARSERO 1
 
 // if 1, only inner part (scintillating tiles, spacers, masters, fibres) is placed (no support)

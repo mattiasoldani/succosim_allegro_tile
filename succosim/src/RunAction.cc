@@ -2,6 +2,8 @@
 #include <G4String.hh>
 
 #include <string>
+#include <iomanip>
+#include <sstream>
 
 #include "RunAction.hh"
 #include "Analysis.hh"
@@ -38,24 +40,30 @@ void RunAction::BeginOfRunAction(const G4Run*)
         const G4int n_periods = CustomMessenger::Instance()->nPeriods();
         const G4int n_layers = CustomMessenger::Instance()->nLayers();
         const G4int n_stacked_mods = CustomMessenger::Instance()->nStackedMods();
+        auto Id = [](const G4int id) {
+            std::ostringstream stream;
+            stream << std::setw(3) << std::setfill('0') << id;
+            return G4String(stream.str());
+        };
 
         for (G4int imod = 0; imod < n_stacked_mods; imod++) {
-            G4String mod_prefix = "M" + std::to_string(imod);
+            G4String mod_prefix = "M" + Id(imod);
+
+            analysis->CreateNtupleDColumn("Edep_" + mod_prefix + "_Total");
 
             if (COARSERO == 2) {
-                analysis->CreateNtupleDColumn("Edep_" + mod_prefix + "_Total");
                 continue;
             }
 
             analysis->CreateNtupleDColumn("Edep_" + mod_prefix + "_Front");
             analysis->CreateNtupleDColumn("Edep_" + mod_prefix + "_Back");
-            analysis->CreateNtupleDColumn("Edep_" + mod_prefix + "_Side0");
-            analysis->CreateNtupleDColumn("Edep_" + mod_prefix + "_Side1");
+            analysis->CreateNtupleDColumn("Edep_" + mod_prefix + "_Side" + Id(0));
+            analysis->CreateNtupleDColumn("Edep_" + mod_prefix + "_Side" + Id(1));
 
             if (COARSERO == 1) {
                 for (G4int j = 0; j < n_layers; j++) {
                     for (G4int iperiod = 0; iperiod < n_periods; iperiod++) {
-                        analysis->CreateNtupleDColumn("Edep_" + mod_prefix + "_L" + std::to_string(j) + "_P" + std::to_string(iperiod) + "_Cell");
+                        analysis->CreateNtupleDColumn("Edep_" + mod_prefix + "_L" + Id(j) + "_P" + Id(iperiod) + "_Cell");
                     }
                 }
                 continue;
@@ -65,7 +73,7 @@ void RunAction::BeginOfRunAction(const G4Run*)
                 for (G4int i = 0; i < n_periods * 2 - 1; i++) {
                     G4int iperiod = floor(i/2);
 
-                    analysis->CreateNtupleDColumn("Edep_" + mod_prefix + "_L" + std::to_string(j) + "_P" + std::to_string(iperiod) + "_Master" + std::to_string(i%2));
+                    analysis->CreateNtupleDColumn("Edep_" + mod_prefix + "_L" + Id(j) + "_P" + Id(iperiod) + "_Master" + Id(i%2));
                 }
             }
 
@@ -75,11 +83,11 @@ void RunAction::BeginOfRunAction(const G4Run*)
 
                     G4int b_spc = ((i%2) + (j%2)) % 2;
                     if (b_spc) {
-                        analysis->CreateNtupleDColumn("Edep_" + mod_prefix + "_L" + std::to_string(j) + "_P" + std::to_string(iperiod) + "_Spacer");
+                        analysis->CreateNtupleDColumn("Edep_" + mod_prefix + "_L" + Id(j) + "_P" + Id(iperiod) + "_Spacer");
                     } else {
                         for (G4int k = 0; k < 2; k++) {
-                            analysis->CreateNtupleDColumn("Edep_" + mod_prefix + "_L" + std::to_string(j) + "_P" + std::to_string(iperiod) + "_Scintillator" + std::to_string(k));
-                            analysis->CreateNtupleDColumn("Edep_" + mod_prefix + "_L" + std::to_string(j) + "_P" + std::to_string(iperiod) + "_Fibre" + std::to_string(k));
+                            analysis->CreateNtupleDColumn("Edep_" + mod_prefix + "_L" + Id(j) + "_P" + Id(iperiod) + "_Scintillator" + Id(k));
+                            analysis->CreateNtupleDColumn("Edep_" + mod_prefix + "_L" + Id(j) + "_P" + Id(iperiod) + "_Fibre" + Id(k));
                         }
                     }
                 }

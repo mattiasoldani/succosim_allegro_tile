@@ -43,11 +43,13 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 	G4Material* plastic = nist->FindOrBuildMaterial("G4_POLYSTYRENE"); // plastic
 	G4Material* pbGl = nist->FindOrBuildMaterial("G4_GLASS_LEAD"); // Pb glass
     G4Material* vacuum = nist->FindOrBuildMaterial("G4_Galactic"); // vacuum
+
+    G4Material* mat_world = vacuum; // select world material here
 	
     // world
     G4RotationMatrix* worldRotation = new G4RotationMatrix();
     G4VSolid* worldBox = new G4Box("world_Shape", worldSizeX / 2, worldSizeY / 2, worldSizeZ / 2);
-    G4LogicalVolume* worldLog = new G4LogicalVolume(worldBox, air, "world_Log");
+    G4LogicalVolume* worldLog = new G4LogicalVolume(worldBox, mat_world, "world_Log");
     worldLog->SetVisAttributes(invisible);
     G4VPhysicalVolume* worldPhys = new G4PVPlacement(nullptr, {}, worldLog, "world", nullptr, false, 0);
 	

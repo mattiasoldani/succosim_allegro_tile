@@ -26,8 +26,12 @@ void EventAction::EndOfEventAction(const G4Event* event)
     // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
     // implement cast of the data collections, operations on them and ntuple filling here, or... 
 
-    // function to extract hits and fill the corresponding ntuple column
-    auto FillVolumeEDep = [sdm, hcofEvent, analysis](G4int& col, const G4String& volumeName) {
+    const G4int n_periods = CustomMessenger::Instance()->nPeriods();
+    const G4int n_layers = CustomMessenger::Instance()->nLayers();
+    const G4int n_stacked_mods = CustomMessenger::Instance()->nStackedMods();
+
+    // function to extract hits
+    auto GetVolumeEDep = [sdm, hcofEvent](const G4String& volumeName, const G4double missingValue) {
         G4double eDep = 0.;
         G4int collectionId = sdm->GetCollectionID(volumeName + "_SD/VolumeEDep");
         VolumeEDepHitsCollection* hitCollection = nullptr;
@@ -39,20 +43,66 @@ void EventAction::EndOfEventAction(const G4Event* event)
             for (auto hit: *hitCollection->GetVector()) {
                 eDep += hit->GetEDep();
             }
-            analysis->FillNtupleDColumn(0, col, eDep / MeV);
-        } else {
-            analysis->FillNtupleDColumn(0, col, -1.);
+            return eDep;
         }
+
+        return missingValue;
+    };
+
+    // function to extract hits and fill the corresponding ntuple column
+    auto FillVolumeEDep = [analysis, GetVolumeEDep](G4int& col, const G4String& volumeName) {
+        G4double eDep = GetVolumeEDep(volumeName, -1. * MeV);
+        analysis->FillNtupleDColumn(0, col, eDep / MeV);
         col++;
+    };
+
+    // function to sum fine-readout hits for a full module
+    auto SumModuleEDep = [GetVolumeEDep, n_periods, n_layers](const G4String& mod_prefix) {
+        G4double eDep = 0.;
+
+        eDep += GetVolumeEDep(mod_prefix + "_Front", 0.);
+        eDep += GetVolumeEDep(mod_prefix + "_Back", 0.);
+        eDep += GetVolumeEDep(mod_prefix + "_Side0", 0.);
+        eDep += GetVolumeEDep(mod_prefix + "_Side1", 0.);
+
+        if (COARSERO == 1) {
+            for (G4int j = 0; j < n_layers; j++) {
+                for (G4int iperiod = 0; iperiod < n_periods; iperiod++) {
+                    eDep += GetVolumeEDep(mod_prefix + "_L" + std::to_string(j) + "_P" + std::to_string(iperiod) + "_Cell", 0.);
+                }
+            }
+            return eDep;
+        }
+
+        for (G4int j = 0; j < n_layers; j++) {
+            for (G4int i = 0; i < n_periods * 2 - 1; i++) {
+                G4int iperiod = floor(i/2);
+                eDep += GetVolumeEDep(mod_prefix + "_L" + std::to_string(j) + "_P" + std::to_string(iperiod) + "_Master" + std::to_string(i%2), 0.);
+            }
+        }
+
+        for (G4int j = 0; j < n_layers; j++) {
+            for (G4int i = 0; i < n_periods * 2; i++) {
+                G4int iperiod = floor(i/2);
+
+                G4int b_spc = ((i%2) + (j%2)) % 2;
+                if (b_spc) {
+                    eDep += GetVolumeEDep(mod_prefix + "_L" + std::to_string(j) + "_P" + std::to_string(iperiod) + "_Spacer", 0.);
+                } else {
+                    for (G4int k = 0; k < 2; k++) {
+                        eDep += GetVolumeEDep(mod_prefix + "_L" + std::to_string(j) + "_P" + std::to_string(iperiod) + "_Scintillator" + std::to_string(k), 0.);
+                        eDep += GetVolumeEDep(mod_prefix + "_L" + std::to_string(j) + "_P" + std::to_string(iperiod) + "_Fibre" + std::to_string(k), 0.);
+                    }
+                }
+            }
+        }
+
+        return eDep;
     };
 
     G4int col = 0;
 
     analysis->FillNtupleDColumn(0, col++, event->GetEventID());
-
-    const G4int n_periods = CustomMessenger::Instance()->nPeriods();
-    const G4int n_layers = CustomMessenger::Instance()->nLayers();
-    const G4int n_stacked_mods = CustomMessenger::Instance()->nStackedMods();
 
     for (G4int imod = 0; imod < n_stacked_mods; imod++) {
         G4String mod_prefix = "M" + std::to_string(imod);
@@ -61,6 +111,9 @@ void EventAction::EndOfEventAction(const G4Event* event)
             FillVolumeEDep(col, mod_prefix + "_Total");
             continue;
         }
+
+        G4double moduleEDep = SumModuleEDep(mod_prefix);
+        analysis->FillNtupleDColumn(0, col++, moduleEDep / MeV);
 
         FillVolumeEDep(col, mod_prefix + "_Front");
         FillVolumeEDep(col, mod_prefix + "_Back");
