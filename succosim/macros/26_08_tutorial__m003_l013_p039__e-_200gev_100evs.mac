@@ -30,7 +30,7 @@
 /gps/ang/sigma_y 0.5 mrad
 
 # output file features
-/custom/OutFileName temp_single_{particle}_{energy}GeV_{nevs}events
+/custom/OutFileName temp_single_{particle}_{energy}GeV_{nevs}evs
 /custom/OutTreeTitle output data, {energy}-GeV {particle}
 
 # shoot!
