@@ -64,14 +64,9 @@ void EventAction::EndOfEventAction(const G4Event* event)
         col++;
     };
 
-    // function to sum fine-readout hits for a full module
+    // function to sum fine-readout hits for the inner module
     auto SumModuleEDep = [GetVolumeEDep, n_periods, n_layers, coarse_ro](const G4String& mod_prefix) {
         G4double eDep = 0.;
-
-        eDep += GetVolumeEDep(mod_prefix + "_Front", 0.);
-        eDep += GetVolumeEDep(mod_prefix + "_Back", 0.);
-        eDep += GetVolumeEDep(mod_prefix + "_Side0", 0.);
-        eDep += GetVolumeEDep(mod_prefix + "_Side1", 0.);
 
         if (coarse_ro == 1) {
             for (G4int j = 0; j < n_layers; j++) {
@@ -140,6 +135,10 @@ void EventAction::EndOfEventAction(const G4Event* event)
 
         if (coarse_ro == 2) {
             FillVolumeEDep(col, mod_prefix + "_Total");
+            FillVolumeEDep(col, mod_prefix + "_Front");
+            FillVolumeEDep(col, mod_prefix + "_Back");
+            FillVolumeEDep(col, mod_prefix + "_Side0");
+            FillVolumeEDep(col, mod_prefix + "_Side1");
             continue;
         }
 

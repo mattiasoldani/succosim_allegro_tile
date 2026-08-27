@@ -1,3 +1,16 @@
+# SET - issue custom commands here
+# vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+/custom/NLayers 13
+/custom/NPeriods 39
+/custom/NStackedMods 3
+/custom/CoarseRO 2
+/custom/BShowInner false
+/custom/BShowSupport true
+/custom/BShowCatcherFrontBack true
+/custom/BShowCatcherSide true
+/custom/BShowCatcherPhi true
+# ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 # initialise the simulation
 /run/initialize
 
@@ -7,7 +20,8 @@
 /vis/scene/add/trajectories smooth
 /vis/scene/endOfEventAction accumulate
 
-# optional: cartesian reference (at the centre of the world)
+# SET - optional graphical commands (can be commented)
+# --> cartesian reference (at the centre of the world)
 /vis/scene/add/axes 0 0 0
 
-# don't shot anything --> waiting for manual input from the GUI
+# don't shoot anything --> waiting for manual input from the GUI

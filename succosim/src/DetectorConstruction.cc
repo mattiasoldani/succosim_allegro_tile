@@ -60,18 +60,24 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //// prototype ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
+    CustomMessenger* custom = CustomMessenger::Instance();
+
     // context-specific colors and material
-    G4VisAttributes* col_passive = BSHOWINNER ? grey : invisible;
-    G4VisAttributes* col_support = BSHOWSUPPORT ? magenta : invisible;
-    G4VisAttributes* col_scintillator = BSHOWINNER ? cyan : invisible;
-    G4VisAttributes* col_fibre = BSHOWINNER ? green : invisible;
+    G4VisAttributes* col_passive = custom->BShowInner() ? grey : invisible;
+    G4VisAttributes* col_support = custom->BShowSupport() ? magenta : invisible;
+    G4VisAttributes* col_scintillator = custom->BShowInner() ? cyan : invisible;
+    G4VisAttributes* col_fibre = custom->BShowInner() ? green : invisible;
     G4VisAttributes* col_envelope = invisible;
+    G4VisAttributes* col_catcher_front_back = custom->BShowCatcherFrontBack() ? green : invisible;
+    G4VisAttributes* col_catcher_side = custom->BShowCatcherSide() ? green : invisible;
+    G4VisAttributes* col_catcher_phi = custom->BShowCatcherPhi() ? green : invisible;
 
     G4Material* mat_passive = SS;
     G4Material* mat_support = SS;
     G4Material* mat_scintillator = plastic;
     G4Material* mat_fibre = plastic;
     G4Material* mat_envelope = vacuum;
+    G4Material* mat_catcher = vacuum;
 
     G4LogicalVolume* frontLog[NSTACKEDMODSMAX] = {};
     G4LogicalVolume* backLog[NSTACKEDMODSMAX] = {};
@@ -80,22 +86,23 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     G4LogicalVolume* spcLogs[NSTACKEDMODSMAX][NPERIODSMAX*NLAYERSMAX] = {};
     G4LogicalVolume* sciLogs[NSTACKEDMODSMAX][NPERIODSMAX*NLAYERSMAX*2] = {};
     G4LogicalVolume* fibreLogs[NSTACKEDMODSMAX][NPERIODSMAX*NLAYERSMAX*2] = {};
-    G4LogicalVolume* modEnvLogs[NSTACKEDMODSMAX] = {};
 
-    const G4int n_stacked_mods = CustomMessenger::Instance()->NStackedMods();
+    geomTrapezoid* modEnvGeom;
+
+    G4LogicalVolume* modEnvLog[NSTACKEDMODSMAX] = {};
+    G4LogicalVolume* catcherFrontLog[NSTACKEDMODSMAX] = {};
+    G4LogicalVolume* catcherBackLog[NSTACKEDMODSMAX] = {};
+    G4LogicalVolume* catcherSideLogs[NSTACKEDMODSMAX][2] = {};
+    G4LogicalVolume* catcherPhiLogs[NSTACKEDMODSMAX][2] = {};
+
+    const G4int n_stacked_mods = custom->NStackedMods();
 
     for (G4int i = 0; i < n_stacked_mods; i++) {
         G4double ang_x_temp = ((2*i - n_stacked_mods + 1) / 2.) * mod_dphi;
-        pos_temp = G4ThreeVector(0, -sin(ang_x_temp) * mod_radial_env()/2, cos(ang_x_temp) * mod_radial_env()/2);
-        pos_rot_temp = 
-            G4Translate3D(pos_temp)* 
-            G4Translate3D(G4ThreeVector(0, 0, -mod_rmin))*
-            G4Rotate3D(ang_x_temp, G4Vector3D(1,0,0))* 
-            G4Rotate3D(0, G4Vector3D(0,1,0))* 
-            G4Rotate3D(90*deg, G4Vector3D(0,0,1))*
-            G4Translate3D(G4ThreeVector(0, 0, mod_rmin)) ;
-        modEnvLogs[i] = CreateModule(
+
+        CreateModule(
             "M" + std::to_string(i),
+
             frontLog[i],
             backLog[i],
             sideLogs[i],
@@ -103,13 +110,71 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
             spcLogs[i],
             sciLogs[i],
             fibreLogs[i],
-            mat_envelope, col_envelope,
+
+            modEnvGeom,
+
+            modEnvLog[i],
+            catcherFrontLog[i],
+            catcherBackLog[i],
+            catcherSideLogs[i],
+            catcherPhiLogs[i],
+
             mat_passive, col_passive,
             mat_support, col_support,
             mat_scintillator, col_scintillator,
-            mat_fibre, col_fibre
+            mat_fibre, col_fibre,
+            mat_envelope, col_envelope,
+            mat_catcher,
+            col_catcher_front_back,
+            col_catcher_side,
+            col_catcher_phi
         );
-        new G4PVPlacement(pos_rot_temp, modEnvLogs[i], modEnvLogs[i]->GetName(), worldLog, false, i);
+
+        pos_rot_temp =     
+            G4Translate3D(G4ThreeVector(0, -sin(ang_x_temp) * mod_radial_env()/2, cos(ang_x_temp) * mod_radial_env()/2))*   
+            G4Translate3D(G4ThreeVector(0, 0, -mod_rmin_env))*
+            G4Rotate3D(ang_x_temp, G4Vector3D(1,0,0))* 
+            G4Rotate3D(0, G4Vector3D(0,1,0))* 
+            G4Rotate3D(90*deg, G4Vector3D(0,0,1))*
+            G4Translate3D(G4ThreeVector(0, 0, mod_rmin_env));
+
+        const G4Transform3D stack_pos_rot = G4Translate3D(G4ThreeVector(0, 0, zshift))*pos_rot_temp;
+        new G4PVPlacement(stack_pos_rot, modEnvLog[i], modEnvLog[i]->GetName(), worldLog, false, i);
+
+        pos_temp = G4ThreeVector(0, 0, -(mod_radial_env()/2 + catcher_thk/2));
+        new G4PVPlacement(stack_pos_rot*G4Translate3D(pos_temp), catcherFrontLog[i], catcherFrontLog[i]->GetName(), worldLog, false, i);
+
+        pos_temp = G4ThreeVector(0, 0, mod_radial_env()/2 + catcher_thk/2);
+        new G4PVPlacement(stack_pos_rot*G4Translate3D(pos_temp), catcherBackLog[i], catcherBackLog[i]->GetName(), worldLog, false, i);
+        
+        for (G4int j=0; j<2; j++) {
+            pos_temp = G4ThreeVector(0, (2*j-1)*(mod_thk_env()/2 + catcher_thk/2), 0);
+            new G4PVPlacement(stack_pos_rot*G4Translate3D(pos_temp), catcherSideLogs[i][j], catcherSideLogs[i][j]->GetName(), worldLog, false, i);
+        }
+
+        if ((i==0) || (i==n_stacked_mods-1)) {
+            G4int j = i==0 ? 0 : 1;
+            G4double sign = 1 - 2*j;
+
+            pos_temp = G4ThreeVector(
+                sign*(modEnvGeom->GetDHor_mid()/2 + catcher_thk*cos(mod_dphi/2)/2),
+                0,
+                -catcher_thk*sin(mod_dphi/2)/2
+            );
+            G4Transform3D catcher_pos_rot = stack_pos_rot*
+                G4Translate3D(pos_temp)*
+                G4Rotate3D(sign*mod_dphi/2, G4Vector3D(0,1,0))*
+                G4Rotate3D(90*deg, G4Vector3D(0,0,1));
+
+            new G4PVPlacement(
+                catcher_pos_rot,
+                catcherPhiLogs[i][j],
+                catcherPhiLogs[i][j]->GetName(),
+                worldLog,
+                false,
+                i
+            );
+        }
     }
 
     //// prototype ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -155,7 +220,7 @@ void DetectorConstruction::ConstructSDandField()
     const G4int n_layers = CustomMessenger::Instance()->NLayers();
     const G4int n_stacked_mods = CustomMessenger::Instance()->NStackedMods();
     const G4int coarse_ro = CustomMessenger::Instance()->CoarseRO();
-    const G4bool b_place_only_inner = CustomMessenger::Instance()->BPlaceOnlyInner();
+    const G4bool b_place_support = CustomMessenger::Instance()->BPlaceSupport();
 
     for (G4int imod = 0; imod < n_stacked_mods; imod++) {
         G4String mod_prefix = "M" + std::to_string(imod);
@@ -163,7 +228,6 @@ void DetectorConstruction::ConstructSDandField()
         if (coarse_ro == 2) {
             coarseSD = new VolumeEDepSD(mod_prefix + "_Total_SD");
             sdm->AddNewDetector(coarseSD);
-            AttachVolumeEDepSD(mod_prefix + "_Envelope", coarseSD);
         }
         VolumeEDepSD* cellSDs[NLAYERSMAX][NPERIODSMAX] = {};
         if (coarse_ro == 1) {
@@ -176,27 +240,18 @@ void DetectorConstruction::ConstructSDandField()
             }
         }
 
-        if (b_place_only_inner) {goto label_inner_sd;}
-
-        if (front_thk > 0) {
-            if (coarse_ro == 2) {AttachVolumeEDepSD(mod_prefix + "_Front", coarseSD);}
-            else {SetVolumeEDepSD(mod_prefix + "_Front");}
-        }
-        if (back_thk > 0) {
-            if (coarse_ro == 2) {AttachVolumeEDepSD(mod_prefix + "_Back", coarseSD);}
-            else {SetVolumeEDepSD(mod_prefix + "_Back");}
-        }
-        if (side_thk > 0) {
-            if (coarse_ro == 2) {
-                AttachVolumeEDepSD(mod_prefix + "_Side0", coarseSD);
-                AttachVolumeEDepSD(mod_prefix + "_Side1", coarseSD);
-            } else {
+        if (b_place_support) {
+            if (front_thk > 0) {
+                SetVolumeEDepSD(mod_prefix + "_Front");
+            }
+            if (back_thk > 0) {
+                SetVolumeEDepSD(mod_prefix + "_Back");
+            }
+            if (side_thk > 0) {
                 SetVolumeEDepSD(mod_prefix + "_Side0");
                 SetVolumeEDepSD(mod_prefix + "_Side1");
             }
         }
-        
-        label_inner_sd: {;}
 
         for (G4int j = 0; j < n_layers; j++) {
             for (G4int i = 0; i < n_periods * 2 - 1; i++) {
@@ -277,8 +332,9 @@ G4double DetectorConstruction::mst_r(G4int j){
 }
 
 // function to create and place a whole module, initialised in DetectorConstruction.hh
-G4LogicalVolume* DetectorConstruction::CreateModule(
+void DetectorConstruction::CreateModule(
     G4String mod_id,
+
     G4LogicalVolume*& frontLog, 
     G4LogicalVolume*& backLog, 
     G4LogicalVolume** sideLogs, 
@@ -286,11 +342,24 @@ G4LogicalVolume* DetectorConstruction::CreateModule(
     G4LogicalVolume** spcLogs,
     G4LogicalVolume** sciLogs,
     G4LogicalVolume** fibreLogs, 
-    G4Material* mat_envelope, G4VisAttributes* col_envelope,
+
+    geomTrapezoid*& modEnvGeom,
+
+    G4LogicalVolume*& modEnvLog, 
+    G4LogicalVolume*& catcherFrontLog, 
+    G4LogicalVolume*& catcherBackLog, 
+    G4LogicalVolume** catcherSideLogs,
+    G4LogicalVolume** catcherPhiLogs,
+
     G4Material* mat_passive, G4VisAttributes* col_passive,
     G4Material* mat_support, G4VisAttributes* col_support,
     G4Material* mat_scintillator, G4VisAttributes* col_scintillator,
-    G4Material* mat_fibre, G4VisAttributes* col_fibre
+    G4Material* mat_fibre, G4VisAttributes* col_fibre,
+    G4Material* mat_envelope, G4VisAttributes* col_envelope,
+    G4Material* mat_catcher,
+    G4VisAttributes* col_catcher_front_back,
+    G4VisAttributes* col_catcher_side,
+    G4VisAttributes* col_catcher_phi
 )
 {
 
@@ -299,52 +368,66 @@ G4LogicalVolume* DetectorConstruction::CreateModule(
 	G4Transform3D pos_rot_temp;
     const G4int n_periods = CustomMessenger::Instance()->NPeriods();
     const G4int n_layers = CustomMessenger::Instance()->NLayers();
-    const G4bool b_place_only_inner = CustomMessenger::Instance()->BPlaceOnlyInner();
+    const G4bool b_place_support = CustomMessenger::Instance()->BPlaceSupport();
 
     // create module envelope
-    geomTrapezoid* modEnvGeom = new geomTrapezoid(mod_rmin + mod_radial_env() / 2 - front_thk, mod_radial_env(), mod_dphi);
-    G4LogicalVolume* modEnvLog = fLogTile(mod_id+"_Envelope", mat_envelope, col_envelope, modEnvGeom, mod_thk_env(), 0, 0, 0, 0);
+    modEnvGeom = new geomTrapezoid(mod_rmin_env + mod_radial_env() / 2, mod_radial_env(), mod_dphi);
+    modEnvLog = fLogTile(mod_id+"_Envelope", mat_envelope, col_envelope, modEnvGeom, mod_thk_env(), 0, 0, 0, 0);
 
     // place elements in the envelope...
 
     G4LogicalVolume* tilLogTemp;
     G4int iperiod;
 
-    if (b_place_only_inner) {goto label_inner_geom;}
-
     // --> front plate
-    if (front_thk > 0) {
-        geomTrapezoid* frontGeom = new geomTrapezoid(mod_rmin + front_thk / 2, front_thk, mod_dphi);
-        frontLog = fLogTile(mod_id+"_Front", mat_support , col_support, frontGeom, mod_thk(), 0, 0, 0, 0);
-        pos_temp = G4ThreeVector(0, 0, -mod_radial_env() / 2 + front_thk / 2);
-        new G4PVPlacement(nullptr, pos_temp, frontLog, mod_id+"_Front", modEnvLog, false, 0);
+    if (b_place_support) {
+        if (front_thk > 0) {
+            geomTrapezoid* frontGeom = new geomTrapezoid(mod_rmin_env + front_thk / 2, front_thk, mod_dphi);
+            frontLog = fLogTile(mod_id+"_Front", mat_support , col_support, frontGeom, mod_thk(), 0, 0, 0, 0);
+            pos_temp = G4ThreeVector(0, 0, -mod_radial_env() / 2 + front_thk / 2);
+            new G4PVPlacement(nullptr, pos_temp, frontLog, mod_id+"_Front", modEnvLog, false, 0);
+        }
     }
+    geomTrapezoid* catcherFrontGeom = new geomTrapezoid(mod_rmin_env - catcher_thk / 2, catcher_thk, mod_dphi);
+    catcherFrontLog = fLogTile(mod_id+"_CatcherFront", mat_catcher , col_catcher_front_back, catcherFrontGeom, mod_thk_env(), 0, 0, 0, 0);
 
     // --> back plate
-    if (back_thk > 0) {
-        geomTrapezoid* backGeom = new geomTrapezoid(mod_rmin + mod_radial_env() - back_thk / 2, back_thk, mod_dphi);
-        const G4int last_layer = n_layers - 1;
-        backGeom->AddHorGaps(spc_sidegap(last_layer)>sci_sidegap(last_layer) ? spc_sidegap(last_layer) : sci_sidegap(last_layer));
-        backLog = fLogTile(mod_id+"_Back", mat_support , col_support, backGeom, mod_thk(), 0, 0, 0, 0);
-        pos_temp = G4ThreeVector(0, 0, mod_radial_env() / 2 - back_thk / 2);
-        new G4PVPlacement(nullptr, pos_temp, backLog, backLog->GetName(), modEnvLog, false, 0);
-        backGeom->RmHorGaps();
+    if (b_place_support) {
+        if (back_thk > 0) {
+            geomTrapezoid* backGeom = new geomTrapezoid(mod_rmin_env + mod_radial_env() - back_thk / 2, back_thk, mod_dphi);
+            const G4int last_layer = n_layers - 1;
+            backGeom->AddHorGaps(spc_sidegap(last_layer)>sci_sidegap(last_layer) ? spc_sidegap(last_layer) : sci_sidegap(last_layer));
+            backLog = fLogTile(mod_id+"_Back", mat_support , col_support, backGeom, mod_thk(), 0, 0, 0, 0);
+            pos_temp = G4ThreeVector(0, 0, mod_radial_env() / 2 - back_thk / 2);
+            new G4PVPlacement(nullptr, pos_temp, backLog, backLog->GetName(), modEnvLog, false, 0);
+            backGeom->RmHorGaps();
+        }
     }
+    geomTrapezoid* catcherBackGeom = new geomTrapezoid(mod_rmin_env + mod_radial_env() + catcher_thk / 2, catcher_thk, mod_dphi);
+    catcherBackLog = fLogTile(mod_id+"_CatcherBack", mat_catcher , col_catcher_front_back, catcherBackGeom, mod_thk_env(), 0, 0, 0, 0);
 
     // --> side plates
-    if (side_thk > 0) {
-        geomTrapezoid* sideGeom = modEnvGeom; // side plates have the same transverse cross section as envelope
-        tilLogTemp = fLogTile(mod_id+"_Side0", mat_support , col_support, sideGeom, side_thk, 0, 0, 0, 0);
-        pos_temp = G4ThreeVector(0, -mod_thk_env() / 2 + side_thk / 2, 0);
-        new G4PVPlacement(nullptr, pos_temp, tilLogTemp, tilLogTemp->GetName(), modEnvLog, false, 0);
-        sideLogs[0] = tilLogTemp;
-        tilLogTemp = fLogTile(mod_id+"_Side1", mat_support , col_support, sideGeom, side_thk, 0, 0, 0, 0);
-        pos_temp = G4ThreeVector(0, mod_thk_env() / 2 - side_thk / 2, 0);
-        new G4PVPlacement(nullptr, pos_temp, tilLogTemp, tilLogTemp->GetName(), modEnvLog, false, 1);
-        sideLogs[1] = tilLogTemp;
+    if (b_place_support) {
+        if (side_thk > 0) {
+            geomTrapezoid* sideGeom = modEnvGeom; // side plates have the same transverse cross section as envelope
+            tilLogTemp = fLogTile(mod_id+"_Side0", mat_support , col_support, sideGeom, side_thk, 0, 0, 0, 0);
+            pos_temp = G4ThreeVector(0, -mod_thk_env() / 2 + side_thk / 2, 0);
+            new G4PVPlacement(nullptr, pos_temp, tilLogTemp, tilLogTemp->GetName(), modEnvLog, false, 0);
+            sideLogs[0] = tilLogTemp;
+            tilLogTemp = fLogTile(mod_id+"_Side1", mat_support , col_support, sideGeom, side_thk, 0, 0, 0, 0);
+            pos_temp = G4ThreeVector(0, mod_thk_env() / 2 - side_thk / 2, 0);
+            new G4PVPlacement(nullptr, pos_temp, tilLogTemp, tilLogTemp->GetName(), modEnvLog, false, 1);
+            sideLogs[1] = tilLogTemp;
+        }
     }
+    geomTrapezoid* catcherSideGeom = modEnvGeom; // side catcher plates have the same transverse cross section as envelope
+    catcherSideLogs[0] = fLogTile(mod_id+"_CatcherSide0", mat_catcher , col_catcher_side, catcherSideGeom, catcher_thk, 0, 0, 0, 0);
+    catcherSideLogs[1] = fLogTile(mod_id+"_CatcherSide1", mat_catcher , col_catcher_side, catcherSideGeom, catcher_thk, 0, 0, 0, 0);
 
-    label_inner_geom: {;}
+    // --> phi plates (only catchers)
+    geomRectangle* catcherPhiGeom = new geomRectangle(mod_thk_env(), mod_radial_env());
+    catcherPhiLogs[0] = fLogTile(mod_id+"_CatcherPhi0", mat_catcher , col_catcher_phi, catcherPhiGeom, catcher_thk, 0, 0, 0, 0);
+    catcherPhiLogs[1] = fLogTile(mod_id+"_CatcherPhi1", mat_catcher , col_catcher_phi, catcherPhiGeom, catcher_thk, 0, 0, 0, 0);
     
     // --> master plates
     // (splitted in radial segments separate for each layer, in order to measure the energy deposit in each period)
@@ -408,15 +491,15 @@ G4LogicalVolume* DetectorConstruction::CreateModule(
                     pos_temp = G4ThreeVector(til_sign*inner_gap/2, til_transv(i), til_r_rel);
                     new G4PVPlacement(nullptr, pos_temp, tilLogTemp, til_name, modEnvLog, false, 2*(i*n_layers+j)+k);
                     sciLogs[q_sci] = tilLogTemp;
-                    fibreLogs[q_sci++] = fLogPlaceFibreCirc(fibre_name, mat_fibre, col_fibre, tilGeom, modEnvLog, fibre_r, 0, 3*cm, pos_temp, nullptr, til_sign);
+                    fibreLogs[q_sci++] = fLogPlaceFibreCirc(fibre_name, mat_fibre, col_fibre, tilGeom, modEnvLog, fibre_r, 0, l_fibre_extra, pos_temp, nullptr, til_sign);
                 }
             }
             tilGeom->RmHorGaps();
         }
     }
 
-    // return envelope for placing...
-    return modEnvLog;
+    // return full envelope and catcher modules for placing...
+    return;
 }
 
 // --> tile-specific stuff in DetectorConstruction_tile.cc

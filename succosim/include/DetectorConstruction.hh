@@ -26,15 +26,6 @@
 #define NLAYERSMAX 50
 #define NSTACKEDMODSMAX 32
 
-// if true, only inner part (scintillating tiles, spacers, masters, fibres) is placed (no support)
-// set with /custom/BPlaceOnlyInner before /run/initialize
-
-// if 1 (0), inner structure (masters, spacers, scintillators, fibres) is (not) shown in graphical mode - note that volumes are placed anyway
-#define BSHOWINNER 1
-
-// if 1 (0), support is (not) shown in graphical mode - note that volumes are placed anyway
-#define BSHOWSUPPORT 1
-
 // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 using namespace std;
@@ -79,8 +70,10 @@ private:
     G4double front_thk = 20*mm; // thickness (along radial direction) of the front plate
     G4double back_thk = 41*mm; // thickness (along radial direction) of the back structure
     G4double side_thk = 20*mm; // thickness (along longitudinal direction) of the side plates
+    G4double catcher_thk = 1*mm; // thickness of all catcher plates around the envelope
 
     G4double mod_rmin = 2.8*m; // module minimum radius - net (sensitive volume only)
+    G4double mod_rmin_env = mod_rmin - front_thk; // module minimum radius - gross (envelope volume)
     G4double mod_dphi = 2*pi/128; // module full azimuthal opening - readout segmentation will be halved
     G4double mod_radial(); // module radial extension - net (sensitive volume only), defined in DetectorConstruction.cc
     G4double mod_radial_env() { return mod_radial() + front_thk + back_thk; } // module radial extension - gross (envelope volume)
@@ -116,9 +109,13 @@ private:
     G4double hole_r = 0; // radius of the pipe/rod holes in the tiles
     G4double hole_x = 0; // x position of the pipe/rod holes in the tiles
     G4double hole_y = 0; // y position of the pipe/rod holes in the tiles
+    G4double l_fibre_extra = 0.5*cm; // out-of-tile extra length of the fibre towards the drawer
+    G4double zshift = catcher_thk; // longitudinal displacement of the module wrt the beam source
+
+    class geomTrapezoid;
 
     // function to create and place a whole module, defined in DetectorConstruction.cc
-    G4LogicalVolume* CreateModule(
+    void CreateModule(
         G4String mod_id,
         G4LogicalVolume*& frontLog, 
         G4LogicalVolume*& backLog, 
@@ -127,11 +124,24 @@ private:
         G4LogicalVolume** spcLogs,
         G4LogicalVolume** sciLogs,
         G4LogicalVolume** fibreLogs, 
-        G4Material* mat_envelope, G4VisAttributes* col_envelope,
+
+        geomTrapezoid*& modEnvGeom,
+
+        G4LogicalVolume*& modEnvLog, 
+        G4LogicalVolume*& catcherFrontLog, 
+        G4LogicalVolume*& catcherBackLog, 
+        G4LogicalVolume** catcherSideLogs,
+        G4LogicalVolume** catcherPhiLogs,
+
         G4Material* mat_passive, G4VisAttributes* col_passive,
         G4Material* mat_support, G4VisAttributes* col_support,
         G4Material* mat_scintillator, G4VisAttributes* col_scintillator,
-        G4Material* mat_fibre, G4VisAttributes* col_fibre
+        G4Material* mat_fibre, G4VisAttributes* col_fibre,
+        G4Material* mat_envelope, G4VisAttributes* col_envelope,
+        G4Material* mat_catcher,
+        G4VisAttributes* col_catcher_front_back,
+        G4VisAttributes* col_catcher_side,
+        G4VisAttributes* col_catcher_phi
     );
 		
 	//// specific for DetectorConstruction_tile ////

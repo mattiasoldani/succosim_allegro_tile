@@ -27,7 +27,12 @@ public:
     G4int NLayers() const { return n_layers; }
     G4int NStackedMods() const { return n_stacked_mods; }
     G4int CoarseRO() const { return coarse_ro; }
-    G4bool BPlaceOnlyInner() const { return b_place_only_inner; }
+    G4bool BPlaceSupport() const { return b_place_support; }
+    G4bool BShowInner() const { return b_show_inner; }
+    G4bool BShowSupport() const { return b_show_support; }
+    G4bool BShowCatcherFrontBack() const { return b_show_catcher_front_back; }
+    G4bool BShowCatcherSide() const { return b_show_catcher_side; }
+    G4bool BShowCatcherPhi() const { return b_show_catcher_phi; }
     // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 private:
@@ -43,7 +48,12 @@ private:
     G4int n_layers = 13;
     G4int n_stacked_mods = 1;
     G4int coarse_ro = 2;
-    G4bool b_place_only_inner = false;
+    G4bool b_place_support = true;
+    G4bool b_show_inner = true;
+    G4bool b_show_support = true;
+    G4bool b_show_catcher_front_back = false;
+    G4bool b_show_catcher_side = false;
+    G4bool b_show_catcher_phi = false;
     // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
     G4GenericMessenger* fMessenger;

@@ -61,14 +61,14 @@ void RunAction::BeginOfRunAction(const G4Run*)
 
             analysis->CreateNtupleDColumn("Edep_" + mod_prefix + "_Total");
 
+            analysis->CreateNtupleDColumn("Edep_" + mod_prefix + "_Front");
+            analysis->CreateNtupleDColumn("Edep_" + mod_prefix + "_Back");
+            analysis->CreateNtupleDColumn("Edep_" + mod_prefix + "_Side0");
+            analysis->CreateNtupleDColumn("Edep_" + mod_prefix + "_Side1");
+
             if (coarse_ro == 2) {
                 continue;
             }
-
-            analysis->CreateNtupleDColumn("Edep_" + mod_prefix + "_Front");
-            analysis->CreateNtupleDColumn("Edep_" + mod_prefix + "_Back");
-            analysis->CreateNtupleDColumn("Edep_" + mod_prefix + "_Side" + Id(0));
-            analysis->CreateNtupleDColumn("Edep_" + mod_prefix + "_Side" + Id(1));
 
             if (coarse_ro == 1) {
                 for (G4int j = 0; j < n_layers; j++) {
@@ -96,8 +96,8 @@ void RunAction::BeginOfRunAction(const G4Run*)
                         analysis->CreateNtupleDColumn("Edep_" + mod_prefix + "_L" + Id(j) + "_P" + Id(iperiod) + "_Spacer");
                     } else {
                         for (G4int k = 0; k < 2; k++) {
-                            analysis->CreateNtupleDColumn("Edep_" + mod_prefix + "_L" + Id(j) + "_P" + Id(iperiod) + "_Scintillator" + Id(k));
-                            analysis->CreateNtupleDColumn("Edep_" + mod_prefix + "_L" + Id(j) + "_P" + Id(iperiod) + "_Fibre" + Id(k));
+                            analysis->CreateNtupleDColumn("Edep_" + mod_prefix + "_L" + Id(j) + "_P" + Id(iperiod) + "_Scintillator" + std::to_string(k));
+                            analysis->CreateNtupleDColumn("Edep_" + mod_prefix + "_L" + Id(j) + "_P" + Id(iperiod) + "_Fibre" + std::to_string(k));
                         }
                     }
                 }

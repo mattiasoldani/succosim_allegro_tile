@@ -55,15 +55,40 @@ CustomMessenger::CustomMessenger()
     // readout granularity of each module:
     // - 0: single-element readout
     // - 1: one readout channel per cell for the inner structure, support read out separately
-    // - 2: just the total energy in the module (always available anyway)
+    // - 2: just the total energy in the inner structure, support read out separately
     fMessenger->DeclareProperty(
         "CoarseRO", coarse_ro,
         "readout granularity: 0 single-element, 1 cell, 2 full-module total - int"
     );
 
     fMessenger->DeclareProperty(
-        "BPlaceOnlyInner", b_place_only_inner,
-        "if true, place only inner volumes and skip support - bool"
+        "BPlaceSupport", b_place_support,
+        "if true, place support volumes - bool"
+    );
+
+    fMessenger->DeclareProperty(
+        "BShowInner", b_show_inner,
+        "if true, show inner volumes in graphical mode - bool"
+    );
+
+    fMessenger->DeclareProperty(
+        "BShowSupport", b_show_support,
+        "if true, show support volumes in graphical mode - bool"
+    );
+
+    fMessenger->DeclareProperty(
+        "BShowCatcherFrontBack", b_show_catcher_front_back,
+        "if true, show front/back catcher volumes in graphical mode - bool"
+    );
+
+    fMessenger->DeclareProperty(
+        "BShowCatcherSide", b_show_catcher_side,
+        "if true, show side catcher volumes in graphical mode - bool"
+    );
+
+    fMessenger->DeclareProperty(
+        "BShowCatcherPhi", b_show_catcher_phi,
+        "if true, show azimuthal catcher volumes in graphical mode - bool"
     );
     // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
