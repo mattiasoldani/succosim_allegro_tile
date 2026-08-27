@@ -1,4 +1,7 @@
 #include <G4SDManager.hh>
+#include <G4Step.hh>
+#include <G4StepPoint.hh>
+#include <G4StepStatus.hh>
 
 #include "CustomSD.hh"
 
