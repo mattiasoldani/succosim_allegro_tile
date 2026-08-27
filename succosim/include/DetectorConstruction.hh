@@ -75,11 +75,6 @@ private:
     // custom messenger
     CustomMessenger* custom = CustomMessenger::Instance();
 
-    // world size to be set here - full sides
-    G4double worldSizeX = 10 * m;
-    G4double worldSizeY = 10 * m;
-    G4double worldSizeZ = 10 * m;
-
     // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
     // define custom methods here
     // e.g. void ConstructCalo(G4LogicalVolume* worldLog);

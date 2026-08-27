@@ -24,11 +24,8 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 {
     // NIST database
     G4NistManager* nist = G4NistManager::Instance();
-	
-    // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-    // define the world and all the setup stuff (materials, volumes) here, or...
-	
-    // colors
+
+    // default colors
     G4VisAttributes* invisible = new G4VisAttributes(false);
     G4VisAttributes* white = new G4VisAttributes(G4Colour::White());
     G4VisAttributes* cyan = new G4VisAttributes(G4Colour::Cyan());
@@ -36,28 +33,51 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     G4VisAttributes* red = new G4VisAttributes(G4Colour::Red());
     G4VisAttributes* green = new G4VisAttributes(G4Colour::Green());
     G4VisAttributes* magenta = new G4VisAttributes(G4Colour::Magenta());
-    G4VisAttributes* grey = new G4VisAttributes(G4Colour::Grey());
+	G4VisAttributes* grey = new G4VisAttributes(G4Colour::Grey());
     G4VisAttributes* brown = new G4VisAttributes(true, G4Colour::Brown());
+    G4VisAttributes* yellow = new G4VisAttributes(true, G4Colour::Yellow());
+    G4VisAttributes* black = new G4VisAttributes(true, G4Colour::Black());
 	
-    // off-the-shelf materials (from NIST)
-    G4Material* air = nist->FindOrBuildMaterial("G4_AIR"); // air
-    G4Material* SS = nist->FindOrBuildMaterial("G4_STAINLESS-STEEL"); // steel
-    G4Material* plastic = nist->FindOrBuildMaterial("G4_POLYSTYRENE"); // plastic
+    // default off-the-shelf materials (from NIST)
+    G4Material* air = nist->FindOrBuildMaterial("G4_AIR");
+    G4Material* SS = nist->FindOrBuildMaterial("G4_STAINLESS-STEEL"); // stainless steel
+    G4Material* plastic = nist->FindOrBuildMaterial("G4_POLYSTYRENE"); // plastic (PS)
     G4Material* pbGl = nist->FindOrBuildMaterial("G4_GLASS_LEAD"); // Pb glass
-    G4Material* vacuum = nist->FindOrBuildMaterial("G4_Galactic"); // vacuum
-    G4Material* aluminium = nist->FindOrBuildMaterial("G4_Al"); // aluminium
-    G4Material* mylar = nist->FindOrBuildMaterial("G4_MYLAR"); // Mylar
+    G4Material* vacuum = nist->FindOrBuildMaterial("G4_Galactic");
+    G4Material* aluminium = nist->FindOrBuildMaterial("G4_Al");
+    G4Material* mylar = nist->FindOrBuildMaterial("G4_MYLAR");
+    G4Material* lead = nist->FindOrBuildMaterial("G4_Pb"); 
+    G4Material* silicon = nist->FindOrBuildMaterial("G4_Si"); 
+    G4Material* iron = nist->FindOrBuildMaterial("G4_Fe");
+    G4Material* tungsten = nist->FindOrBuildMaterial("G4_W");
 
-    G4Material* mat_world = air; // material for world
-    G4Material* plastic_ancillary = plastic; // plastic for ancillary detectors
-    G4Material* plastic_fibre = plastic; // plastic for WLS fibres
-
-    // manual material: CO2 for Cherenkov pipes
+    // default manual material: CO2
     G4Element* elC = new G4Element("Carbon", "C", 6., 12.01*g/mole);
     G4Element* elO  = new G4Element("Oxygen","O" , 8., 16.00*g/mole);
-    G4Material* cherGas = new G4Material("CO2", 1.977*273.*mg/cm3/293., 2);
-    cherGas->AddElement(elC, 1);
-    cherGas->AddElement(elO, 2);
+    G4Material* co2 = new G4Material("CO2", 1.977*273.*mg/cm3/293., 2);
+    co2->AddElement(elC, 1);
+    co2->AddElement(elO, 2);
+
+    // default manual material: BC400 (plastic scintillator)
+    G4Element* elH = new G4Element("Hydrogen", "H", 1., 1.0079 * g/mole);
+    G4Element* elC = new G4Element("Carbon", "C", 6., 12.01 * g/mole);
+    G4Material* bc400 = new G4Material("BC400", 1.032*g/cm3, 2);
+    bc400->AddElement(elH, 0.085);
+    bc400->AddElement(elC, 0.915);
+
+    // world size (full sides) and material - to be set here
+    G4double worldSizeX = 10 * m;
+    G4double worldSizeY = 10 * m;
+    G4double worldSizeZ = 10 * m;
+    G4Material* mat_world = air;
+	
+    // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+    // define the world and all the setup stuff (materials, volumes) here, or...
+	
+    // materials of specific components
+    G4Material* plastic_ancillary = plastic; // plastic for ancillary detectors
+    G4Material* plastic_fibre = plastic; // plastic for WLS fibres
+    G4material* cherGas = co2; // gas for Cherenkov pipes
 
     // custom parameters
     id_config = CustomMessenger::Instance()->IdConfig();
