@@ -61,6 +61,9 @@ private:
     // define custom methods here
     // e.g. void ConstructCalo(G4LogicalVolume* worldLog);
 
+    //// tile-specific framework ////
+    #include "DetectorConstruction_tile.hh"
+
     //// specific for this application ////
 
     // single-element thicknesses which define the period thickness
@@ -166,9 +169,6 @@ private:
         G4VisAttributes* col_catcher_side,
         G4VisAttributes* col_catcher_phi
     );
-
-    // tile-specific framework
-    #include "DetectorConstruction_tile.hh"
 		
     // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 	
