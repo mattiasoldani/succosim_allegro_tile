@@ -51,16 +51,17 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     G4Material* iron = nist->FindOrBuildMaterial("G4_Fe");
     G4Material* tungsten = nist->FindOrBuildMaterial("G4_W");
 
-    // default manual material: CO2
+   // default manual material: single elements
     G4Element* elC = new G4Element("Carbon", "C", 6., 12.01*g/mole);
     G4Element* elO  = new G4Element("Oxygen","O" , 8., 16.00*g/mole);
+    G4Element* elH = new G4Element("Hydrogen", "H", 1., 1.0079*g/mole);
+
+    // default manual material: CO2
     G4Material* co2 = new G4Material("CO2", 1.977*273.*mg/cm3/293., 2);
     co2->AddElement(elC, 1);
     co2->AddElement(elO, 2);
 
     // default manual material: BC400 (plastic scintillator)
-    G4Element* elH = new G4Element("Hydrogen", "H", 1., 1.0079 * g/mole);
-    G4Element* elC = new G4Element("Carbon", "C", 6., 12.01 * g/mole);
     G4Material* bc400 = new G4Material("BC400", 1.032*g/cm3, 2);
     bc400->AddElement(elH, 0.085);
     bc400->AddElement(elC, 0.915);
@@ -77,7 +78,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     // materials of specific components
     G4Material* plastic_ancillary = plastic; // plastic for ancillary detectors
     G4Material* plastic_fibre = plastic; // plastic for WLS fibres
-    G4material* cherGas = co2; // gas for Cherenkov pipes
+    G4Material* cherGas = co2; // gas for Cherenkov pipes
 
     // custom parameters
     id_config = CustomMessenger::Instance()->IdConfig();
