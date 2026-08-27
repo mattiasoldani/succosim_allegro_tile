@@ -10,6 +10,7 @@
 #include <G4GeneralParticleSource.hh>
 #include <G4SPSAngDistribution.hh>
 #include <G4SPSEneDistribution.hh>
+#include <G4SPSPosDistribution.hh>
 
 using namespace std;
 
@@ -23,7 +24,7 @@ PrimaryGeneratorAction::PrimaryGeneratorAction()
     // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
     // set the beam features that are constant throughout the run here, or...
 
-    // default particle: 1-GeV geantino originating from the centre of the world, within a transverse square of side 5 mm and with a divergence of 1 mrad
+    // default particle: 1-GeV geantino originating from the centre of the world and propagating towards positive z, no randomisation
 
     // particle type
     fGPS->SetParticleDefinition(G4ParticleTable::GetParticleTable()->FindParticle("geantino"));
@@ -32,6 +33,16 @@ PrimaryGeneratorAction::PrimaryGeneratorAction()
     G4SPSEneDistribution* fGPS_E = fGPS->GetCurrentSource()->GetEneDist();
     fGPS_E->SetEnergyDisType("Mono");
     fGPS_E->SetMonoEnergy(1 * GeV);
+
+    // source position
+    G4SPSPosDistribution* fGPS_Pos = fGPS->GetCurrentSource()->GetPosDist();
+    fGPS_Pos->SetPosDisType("Point");
+    fGPS_Pos->SetCentreCoords(G4ThreeVector(0., 0., 0.));
+
+    // direction
+    G4SPSAngDistribution* fGPS_Ang = fGPS->GetCurrentSource()->GetAngDist();
+    fGPS_Ang->SetAngDistType("planar");
+    fGPS_Ang->SetParticleMomentumDirection(G4ThreeVector(0., 0., 1.));
 
     // --------------------------------------------------
     // ...uncomment this line for the test beam (implemented in src/TestMode.cc)
@@ -51,18 +62,7 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
     // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
     // set the beam features that change at each event here, or...
 
-    // default particle: 1-GeV geantino originating from the centre of the world, within a transverse square of side 5 mm and with a divergence of 1 mrad
-
-    // beam source position - uniform square
-    G4double zFixed = 0 * cm;
-    G4double xRnd = (5*mm) * (G4UniformRand()-0.5);
-    G4double yRnd = (5*mm) * (G4UniformRand()-0.5);
-    fGPS->SetParticlePosition(G4ThreeVector(xRnd, yRnd, zFixed));
-
-    // angle wrt the longitudinal axis - gaussian
-    G4double thRnd = G4RandGauss::shoot(0, 0.001);
-    G4double phiRnd = 2 * 3.1415926535 * G4UniformRand();
-    fGPS->GetCurrentSource()->GetAngDist()->SetParticleMomentumDirection(G4ThreeVector(sin(thRnd)*cos(phiRnd), sin(thRnd)*sin(phiRnd), cos(thRnd)));
+    // default particle: 1-GeV geantino originating from the centre of the world and propagating towards positive z, no randomisation
 
     // --------------------------------------------------
     // ...uncomment this line for the test beam (implemented in src/TestMode.cc)
