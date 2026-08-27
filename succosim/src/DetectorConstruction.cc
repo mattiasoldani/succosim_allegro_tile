@@ -319,31 +319,6 @@ void DetectorConstruction::ConstructSDandField()
 
 // DetectorConstruction methods ///////////////////////////////
 
-// module radial extension - net (sensitive volume only) - function initialised in DetectorConstruction.hh
-G4double DetectorConstruction::mod_radial() {
-    G4double mod_radial_temp = 0;
-    const G4int n_layers = CustomMessenger::Instance()->NLayers();
-    for (G4int j=0; j<n_layers; j++) {
-        mod_radial_temp += (j%2) ? spc_hgt(j) : (sci_hgt(j) + 2*sci_r_gap);
-        if (n_layers%2) {mod_radial_temp += spc_r_overlap;}
-    }
-    return mod_radial_temp;
-}
-
-// master (partial) cross-section shapes (vs layer ID) - functions initialised in DetectorConstruction.hh
-G4double DetectorConstruction::mst_hgt(G4int j){
-    if (j<4) {return 55*mm;}
-    else if (j<10) {return 105*mm;}
-    else {return 205*mm;}
-}
-G4double DetectorConstruction::mst_r(G4int j){
-    G4double mst_rmin_temp = mod_rmin;
-    if (j>0) {
-        for (G4int k=0; k<j; k++) {mst_rmin_temp += mst_hgt(k);}
-    }
-    return mst_rmin_temp + mst_hgt(j)/2;
-}
-
 // function to create and place a whole module, initialised in DetectorConstruction.hh
 void DetectorConstruction::CreateModule(
     G4String mod_id,
