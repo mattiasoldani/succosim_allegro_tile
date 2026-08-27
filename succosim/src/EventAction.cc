@@ -59,9 +59,43 @@ void EventAction::EndOfEventAction(const G4Event* event)
 
     // function to extract hits and fill the corresponding ntuple column
     auto FillVolumeEDep = [analysis, GetVolumeEDep](G4int& col, const G4String& volumeName) {
-        G4double eDep = GetVolumeEDep(volumeName, -1. * MeV);
-        analysis->FillNtupleDColumn(0, col, eDep / MeV);
+        G4double eDep = GetVolumeEDep(volumeName, -1. * GeV);
+        analysis->FillNtupleDColumn(0, col, eDep / GeV);
         col++;
+    };
+
+    auto GetEntryKineticEnergy = [sdm, hcofEvent](const G4String& volumeName, const G4double missingValue) {
+        G4double eKin = 0.;
+        G4int collectionId = sdm->GetCollectionID(volumeName + "_SD/EntryKineticEnergy");
+        EntryKineticEnergyHitsCollection* hitCollection = nullptr;
+        if (collectionId >= 0) {
+            hitCollection = dynamic_cast<EntryKineticEnergyHitsCollection*>(hcofEvent->GetHC(collectionId));
+        }
+
+        if (hitCollection) {
+            for (auto hit: *hitCollection->GetVector()) {
+                eKin += hit->GetEKin();
+            }
+            return eKin;
+        }
+
+        return missingValue;
+    };
+
+    auto FillModuleEkinOut = [analysis, GetEntryKineticEnergy](G4int& col, const G4String& mod_prefix) {
+        G4double eKinFront = GetEntryKineticEnergy(mod_prefix + "_CatcherFront", 0.);
+        G4double eKinBack = GetEntryKineticEnergy(mod_prefix + "_CatcherBack", 0.);
+        G4double eKinSide0 = GetEntryKineticEnergy(mod_prefix + "_CatcherSide0", 0.);
+        G4double eKinSide1 = GetEntryKineticEnergy(mod_prefix + "_CatcherSide1", 0.);
+        G4double eKinPhi0 = GetEntryKineticEnergy(mod_prefix + "_CatcherPhi0", 0.);
+        G4double eKinPhi1 = GetEntryKineticEnergy(mod_prefix + "_CatcherPhi1", 0.);
+
+        analysis->FillNtupleDColumn(0, col++, eKinFront / GeV);
+        analysis->FillNtupleDColumn(0, col++, eKinBack / GeV);
+        analysis->FillNtupleDColumn(0, col++, eKinSide0 / GeV);
+        analysis->FillNtupleDColumn(0, col++, eKinSide1 / GeV);
+        analysis->FillNtupleDColumn(0, col++, eKinPhi0 / GeV);
+        analysis->FillNtupleDColumn(0, col++, eKinPhi1 / GeV);
     };
 
     // function to sum fine-readout hits for the inner module
@@ -114,7 +148,7 @@ void EventAction::EndOfEventAction(const G4Event* event)
     if (primaryVertex && primaryParticle) {
         const G4ThreeVector momentumDirection = primaryParticle->GetMomentumDirection();
         analysis->FillNtupleDColumn(0, col, primaryParticle->GetPDGcode()); col++;
-        analysis->FillNtupleDColumn(0, col, primaryParticle->GetKineticEnergy() / MeV); col++;
+        analysis->FillNtupleDColumn(0, col, primaryParticle->GetKineticEnergy() / GeV); col++;
         analysis->FillNtupleDColumn(0, col, primaryVertex->GetX0() / mm); col++;
         analysis->FillNtupleDColumn(0, col, primaryVertex->GetY0() / mm); col++;
         analysis->FillNtupleDColumn(0, col, std::atan2(momentumDirection.x(), momentumDirection.z())); col++;
@@ -131,6 +165,10 @@ void EventAction::EndOfEventAction(const G4Event* event)
     ///////////////////////////
 
     for (G4int imod = 0; imod < n_stacked_mods; imod++) {
+        FillModuleEkinOut(col, "M" + std::to_string(imod));
+    }
+
+    for (G4int imod = 0; imod < n_stacked_mods; imod++) {
         G4String mod_prefix = "M" + std::to_string(imod);
 
         if (coarse_ro == 2) {
@@ -143,7 +181,7 @@ void EventAction::EndOfEventAction(const G4Event* event)
         }
 
         G4double moduleEDep = SumModuleEDep(mod_prefix);
-        analysis->FillNtupleDColumn(0, col++, moduleEDep / MeV);
+        analysis->FillNtupleDColumn(0, col++, moduleEDep / GeV);
 
         FillVolumeEDep(col, mod_prefix + "_Front");
         FillVolumeEDep(col, mod_prefix + "_Back");
@@ -182,6 +220,7 @@ void EventAction::EndOfEventAction(const G4Event* event)
                 }
             }
         }
+
     }
 
     analysis->AddNtupleRow(0);

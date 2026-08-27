@@ -41,6 +41,19 @@ private:
 // ============================================================
 // define custom sensitive detector classes here
 
+class EntryKineticEnergySD : public G4VSensitiveDetector
+{
+public:
+    EntryKineticEnergySD(G4String name);
+    void Initialize(G4HCofThisEvent*) override;
+
+protected:
+    G4bool ProcessHits(G4Step* aStep, G4TouchableHistory* ROhist) override;
+
+private:
+    EntryKineticEnergyHitsCollection* fEntryKineticEnergyHitsCollection { nullptr };
+    G4int fEntryKineticEnergyHitsCollectionId { -1 };
+};
 
 
 // ============================================================

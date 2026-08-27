@@ -216,6 +216,12 @@ void DetectorConstruction::ConstructSDandField()
         SetSensitiveDetector(volumeName + "_Log", volumeSD);
     };
 
+    auto SetEntryKineticEnergySD = [this, sdm](const G4String& volumeName) {
+        EntryKineticEnergySD* volumeSD = new EntryKineticEnergySD(volumeName + "_SD");
+        SetSensitiveDetector(volumeName + "_Log", volumeSD);
+        sdm->AddNewDetector(volumeSD);
+    };
+
     const G4int n_periods = CustomMessenger::Instance()->NPeriods();
     const G4int n_layers = CustomMessenger::Instance()->NLayers();
     const G4int n_stacked_mods = CustomMessenger::Instance()->NStackedMods();
@@ -252,6 +258,13 @@ void DetectorConstruction::ConstructSDandField()
                 SetVolumeEDepSD(mod_prefix + "_Side1");
             }
         }
+
+        SetEntryKineticEnergySD(mod_prefix + "_CatcherFront");
+        SetEntryKineticEnergySD(mod_prefix + "_CatcherBack");
+        SetEntryKineticEnergySD(mod_prefix + "_CatcherSide0");
+        SetEntryKineticEnergySD(mod_prefix + "_CatcherSide1");
+        SetEntryKineticEnergySD(mod_prefix + "_CatcherPhi0");
+        SetEntryKineticEnergySD(mod_prefix + "_CatcherPhi1");
 
         for (G4int j = 0; j < n_layers; j++) {
             for (G4int i = 0; i < n_periods * 2 - 1; i++) {
