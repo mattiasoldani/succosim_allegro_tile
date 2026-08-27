@@ -14,6 +14,8 @@
 #include <G4Box.hh>
 #include <G4Trd.hh>
 
+#include <string>
+
 #include "DetectorConstruction.hh"
 #include "CustomSD.hh"
 
