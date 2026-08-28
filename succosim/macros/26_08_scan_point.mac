@@ -1,29 +1,30 @@
-# {1} = file_prefix
-# {2} = nevs
-# {3} = particle
-# {4} = energy
-# {5} = ang_sigma_x
-# {6} = ang_sigma_y
-# {7} = pos_sigma_x
-# {8} = pos_sigma_y
+# Required aliases:
+# {file_prefix}
+# {nevs}
+# {particle}
+# {energy}
+# {ang_sigma_x}
+# {ang_sigma_y}
+# {pos_sigma_x}
+# {pos_sigma_y}
 
-/custom/OutFileName {1}__{3}_{4}GeV_{2}evs
-/custom/OutTreeTitle output data, {4}-GeV {3} on {1}
+/custom/OutFileName {file_prefix}__{particle}_{energy}GeV_{nevs}evs
+/custom/OutTreeTitle output data, {energy}-GeV {particle} on {file_prefix}
 
-/gps/particle {3}
+/gps/particle {particle}
 
 /gps/ene/type Mono
-/gps/energy {4} GeV
+/gps/energy {energy} GeV
 
 /gps/ang/type beam2d
 /gps/ang/rot1 1 0 0
 /gps/ang/rot2 0 -1 0
-/gps/ang/sigma_x {5} mrad
-/gps/ang/sigma_y {6} mrad
+/gps/ang/sigma_x {ang_sigma_x} mrad
+/gps/ang/sigma_y {ang_sigma_y} mrad
 
 /gps/pos/type Beam
 /gps/pos/centre 0 0 0 m
-/gps/pos/sigma_x {7} cm
-/gps/pos/sigma_y {8} cm
+/gps/pos/sigma_x {pos_sigma_x} cm
+/gps/pos/sigma_y {pos_sigma_y} cm
 
-/run/beamOn {2}
+/run/beamOn {nevs}

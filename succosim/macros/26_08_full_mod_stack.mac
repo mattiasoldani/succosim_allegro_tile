@@ -3,13 +3,13 @@
 /control/alias nperiods 39
 /control/alias nlayers 13
 /control/alias nmods 1
-/ontrol/alias coarsero 2
+/control/alias coarsero 2
 /control/alias bsupport true
 # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 /custom/NPeriods {nperiods}
 /custom/NLayers {nlayers}
 /custom/NStackedMods {nmods}
-/custom/CoarseRO coarsero
+/custom/CoarseRO {coarsero}
 /custom/BPlaceSupport {bsupport}
 
 # set event nr per run here
@@ -34,10 +34,10 @@
 # SCAN 0 - pi+ #
 ################
 /control/alias particle pi+
-/control/execute 26_08_scan_block_energy_divergence.mac {file_prefix} {nevs} {particle} {pos_sigma}
+/control/execute macros/26_08_scan_block_energy_divergence.mac
 
 ###############
 # SCAN 1 - e+ #
 ###############
 /control/alias particle e+
-/control/execute 26_08_scan_block_energy_divergence.mac {file_prefix} {nevs} {particle} {pos_sigma}
+/control/execute macros/26_08_scan_block_energy_divergence.mac
