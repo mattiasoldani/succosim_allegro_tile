@@ -121,9 +121,9 @@ private:
 	G4Transform3D pos_rot_temp;
 
     // world size (full sides) and material - to be set here
-    G4double worldSizeX = 10 * m;
-    G4double worldSizeY = 10 * m;
-    G4double worldSizeZ = 10 * m;
+    G4double worldSizeX = 3 * m;
+    G4double worldSizeY = 3 * m;
+    G4double worldSizeZ = 30 * m;
     G4Material* mat_world = vacuum;
 
     // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv

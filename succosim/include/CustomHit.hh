@@ -78,6 +78,5 @@ inline void VolumeTrackingHit::operator delete(void *aHit)
 // define custom hit classes here
 
 
-
 // ============================================================
 #endif

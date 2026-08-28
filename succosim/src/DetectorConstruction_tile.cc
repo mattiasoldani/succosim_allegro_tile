@@ -14,6 +14,9 @@
 #include <G4MultiFunctionalDetector.hh>
 #include <G4Box.hh>
 #include <G4Trd.hh>
+#include <G4Step.hh>
+#include <G4StepPoint.hh>
+#include <G4StepStatus.hh>
 
 #include <cstdlib>
 #include <cmath>
@@ -26,6 +29,47 @@
 #include "CustomHit.hh"
 
 // DetectorConstruction general methods ///////////////////////
+
+G4ThreadLocal G4Allocator<DetectorConstruction::fullTileCalModule::EntryKineticEnergyHit>*
+DetectorConstruction::fullTileCalModule::EntryKineticEnergyHit::allocatorEntryKineticEnergyHit = nullptr;
+
+void* DetectorConstruction::fullTileCalModule::EntryKineticEnergyHit::operator new(size_t)
+{
+    if (!allocatorEntryKineticEnergyHit)
+    {allocatorEntryKineticEnergyHit = new G4Allocator<EntryKineticEnergyHit>;}
+    return allocatorEntryKineticEnergyHit->MallocSingle();
+}
+
+void DetectorConstruction::fullTileCalModule::EntryKineticEnergyHit::operator delete(void *aHit)
+{
+    if (!allocatorEntryKineticEnergyHit)
+    {allocatorEntryKineticEnergyHit = new G4Allocator<EntryKineticEnergyHit>;}
+    allocatorEntryKineticEnergyHit->FreeSingle((EntryKineticEnergyHit*) aHit);
+}
+
+// sensitive detector to detect kinetic energy carried into a module catcher volume
+DetectorConstruction::fullTileCalModule::EntryKineticEnergySD::EntryKineticEnergySD(G4String name) :  G4VSensitiveDetector(name)
+{collectionName.insert("EntryKineticEnergy");}
+
+G4bool DetectorConstruction::fullTileCalModule::EntryKineticEnergySD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
+{
+    if (aStep->GetPreStepPoint()->GetStepStatus() != fGeomBoundary) {
+        return false;
+    }
+
+    EntryKineticEnergyHit* hit = new EntryKineticEnergyHit();
+    hit->SetEKin(aStep->GetPreStepPoint()->GetKineticEnergy());
+    fEntryKineticEnergyHitsCollection->insert(hit);
+    return true;
+}
+
+void DetectorConstruction::fullTileCalModule::EntryKineticEnergySD::Initialize(G4HCofThisEvent* hcof)
+{
+    fEntryKineticEnergyHitsCollection = new EntryKineticEnergyHitsCollection(SensitiveDetectorName, collectionName[0]);
+    if (fEntryKineticEnergyHitsCollectionId < 0)
+    {fEntryKineticEnergyHitsCollectionId = G4SDManager::GetSDMpointer()->GetCollectionID(GetName() + "/" + collectionName[0]);}
+    hcof->AddHitsCollection(fEntryKineticEnergyHitsCollectionId, fEntryKineticEnergyHitsCollection);
+}
 
 // create the full tile solid
 G4VSolid* DetectorConstruction::fShapeTileFull(

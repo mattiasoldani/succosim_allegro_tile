@@ -42,6 +42,5 @@ private:
 // define custom sensitive detector classes here
 
 
-
 // ============================================================
 #endif

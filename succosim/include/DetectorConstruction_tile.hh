@@ -1,7 +1,7 @@
 // maximum numbers used for fixed-size array allocation
 #define NPERIODSMAX 1000
 #define NLAYERSMAX 100
-#define NSTACKEDMODSMAX 512
+#define NSTACKEDMODSMAX 1024
 
 // all about isosceles trapezoids (full or half)
 class geomTrapezoid{
@@ -190,6 +190,37 @@ static G4LogicalVolume* fLogPlaceFibreCirc( // defined in DetectorConstruction_t
 // all about full TileCal modules
 class fullTileCalModule {
     public:
+        // hit to detect kinetic energy carried into a module catcher volume
+        class EntryKineticEnergyHit : public G4VHit
+        {
+        public:
+            void* operator new(size_t);
+            void  operator delete(void*);
+            void SetEKin(G4double eKin) { fEKin = eKin; }
+            G4double GetEKin() const { return fEKin; }
+
+        private:
+            G4double fEKin;
+            static G4ThreadLocal G4Allocator<EntryKineticEnergyHit>* allocatorEntryKineticEnergyHit;
+        };
+
+        using EntryKineticEnergyHitsCollection = G4THitsCollection<EntryKineticEnergyHit>;
+
+        // sensitive detector to detect kinetic energy carried into a module catcher volume
+        class EntryKineticEnergySD : public G4VSensitiveDetector
+        {
+        public:
+            EntryKineticEnergySD(G4String name);
+            void Initialize(G4HCofThisEvent*) override;
+
+        protected:
+            G4bool ProcessHits(G4Step* aStep, G4TouchableHistory* ROhist) override;
+
+        private:
+            EntryKineticEnergyHitsCollection* fEntryKineticEnergyHitsCollection { nullptr };
+            G4int fEntryKineticEnergyHitsCollectionId { -1 };
+        };
+
         // structure to pass settings to the module constructor
         struct ModConfig {
             // global construction settings - to be set, mandatory
