@@ -67,17 +67,10 @@ void RunAction::BeginOfRunAction(const G4Run*)
         // ...uncomment this line for the test ntuple columns (implemented in src/TestMode.cc)
         //OutputNtupleTest(analysis);
         // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-        analysis->FinishNtuple(0);
-        
-        // open output file
-        // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-        // choose output file name here --> file will have extension .root and and will be in ./out_data/
-        G4String outFileName = "OutData";
-        // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 		
         analysis->FinishNtuple(0);
         b_ntuple_created = true;
-    }
+	}
 
     // open output file - output file will have extension .root and custom path and name
     G4String outFileName = CustomMessenger::Instance()->OutFileName();
