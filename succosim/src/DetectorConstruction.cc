@@ -137,3 +137,5 @@ void DetectorConstruction::ConstructSDandField()
 // ============================================================
 // ============================================================
 // implement custom methods here
+
+// --> tile-specific stuff in DetectorConstruction_tile.cc
