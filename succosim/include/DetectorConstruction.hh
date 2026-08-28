@@ -50,6 +50,8 @@ public:
     //// tile-specific framework ////
     #include "DetectorConstruction_tile.hh"
 
+	//// application-specific stuff ////
+
     // getters related to private booleans defined below
     G4bool IsConfigCalib() const { return b_config_calib; }
     G4bool IsConfigBB() const { return b_config_BB; }
