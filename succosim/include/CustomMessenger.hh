@@ -47,7 +47,7 @@ private:
     G4int n_periods = 13;
     G4int n_layers = 13;
     G4int n_stacked_mods = 1;
-    G4int coarse_ro = 2;
+    G4int coarse_ro = 3;
     G4bool b_place_support = true;
     G4bool b_show_inner = true;
     G4bool b_show_support = true;

@@ -3,15 +3,14 @@
 /control/alias nperiods 39
 /control/alias nlayers 13
 /control/alias nmods 1
+/ontrol/alias coarsero 2
+/control/alias bsupport true
 # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 /custom/NPeriods {nperiods}
 /custom/NLayers {nlayers}
 /custom/NStackedMods {nmods}
-
-# set level of RO
-# vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-/custom/CoarseRO 1
-# ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/custom/CoarseRO coarsero
+/custom/BPlaceSupport {bsupport}
 
 # set event nr per run here
 # vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
@@ -26,7 +25,7 @@
 # set output file path and name prefix
 # vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 /custom/OutFilePath /eos/experiment/newtile/simulations/proto_studies/26_08_full_mod_stack
-/control/alias file_prefix m{nmods}_l{nlayers}_p{nperiods}
+/control/alias file_prefix m{nmods}_l{nlayers}_p{nperiods}_c{coarsero}_s{bsupport}
 # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 /run/initialize

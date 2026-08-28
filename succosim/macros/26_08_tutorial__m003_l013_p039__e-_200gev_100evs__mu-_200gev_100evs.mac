@@ -2,7 +2,7 @@
 /custom/NPeriods 39
 /custom/NLayers 13
 /custom/NStackedMods 3
-/custom/CoarseRO 1
+/custom/CoarseRO 2
 
 /control/alias energy 200
 /control/alias nevs 100

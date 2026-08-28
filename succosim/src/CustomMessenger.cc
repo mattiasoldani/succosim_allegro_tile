@@ -53,12 +53,13 @@ CustomMessenger::CustomMessenger()
     );
 
     // readout granularity of each module:
-    // - 0: single-element readout
-    // - 1: one readout channel per cell for the inner structure, support read out separately
-    // - 2: just the total energy in the inner structure, support read out separately
+    // - 0: single-element readout, support read out separately
+    // - 1: scintillator-only single-element readout, support read out separately
+    // - 2: one readout channel per cell for the inner structure, support read out separately
+    // - 3: just the total energy in the inner structure, support read out separately
     fMessenger->DeclareProperty(
         "CoarseRO", coarse_ro,
-        "readout granularity: 0 single-element, 1 cell, 2 full-module total - int"
+        "readout granularity: 0 single-element, 1 scintillator-only, 2 cell, 3 full-module total - int"
     );
 
     fMessenger->DeclareProperty(

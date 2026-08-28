@@ -37,6 +37,9 @@ void EventAction::EndOfEventAction(const G4Event* event)
     const G4int n_layers = CustomMessenger::Instance()->NLayers();
     const G4int n_stacked_mods = CustomMessenger::Instance()->NStackedMods();
     const G4int coarse_ro = CustomMessenger::Instance()->CoarseRO();
+    const G4bool b_scinti_ro_only = coarse_ro == 1;
+    const G4bool b_cell_ro = coarse_ro == 2;
+    const G4bool b_total_ro = coarse_ro == 3;
 
     // function to extract hits
     auto GetVolumeEDep = [sdm, hcofEvent](const G4String& volumeName, const G4double missingValue) {
@@ -99,10 +102,10 @@ void EventAction::EndOfEventAction(const G4Event* event)
     };
 
     // function to sum fine-readout hits for the inner module
-    auto SumModuleEDep = [GetVolumeEDep, n_periods, n_layers, coarse_ro](const G4String& mod_prefix) {
+    auto SumModuleEDep = [GetVolumeEDep, n_periods, n_layers, b_cell_ro, b_scinti_ro_only](const G4String& mod_prefix) {
         G4double eDep = 0.;
 
-        if (coarse_ro == 1) {
+        if (b_cell_ro) {
             for (G4int j = 0; j < n_layers; j++) {
                 for (G4int iperiod = 0; iperiod < n_periods; iperiod++) {
                     eDep += GetVolumeEDep(mod_prefix + "_L" + std::to_string(j) + "_P" + std::to_string(iperiod) + "_Cell", 0.);
@@ -111,10 +114,12 @@ void EventAction::EndOfEventAction(const G4Event* event)
             return eDep;
         }
 
-        for (G4int j = 0; j < n_layers; j++) {
-            for (G4int i = 0; i < n_periods * 2 - 1; i++) {
-                G4int iperiod = floor(i/2);
-                eDep += GetVolumeEDep(mod_prefix + "_L" + std::to_string(j) + "_P" + std::to_string(iperiod) + "_Master" + std::to_string(i%2), 0.);
+        if (!b_scinti_ro_only) {
+            for (G4int j = 0; j < n_layers; j++) {
+                for (G4int i = 0; i < n_periods * 2 - 1; i++) {
+                    G4int iperiod = floor(i/2);
+                    eDep += GetVolumeEDep(mod_prefix + "_L" + std::to_string(j) + "_P" + std::to_string(iperiod) + "_Master" + std::to_string(i%2), 0.);
+                }
             }
         }
 
@@ -124,11 +129,15 @@ void EventAction::EndOfEventAction(const G4Event* event)
 
                 G4int b_spc = ((i%2) + (j%2)) % 2;
                 if (b_spc) {
-                    eDep += GetVolumeEDep(mod_prefix + "_L" + std::to_string(j) + "_P" + std::to_string(iperiod) + "_Spacer", 0.);
+                    if (!b_scinti_ro_only) {
+                        eDep += GetVolumeEDep(mod_prefix + "_L" + std::to_string(j) + "_P" + std::to_string(iperiod) + "_Spacer", 0.);
+                    }
                 } else {
                     for (G4int k = 0; k < 2; k++) {
                         eDep += GetVolumeEDep(mod_prefix + "_L" + std::to_string(j) + "_P" + std::to_string(iperiod) + "_Scintillator" + std::to_string(k), 0.);
-                        eDep += GetVolumeEDep(mod_prefix + "_L" + std::to_string(j) + "_P" + std::to_string(iperiod) + "_Fibre" + std::to_string(k), 0.);
+                        if (!b_scinti_ro_only) {
+                            eDep += GetVolumeEDep(mod_prefix + "_L" + std::to_string(j) + "_P" + std::to_string(iperiod) + "_Fibre" + std::to_string(k), 0.);
+                        }
                     }
                 }
             }
@@ -171,7 +180,7 @@ void EventAction::EndOfEventAction(const G4Event* event)
     for (G4int imod = 0; imod < n_stacked_mods; imod++) {
         G4String mod_prefix = "M" + std::to_string(imod);
 
-        if (coarse_ro == 2) {
+        if (b_total_ro) {
             FillVolumeEDep(col, mod_prefix + "_Total");
             FillVolumeEDep(col, mod_prefix + "_Front");
             FillVolumeEDep(col, mod_prefix + "_Back");
@@ -188,7 +197,7 @@ void EventAction::EndOfEventAction(const G4Event* event)
         FillVolumeEDep(col, mod_prefix + "_Side0");
         FillVolumeEDep(col, mod_prefix + "_Side1");
 
-        if (coarse_ro == 1) {
+        if (b_cell_ro) {
             for (G4int j = 0; j < n_layers; j++) {
                 for (G4int iperiod = 0; iperiod < n_periods; iperiod++) {
                     FillVolumeEDep(col, mod_prefix + "_L" + std::to_string(j) + "_P" + std::to_string(iperiod) + "_Cell");
@@ -197,11 +206,13 @@ void EventAction::EndOfEventAction(const G4Event* event)
             continue;
         }
 
-        for (G4int j = 0; j < n_layers; j++) {
-            for (G4int i = 0; i < n_periods * 2 - 1; i++) {
-                G4int iperiod = floor(i/2);
+        if (!b_scinti_ro_only) {
+            for (G4int j = 0; j < n_layers; j++) {
+                for (G4int i = 0; i < n_periods * 2 - 1; i++) {
+                    G4int iperiod = floor(i/2);
 
-                FillVolumeEDep(col, mod_prefix + "_L" + std::to_string(j) + "_P" + std::to_string(iperiod) + "_Master" + std::to_string(i%2));
+                    FillVolumeEDep(col, mod_prefix + "_L" + std::to_string(j) + "_P" + std::to_string(iperiod) + "_Master" + std::to_string(i%2));
+                }
             }
         }
 
@@ -211,11 +222,15 @@ void EventAction::EndOfEventAction(const G4Event* event)
 
                 G4int b_spc = ((i%2) + (j%2)) % 2;
                 if (b_spc) {
-                    FillVolumeEDep(col, mod_prefix + "_L" + std::to_string(j) + "_P" + std::to_string(iperiod) + "_Spacer");
+                    if (!b_scinti_ro_only) {
+                        FillVolumeEDep(col, mod_prefix + "_L" + std::to_string(j) + "_P" + std::to_string(iperiod) + "_Spacer");
+                    }
                 } else {
                     for (G4int k = 0; k < 2; k++) {
                         FillVolumeEDep(col, mod_prefix + "_L" + std::to_string(j) + "_P" + std::to_string(iperiod) + "_Scintillator" + std::to_string(k));
-                        FillVolumeEDep(col, mod_prefix + "_L" + std::to_string(j) + "_P" + std::to_string(iperiod) + "_Fibre" + std::to_string(k));
+                        if (!b_scinti_ro_only) {
+                            FillVolumeEDep(col, mod_prefix + "_L" + std::to_string(j) + "_P" + std::to_string(iperiod) + "_Fibre" + std::to_string(k));
+                        }
                     }
                 }
             }

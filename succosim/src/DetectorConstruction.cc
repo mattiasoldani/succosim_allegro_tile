@@ -255,17 +255,20 @@ void DetectorConstruction::ConstructSDandField()
     const G4int n_layers = CustomMessenger::Instance()->NLayers();
     const G4int n_stacked_mods = CustomMessenger::Instance()->NStackedMods();
     const G4int coarse_ro = CustomMessenger::Instance()->CoarseRO();
+    const G4bool b_scinti_ro_only = coarse_ro == 1;
+    const G4bool b_cell_ro = coarse_ro == 2;
+    const G4bool b_total_ro = coarse_ro == 3;
     const G4bool b_place_support = CustomMessenger::Instance()->BPlaceSupport();
 
     for (G4int imod = 0; imod < n_stacked_mods; imod++) {
         G4String mod_prefix = "M" + std::to_string(imod);
         VolumeEDepSD* coarseSD = nullptr;
-        if (coarse_ro == 2) {
+        if (b_total_ro) {
             coarseSD = new VolumeEDepSD(mod_prefix + "_Total_SD");
             sdm->AddNewDetector(coarseSD);
         }
         VolumeEDepSD* cellSDs[NLAYERSMAX][NPERIODSMAX] = {};
-        if (coarse_ro == 1) {
+        if (b_cell_ro) {
             for (G4int j = 0; j < n_layers; j++) {
                 for (G4int iperiod = 0; iperiod < n_periods; iperiod++) {
                     G4String cell_name = mod_prefix + "_L" + std::to_string(j) + "_P" + std::to_string(iperiod) + "_Cell";
@@ -300,9 +303,9 @@ void DetectorConstruction::ConstructSDandField()
                 G4int iperiod = floor(i/2);
 
                 G4String mst_name = mod_prefix + "_L" + std::to_string(j) + "_P" + std::to_string(iperiod) + "_Master" + std::to_string(i%2);
-                if (coarse_ro == 2) {AttachVolumeEDepSD(mst_name, coarseSD);}
-                else if (coarse_ro == 1) {AttachVolumeEDepSD(mst_name, cellSDs[j][iperiod]);}
-                else {SetVolumeEDepSD(mst_name);}
+                if (b_total_ro) {AttachVolumeEDepSD(mst_name, coarseSD);}
+                else if (b_cell_ro) {AttachVolumeEDepSD(mst_name, cellSDs[j][iperiod]);}
+                else if (!b_scinti_ro_only) {SetVolumeEDepSD(mst_name);}
             }
         }
 
@@ -313,22 +316,22 @@ void DetectorConstruction::ConstructSDandField()
                 G4int b_spc = ((i%2) + (j%2)) % 2;
                 if (b_spc) {
                     G4String spc_name = mod_prefix + "_L" + std::to_string(j) + "_P" + std::to_string(iperiod) + "_Spacer";
-                    if (coarse_ro == 2) {AttachVolumeEDepSD(spc_name, coarseSD);}
-                    else if (coarse_ro == 1) {AttachVolumeEDepSD(spc_name, cellSDs[j][iperiod]);}
-                    else {SetVolumeEDepSD(spc_name);}
+                    if (b_total_ro) {AttachVolumeEDepSD(spc_name, coarseSD);}
+                    else if (b_cell_ro) {AttachVolumeEDepSD(spc_name, cellSDs[j][iperiod]);}
+                    else if (!b_scinti_ro_only) {SetVolumeEDepSD(spc_name);}
                 } else {
                     for (G4int k = 0; k < 2; k++) {
                         G4String sci_name = mod_prefix + "_L" + std::to_string(j) + "_P" + std::to_string(iperiod) + "_Scintillator" + std::to_string(k);
                         G4String fibre_name = mod_prefix + "_L" + std::to_string(j) + "_P" + std::to_string(iperiod) + "_Fibre" + std::to_string(k);
-                        if (coarse_ro == 2) {
+                        if (b_total_ro) {
                             AttachVolumeEDepSD(sci_name, coarseSD);
                             AttachVolumeEDepSD(fibre_name, coarseSD);
-                        } else if (coarse_ro == 1) {
+                        } else if (b_cell_ro) {
                             AttachVolumeEDepSD(sci_name, cellSDs[j][iperiod]);
                             AttachVolumeEDepSD(fibre_name, cellSDs[j][iperiod]);
                         } else {
                             SetVolumeEDepSD(sci_name);
-                            SetVolumeEDepSD(fibre_name);
+                            if (!b_scinti_ro_only) {SetVolumeEDepSD(fibre_name);}
                         }
                     }
                 }

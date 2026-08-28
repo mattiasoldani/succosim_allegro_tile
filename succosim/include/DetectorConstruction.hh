@@ -169,7 +169,7 @@ private:
         G4VisAttributes* col_catcher_side,
         G4VisAttributes* col_catcher_phi
     );
-		
+			
     // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 	
     // test setup (implemented in src/TestMode.cc)
