@@ -126,7 +126,7 @@ private:
     G4double worldSizeX = 3 * m;
     G4double worldSizeY = 3 * m;
     G4double worldSizeZ = 30 * m;
-    G4Material* mat_world = vacuum;
+    G4Material* mat_world = air;
 
     // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
     // define custom private methods/members here
