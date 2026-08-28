@@ -14,7 +14,7 @@
 
 # set event nr per run here
 # vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-/control/alias nevs 30000
+/control/alias nevs 100000
 # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 # set beam positional half-size
