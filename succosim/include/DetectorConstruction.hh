@@ -6,7 +6,6 @@
 #include <G4NistManager.hh>
 #include <G4VisAttributes.hh>
 #include <G4SDManager.hh>
-#include <CLHEP/Units/PhysicalConstants.h>
 #include <G4Trd.hh>
 #include <G4Box.hh>
 #include <G4Tubs.hh>
@@ -16,6 +15,7 @@
 #include <G4Transform3D.hh>
 #include <G4HCofThisEvent.hh>
 #include <G4LogicalVolume.hh>
+#include <CLHEP/Units/PhysicalConstants.h>
 
 #include "Analysis.hh"
 #include "CustomMessenger.hh"
