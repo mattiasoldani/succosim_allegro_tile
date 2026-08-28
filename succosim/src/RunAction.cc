@@ -1,5 +1,6 @@
 #include <G4SystemOfUnits.hh>
 #include <G4String.hh>
+#include <G4RunManager.hh>
 
 #include <string>
 #include <iomanip>
@@ -7,6 +8,7 @@
 
 #include "RunAction.hh"
 #include "Analysis.hh"
+#include "DetectorConstruction.hh"
 
 using namespace std;
 
@@ -38,6 +40,7 @@ void RunAction::BeginOfRunAction(const G4Run*)
         analysis->CreateNtupleDColumn("NEvent");
         analysis->CreateNtupleDColumn("E_tileTest000");
         analysis->CreateNtupleDColumn("E_tileTest001");
+        
         // --------------------------------------------------
         // ...uncomment this line for the test ntuple columns (implemented in src/TestMode.cc)
         //OutputNtupleTest(analysis);
@@ -45,7 +48,7 @@ void RunAction::BeginOfRunAction(const G4Run*)
 		
         analysis->FinishNtuple(0);
         b_ntuple_created = true;
-    }
+	}
 
     // open output file - output file will have extension .root and custom path and name
     G4String outFileName = CustomMessenger::Instance()->OutFileName();

@@ -1,5 +1,4 @@
 #include <G4SystemOfUnits.hh>
-#include <G4LogicalVolume.hh>
 #include <G4PVPlacement.hh>
 #include <G4NistManager.hh>
 #include <G4SystemOfUnits.hh>
@@ -22,58 +21,14 @@
 // DetectorConstruction::Construct, i.e. where the setup geometry is implemented
 G4VPhysicalVolume* DetectorConstruction::Construct()
 {
-    // NIST database
-    G4NistManager* nist = G4NistManager::Instance();
-
-    // default colors
-    G4VisAttributes* invisible = new G4VisAttributes(false);
-    G4VisAttributes* white = new G4VisAttributes(G4Colour::White());
-    G4VisAttributes* cyan = new G4VisAttributes(G4Colour::Cyan());
-    G4VisAttributes* blue = new G4VisAttributes(G4Colour::Blue());
-    G4VisAttributes* red = new G4VisAttributes(G4Colour::Red());
-    G4VisAttributes* green = new G4VisAttributes(G4Colour::Green());
-    G4VisAttributes* magenta = new G4VisAttributes(G4Colour::Magenta());
-	G4VisAttributes* grey = new G4VisAttributes(G4Colour::Grey());
-    G4VisAttributes* brown = new G4VisAttributes(true, G4Colour::Brown());
-    G4VisAttributes* yellow = new G4VisAttributes(true, G4Colour::Yellow());
-    G4VisAttributes* black = new G4VisAttributes(true, G4Colour::Black());
-	
-    // default off-the-shelf materials (from NIST)
-    G4Material* air = nist->FindOrBuildMaterial("G4_AIR");
-    G4Material* SS = nist->FindOrBuildMaterial("G4_STAINLESS-STEEL"); // stainless steel
-    G4Material* plastic = nist->FindOrBuildMaterial("G4_POLYSTYRENE"); // plastic (PS)
-    G4Material* pbGl = nist->FindOrBuildMaterial("G4_GLASS_LEAD"); // Pb glass
-    G4Material* vacuum = nist->FindOrBuildMaterial("G4_Galactic");
-    G4Material* aluminium = nist->FindOrBuildMaterial("G4_Al");
-    G4Material* mylar = nist->FindOrBuildMaterial("G4_MYLAR");
-    G4Material* lead = nist->FindOrBuildMaterial("G4_Pb"); 
-    G4Material* silicon = nist->FindOrBuildMaterial("G4_Si"); 
-    G4Material* iron = nist->FindOrBuildMaterial("G4_Fe");
-    G4Material* tungsten = nist->FindOrBuildMaterial("G4_W");
-
-    // default manual material: CO2
-    G4Element* elC = new G4Element("Carbon", "C", 6., 12.01*g/mole);
-    G4Element* elO  = new G4Element("Oxygen","O" , 8., 16.00*g/mole);
-    G4Material* co2 = new G4Material("CO2", 1.977*273.*mg/cm3/293., 2);
+    // adding elements to default manual material CO2 - created in DetectorConstruction.hh
     co2->AddElement(elC, 1);
     co2->AddElement(elO, 2);
 
-    // default manual material: BC400 (plastic scintillator)
-    G4Element* elH = new G4Element("Hydrogen", "H", 1., 1.0079 * g/mole);
-    G4Element* elC = new G4Element("Carbon", "C", 6., 12.01 * g/mole);
-    G4Material* bc400 = new G4Material("BC400", 1.032*g/cm3, 2);
+    // adding elements to default manual material: BC400 (plastic scintillator) - created in DetectorConstruction.hh
     bc400->AddElement(elH, 0.085);
     bc400->AddElement(elC, 0.915);
 
-    // world size (full sides) and material - to be set here
-    G4double worldSizeX = 10 * m;
-    G4double worldSizeY = 10 * m;
-    G4double worldSizeZ = 10 * m;
-    G4Material* mat_world = vacuum;
-	
-    // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-    // define the world and all the setup stuff (materials, volumes) here, or...
-	
     // world
     G4RotationMatrix* worldRotation = new G4RotationMatrix();
     G4VSolid* worldBox = new G4Box("world_Shape", worldSizeX / 2, worldSizeY / 2, worldSizeZ / 2);
@@ -81,9 +36,8 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     worldLog->SetVisAttributes(invisible);
     G4VPhysicalVolume* worldPhys = new G4PVPlacement(nullptr, {}, worldLog, "world", nullptr, false, 0);
 	
-	// generic translation and roto-translation, to be applied element-by-element
-	G4ThreeVector pos_temp;
-	G4Transform3D pos_rot_temp;
+    // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+    // define all the setup stuff (materials, volumes) here, or...
 
     ////////////////////////////
     //////// test tiles ////////
@@ -198,4 +152,4 @@ void DetectorConstruction::ConstructSDandField()
 // ============================================================
 // implement custom methods here
 
-// --> tile-specific stuff in DetectorConstruction_tile.cc
+// --> tile-specific stuff in DetectorConstruction_tile
