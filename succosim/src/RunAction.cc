@@ -1,5 +1,6 @@
 #include <G4SystemOfUnits.hh>
 #include <G4String.hh>
+#include <G4RunManager.hh>
 
 #include <string>
 #include <iomanip>
@@ -7,6 +8,7 @@
 
 #include "RunAction.hh"
 #include "Analysis.hh"
+#include "DetectorConstruction.hh"
 
 using namespace std;
 

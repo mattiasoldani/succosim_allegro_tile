@@ -5,6 +5,7 @@
 #include <G4PrimaryParticle.hh>
 #include <G4PrimaryVertex.hh>
 #include <G4ThreeVector.hh>
+#include <G4RunManager.hh>
 
 #include <cmath>
 #include <string>
@@ -12,7 +13,6 @@
 #include "EventAction.hh"
 #include "Analysis.hh"
 #include "CustomHit.hh"
-#include <G4RunManager.hh>
 #include "DetectorConstruction.hh"
 
 using namespace std;
