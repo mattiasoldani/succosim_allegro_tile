@@ -52,26 +52,3 @@ void VolumeTrackingSD::Initialize(G4HCofThisEvent* hcof)
 // ============================================================
 // ============================================================
 // implement custom sensitive detector classes here
-
-EntryKineticEnergySD::EntryKineticEnergySD(G4String name) :  G4VSensitiveDetector(name)
-{collectionName.insert("EntryKineticEnergy");}
-
-G4bool EntryKineticEnergySD::ProcessHits(G4Step* aStep, G4TouchableHistory*)
-{
-    if (aStep->GetPreStepPoint()->GetStepStatus() != fGeomBoundary) {
-        return false;
-    }
-
-    EntryKineticEnergyHit* hit = new EntryKineticEnergyHit();
-    hit->SetEKin(aStep->GetPreStepPoint()->GetKineticEnergy());
-    fEntryKineticEnergyHitsCollection->insert(hit);
-    return true;
-}
-
-void EntryKineticEnergySD::Initialize(G4HCofThisEvent* hcof)
-{
-    fEntryKineticEnergyHitsCollection = new EntryKineticEnergyHitsCollection(SensitiveDetectorName, collectionName[0]);
-    if (fEntryKineticEnergyHitsCollectionId < 0)
-    {fEntryKineticEnergyHitsCollectionId = G4SDManager::GetSDMpointer()->GetCollectionID(GetName() + "/" + collectionName[0]);}
-    hcof->AddHitsCollection(fEntryKineticEnergyHitsCollectionId, fEntryKineticEnergyHitsCollection);
-}

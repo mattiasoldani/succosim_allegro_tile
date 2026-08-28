@@ -25,11 +25,6 @@
 // define hard-coded parameters
 // e.g. #define NLAYERS 10
 
-// maximum numbers used for fixed-size array allocation
-#define NPERIODSMAX 50
-#define NLAYERSMAX 50
-#define NSTACKEDMODSMAX 32
-
 // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 using namespace std;

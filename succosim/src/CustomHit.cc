@@ -9,4 +9,3 @@ G4ThreadLocal G4Allocator<VolumeTrackingHit>* allocatorVolumeTrackingHit = nullp
 // ============================================================
 // ============================================================
 // allocate a new custom hit class here, G4ThreadLocal G4Allocator<...>* allocator... = nullptr;
-G4ThreadLocal G4Allocator<EntryKineticEnergyHit>* allocatorEntryKineticEnergyHit = nullptr;

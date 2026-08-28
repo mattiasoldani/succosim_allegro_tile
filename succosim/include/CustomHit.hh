@@ -77,37 +77,6 @@ inline void VolumeTrackingHit::operator delete(void *aHit)
 // ============================================================
 // define custom hit classes here
 
-// EntryKineticEnergyHit/SD, i.e. to detect kinetic energy carried into a volume
-
-class EntryKineticEnergyHit : public G4VHit
-{
-public:
-    inline void* operator new(size_t);
-    inline void  operator delete(void*);
-    void SetEKin(G4double eKin) { fEKin = eKin; }
-    G4double GetEKin() const { return fEKin; }
-
-private:
-    G4double fEKin;
-};
-
-using EntryKineticEnergyHitsCollection = G4THitsCollection<EntryKineticEnergyHit>;
-extern G4ThreadLocal G4Allocator<EntryKineticEnergyHit> *allocatorEntryKineticEnergyHit;
-
-inline void* EntryKineticEnergyHit::operator new(size_t)
-{
-    if (!allocatorEntryKineticEnergyHit)
-    {allocatorEntryKineticEnergyHit = new G4Allocator<EntryKineticEnergyHit>;}
-    return allocatorEntryKineticEnergyHit->MallocSingle();
-}
-
-inline void EntryKineticEnergyHit::operator delete(void *aHit)
-{
-    if (!allocatorEntryKineticEnergyHit)
-    {allocatorEntryKineticEnergyHit = new G4Allocator<EntryKineticEnergyHit>;}
-    allocatorEntryKineticEnergyHit->FreeSingle((EntryKineticEnergyHit*) aHit);
-}
-
 
 // ============================================================
 #endif
