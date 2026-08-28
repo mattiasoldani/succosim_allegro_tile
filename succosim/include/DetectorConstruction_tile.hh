@@ -1,3 +1,8 @@
+// maximum numbers used for fixed-size array allocation
+#define NPERIODSMAX 1000
+#define NLAYERSMAX 100
+#define NSTACKEDMODSMAX 512
+
 // all about isosceles trapezoids (full or half)
 class geomTrapezoid{
     public:
