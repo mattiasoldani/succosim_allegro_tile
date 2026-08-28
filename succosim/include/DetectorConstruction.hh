@@ -103,7 +103,7 @@ private:
     G4Material* mat_world = vacuum;
 
     // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-    // define custom private methods here
+    // define custom private methods/members here
     // e.g. void ConstructCalo(G4LogicalVolume* worldLog);
 
     G4double zshift = 1*mm; // longitudinal displacement of the module wrt the beam source
