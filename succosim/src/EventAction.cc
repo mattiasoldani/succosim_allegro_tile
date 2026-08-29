@@ -61,21 +61,11 @@ void EventAction::EndOfEventAction(const G4Event* event)
     ///////////////////////////
 
     // module-related output data
-    G4int n_periods = CustomMessenger::Instance()->NPeriods();
-    G4int n_layers = CustomMessenger::Instance()->NLayers();
     G4int n_stacked_mods = CustomMessenger::Instance()->NStackedMods();
-    G4int coarse_ro = CustomMessenger::Instance()->CoarseRO();
     for (G4int i = 0; i < n_stacked_mods; i++) {
-        col = DetectorConstruction::fullTileCalModule::FillNtupleColumns(
-            analysis,
-            sdm,
-            coarse_ro,
-            hcofEvent,
-            col,
-            "M" + std::to_string(i),
-            n_periods,
-            n_layers
-        );
+        DetectorConstruction::fullTileCalModule* module = DetectorConstruction::fullTileCalModule::GetModule(i);
+        if (!module) {continue;}
+        col = module->FillNtupleColumns(analysis, sdm, hcofEvent, col);
     }
 
     analysis->AddNtupleRow(0);

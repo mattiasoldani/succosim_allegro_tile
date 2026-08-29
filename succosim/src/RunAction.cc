@@ -40,7 +40,7 @@ void RunAction::BeginOfRunAction(const G4Run*)
         ///////////////////////////
         //// true primary info ////
         analysis->CreateNtupleDColumn("true_PDG");
-        analysis->CreateNtupleDColumn("true_KE");
+        analysis->CreateNtupleDColumn("true_EKin");
         analysis->CreateNtupleDColumn("true_X");
         analysis->CreateNtupleDColumn("true_Y");
         analysis->CreateNtupleDColumn("true_thetaX");
@@ -49,18 +49,11 @@ void RunAction::BeginOfRunAction(const G4Run*)
         ///////////////////////////
 
         // module-related columns in the output dataset
-        G4int n_periods = CustomMessenger::Instance()->NPeriods();
-        G4int n_layers = CustomMessenger::Instance()->NLayers();
         G4int n_stacked_mods = CustomMessenger::Instance()->NStackedMods();
-        G4int coarse_ro = CustomMessenger::Instance()->CoarseRO();
         for (G4int i = 0; i < n_stacked_mods; i++) {
-            DetectorConstruction::fullTileCalModule::CreateNtupleColumns(
-                analysis,
-                coarse_ro,
-                "M" + std::to_string(i),
-                n_periods,
-                n_layers
-            );
+            DetectorConstruction::fullTileCalModule* module = DetectorConstruction::fullTileCalModule::GetModule(i);
+            if (!module) {continue;}
+            module->CreateNtupleColumns(analysis);
         }
 
         // --------------------------------------------------

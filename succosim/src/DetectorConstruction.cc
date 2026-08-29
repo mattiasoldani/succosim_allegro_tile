@@ -43,6 +43,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     CustomMessenger* custom = CustomMessenger::Instance();
     G4int n_periods = custom->NPeriods();
     G4int n_layers = custom->NLayers();
+    G4int coarse_ro = custom->CoarseRO();
     G4int n_stacked_mods = custom->NStackedMods();
     G4bool b_place_support = custom->BPlaceSupport();
 
@@ -63,7 +64,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     G4Material* mat_catcher = vacuum;
 
     // actual creation and placement of prototype stack
-    fullTileCalModule::ModConfig module_config = {n_periods, n_layers, b_place_support};
+    fullTileCalModule::ModConfig module_config = {n_periods, n_layers, coarse_ro, b_place_support};
     module_config.col_passive = col_passive;
     module_config.col_support = col_support;
     module_config.col_scintillator = col_scintillator;
@@ -122,10 +123,9 @@ void DetectorConstruction::ConstructSDandField()
     // create the sensitive detectors and bin them to the logical volumes here, or...
 
     // module stack readout
-    G4int coarse_ro = CustomMessenger::Instance()->CoarseRO();
     G4int n_stacked_mods = CustomMessenger::Instance()->NStackedMods();
     for (G4int i = 0; i < n_stacked_mods; i++) {
-        modules[i]->CreateAllSDs(sdm, coarse_ro);
+        modules[i]->CreateAllSDs(sdm);
     }
 	
     // --------------------------------------------------

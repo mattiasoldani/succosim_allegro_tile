@@ -247,6 +247,9 @@ G4LogicalVolume* DetectorConstruction::fLogPlaceFibreCirc(
 
 // fullTileCalModule methods //////////////////////////////////
 
+DetectorConstruction::fullTileCalModule*
+DetectorConstruction::fullTileCalModule::registered_modules[NSTACKEDMODSMAX] = {};
+
 // module constructor
 DetectorConstruction::fullTileCalModule::fullTileCalModule(
     G4String id,
@@ -257,6 +260,7 @@ DetectorConstruction::fullTileCalModule::fullTileCalModule(
       mod_id(id), // module name (will be used in all volume names)
       n_periods(config.n_periods), // number of longitudinal periods
       n_layers(config.n_layers), // number of radial layers
+      coarse_ro(config.coarse_ro), // readout granularity
       b_place_support(config.b_place_support), // if true (false), place (hide) external support
 
       // single-element thicknesses which define the period thickness - to be set, optional
@@ -312,7 +316,24 @@ DetectorConstruction::fullTileCalModule::fullTileCalModule(
       col_catcher_front_back(config.col_catcher_front_back),
       col_catcher_side(config.col_catcher_side),
       col_catcher_phi(config.col_catcher_phi)
-{CreateLog();}
+{
+
+    // module instance must be registered, in order for it to be accessible during run
+    G4int module_index = (mod_id.size() > 1) ? std::atoi(mod_id.substr(1).c_str()) : -1;
+    if (module_index >= 0 && module_index < NSTACKEDMODSMAX) {
+        registered_modules[module_index] = this;
+    }
+
+    // then, create whole (logical) volume structure
+    CreateLog();
+}
+
+// function to get the instance corresponding to specific registered module
+DetectorConstruction::fullTileCalModule* DetectorConstruction::fullTileCalModule::GetModule(G4int i)
+{
+    if (i < 0 || i >= NSTACKEDMODSMAX) {return nullptr;}
+    return registered_modules[i];
+}
 
 // function to place the logical volume(s) resulting from the constructor inside a higher-level module, initialised in DetectorConstruction.hh
 void DetectorConstruction::fullTileCalModule::PlaceLog(
@@ -516,8 +537,7 @@ void DetectorConstruction::fullTileCalModule::CreateLog(){
 
 // function to create all the module SDs
 void DetectorConstruction::fullTileCalModule::CreateAllSDs(
-    G4SDManager* sdm,
-    G4int coarse_ro
+    G4SDManager* sdm
 ){
     G4bool b_scinti_ro_only = coarse_ro == 1;
     G4bool b_cell_ro = coarse_ro == 2;
@@ -617,13 +637,8 @@ void DetectorConstruction::fullTileCalModule::CreateAllSDs(
 }
 
 // function to create all ntuple columns associated with the module
-// static method, intended for use without object instantiation in RunAction.cc
 void DetectorConstruction::fullTileCalModule::CreateNtupleColumns(
-    G4AnalysisManager* analysis,
-    G4int coarse_ro,
-    G4String mod_id,
-    G4int n_periods,
-    G4int n_layers
+    G4AnalysisManager* analysis
 ){
     G4bool b_scinti_ro_only = coarse_ro == 1;
     G4bool b_cell_ro = coarse_ro == 2;
@@ -640,12 +655,12 @@ void DetectorConstruction::fullTileCalModule::CreateNtupleColumns(
         mod_prefix = "M" + Id(std::atoi(mod_id.substr(1).c_str()));
     }
 
-    analysis->CreateNtupleDColumn("true_KE_" + mod_prefix + "_Front");
-    analysis->CreateNtupleDColumn("true_KE_" + mod_prefix + "_Back");
-    analysis->CreateNtupleDColumn("true_KE_" + mod_prefix + "_Side0");
-    analysis->CreateNtupleDColumn("true_KE_" + mod_prefix + "_Side1");
-    analysis->CreateNtupleDColumn("true_KE_" + mod_prefix + "_Phi0");
-    analysis->CreateNtupleDColumn("true_KE_" + mod_prefix + "_Phi1");
+    analysis->CreateNtupleDColumn("true_EKout_" + mod_prefix + "_Front");
+    analysis->CreateNtupleDColumn("true_EKout_" + mod_prefix + "_Back");
+    analysis->CreateNtupleDColumn("true_EKout_" + mod_prefix + "_Side0");
+    analysis->CreateNtupleDColumn("true_EKout_" + mod_prefix + "_Side1");
+    analysis->CreateNtupleDColumn("true_EKout_" + mod_prefix + "_Phi0");
+    analysis->CreateNtupleDColumn("true_EKout_" + mod_prefix + "_Phi1");
 
     analysis->CreateNtupleDColumn("Edep_" + mod_prefix + "_Total");
 
@@ -694,16 +709,11 @@ void DetectorConstruction::fullTileCalModule::CreateNtupleColumns(
 }
 
 // function to fill all ntuple columns associated with the module
-// static method, intended for use without object instantiation in EventAction.cc
 G4int DetectorConstruction::fullTileCalModule::FillNtupleColumns(
     G4AnalysisManager* analysis,
     G4SDManager* sdm,
-    G4int coarse_ro,
     G4HCofThisEvent* hcofEvent,
-    G4int col,
-    G4String mod_id,
-    G4int n_periods,
-    G4int n_layers
+    G4int col
 ){
     G4bool b_scinti_ro_only = coarse_ro == 1;
     G4bool b_cell_ro = coarse_ro == 2;
@@ -768,7 +778,7 @@ G4int DetectorConstruction::fullTileCalModule::FillNtupleColumns(
         return col;
     };
 
-    auto SumModuleEDep = [GetVolumeEDep, n_periods, n_layers, b_cell_ro, b_scinti_ro_only](const G4String& mod_prefix) {
+    auto SumModuleEDep = [GetVolumeEDep, this, b_cell_ro, b_scinti_ro_only](const G4String& mod_prefix) {
         G4double eDep = 0.;
 
         if (b_cell_ro) {
