@@ -39,11 +39,11 @@ void RunAction::BeginOfRunAction(const G4Run*)
     
         ///////////////////////////
         //// true primary info ////
-        analysis->CreateNtupleDColumn("true_KE");
-        analysis->CreateNtupleDColumn("true_X");
-        analysis->CreateNtupleDColumn("true_Y");
-        analysis->CreateNtupleDColumn("true_thetaX");
-        analysis->CreateNtupleDColumn("true_thetaY");
+        analysis->CreateNtupleDColumn("true_EKin_GeV");
+        analysis->CreateNtupleDColumn("true_X_mm");
+        analysis->CreateNtupleDColumn("true_Y_mm");
+        analysis->CreateNtupleDColumn("true_thetaX_rad");
+        analysis->CreateNtupleDColumn("true_thetaY_rad");
         //// true primary info ////
         ///////////////////////////
 

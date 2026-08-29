@@ -655,24 +655,24 @@ void DetectorConstruction::fullTileCalModule::CreateNtupleColumns(
         mod_prefix = "M" + Id(std::atoi(mod_id.substr(1).c_str()));
     }
 
-    analysis->CreateNtupleDColumn("true_EKout_" + mod_prefix + "_Front");
-    analysis->CreateNtupleDColumn("true_EKout_" + mod_prefix + "_Back");
-    analysis->CreateNtupleDColumn("true_EKout_" + mod_prefix + "_Side0");
-    analysis->CreateNtupleDColumn("true_EKout_" + mod_prefix + "_Side1");
-    analysis->CreateNtupleDColumn("true_EKout_" + mod_prefix + "_Phi0");
-    analysis->CreateNtupleDColumn("true_EKout_" + mod_prefix + "_Phi1");
+    analysis->CreateNtupleDColumn("true_EKout_GeV_" + mod_prefix + "_Front");
+    analysis->CreateNtupleDColumn("true_EKout_GeV_" + mod_prefix + "_Back");
+    analysis->CreateNtupleDColumn("true_EKout_GeV_" + mod_prefix + "_Side0");
+    analysis->CreateNtupleDColumn("true_EKout_GeV_" + mod_prefix + "_Side1");
+    analysis->CreateNtupleDColumn("true_EKout_GeV_" + mod_prefix + "_Phi0");
+    analysis->CreateNtupleDColumn("true_EKout_GeV_" + mod_prefix + "_Phi1");
 
-    analysis->CreateNtupleDColumn("Edep_" + mod_prefix + "_Total");
+    analysis->CreateNtupleDColumn("Edep_GeV_" + mod_prefix + "_Total");
 
-    analysis->CreateNtupleDColumn("Edep_" + mod_prefix + "_Front");
-    analysis->CreateNtupleDColumn("Edep_" + mod_prefix + "_Back");
-    analysis->CreateNtupleDColumn("Edep_" + mod_prefix + "_Side0");
-    analysis->CreateNtupleDColumn("Edep_" + mod_prefix + "_Side1");
+    analysis->CreateNtupleDColumn("Edep_GeV_" + mod_prefix + "_Front");
+    analysis->CreateNtupleDColumn("Edep_GeV_" + mod_prefix + "_Back");
+    analysis->CreateNtupleDColumn("Edep_GeV_" + mod_prefix + "_Side0");
+    analysis->CreateNtupleDColumn("Edep_GeV_" + mod_prefix + "_Side1");
 
     if (b_cell_ro) {
         for (G4int j = 0; j < n_layers; j++) {
             for (G4int iperiod = 0; iperiod < n_periods; iperiod++) {
-                analysis->CreateNtupleDColumn("Edep_" + mod_prefix + "_L" + Id(j) + "_P" + Id(iperiod) + "_Cell");
+                analysis->CreateNtupleDColumn("Edep_GeV_" + mod_prefix + "_L" + Id(j) + "_P" + Id(iperiod) + "_Cell");
             }
         }
     } else if (!b_total_ro) {
@@ -681,7 +681,7 @@ void DetectorConstruction::fullTileCalModule::CreateNtupleColumns(
                 for (G4int i = 0; i < n_periods * 2 - 1; i++) {
                     G4int iperiod = floor(i/2);
 
-                    analysis->CreateNtupleDColumn("Edep_" + mod_prefix + "_L" + Id(j) + "_P" + Id(iperiod) + "_Master" + Id(i%2));
+                    analysis->CreateNtupleDColumn("Edep_GeV_" + mod_prefix + "_L" + Id(j) + "_P" + Id(iperiod) + "_Master" + Id(i%2));
                 }
             }
         }
@@ -693,13 +693,13 @@ void DetectorConstruction::fullTileCalModule::CreateNtupleColumns(
                 G4int b_spc = ((i%2) + (j%2)) % 2;
                 if (b_spc) {
                     if (!b_scinti_ro_only) {
-                        analysis->CreateNtupleDColumn("Edep_" + mod_prefix + "_L" + Id(j) + "_P" + Id(iperiod) + "_Spacer");
+                        analysis->CreateNtupleDColumn("Edep_GeV_" + mod_prefix + "_L" + Id(j) + "_P" + Id(iperiod) + "_Spacer");
                     }
                 } else {
                     for (G4int k = 0; k < 2; k++) {
-                        analysis->CreateNtupleDColumn("Edep_" + mod_prefix + "_L" + Id(j) + "_P" + Id(iperiod) + "_Scintillator" + std::to_string(k));
+                        analysis->CreateNtupleDColumn("Edep_GeV_" + mod_prefix + "_L" + Id(j) + "_P" + Id(iperiod) + "_Scintillator" + std::to_string(k));
                         if (!b_scinti_ro_only) {
-                            analysis->CreateNtupleDColumn("Edep_" + mod_prefix + "_L" + Id(j) + "_P" + Id(iperiod) + "_Fibre" + std::to_string(k));
+                            analysis->CreateNtupleDColumn("Edep_GeV_" + mod_prefix + "_L" + Id(j) + "_P" + Id(iperiod) + "_Fibre" + std::to_string(k));
                         }
                     }
                 }
