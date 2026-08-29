@@ -640,12 +640,12 @@ void DetectorConstruction::fullTileCalModule::CreateNtupleColumns(
         mod_prefix = "M" + Id(std::atoi(mod_id.substr(1).c_str()));
     }
 
-    analysis->CreateNtupleDColumn("true_EkinOut_" + mod_prefix + "_Front");
-    analysis->CreateNtupleDColumn("true_EkinOut_" + mod_prefix + "_Back");
-    analysis->CreateNtupleDColumn("true_EkinOut_" + mod_prefix + "_Side0");
-    analysis->CreateNtupleDColumn("true_EkinOut_" + mod_prefix + "_Side1");
-    analysis->CreateNtupleDColumn("true_EkinOut_" + mod_prefix + "_Phi0");
-    analysis->CreateNtupleDColumn("true_EkinOut_" + mod_prefix + "_Phi1");
+    analysis->CreateNtupleDColumn("true_KE_" + mod_prefix + "_Front");
+    analysis->CreateNtupleDColumn("true_KE_" + mod_prefix + "_Back");
+    analysis->CreateNtupleDColumn("true_KE_" + mod_prefix + "_Side0");
+    analysis->CreateNtupleDColumn("true_KE_" + mod_prefix + "_Side1");
+    analysis->CreateNtupleDColumn("true_KE_" + mod_prefix + "_Phi0");
+    analysis->CreateNtupleDColumn("true_KE_" + mod_prefix + "_Phi1");
 
     analysis->CreateNtupleDColumn("Edep_" + mod_prefix + "_Total");
 
