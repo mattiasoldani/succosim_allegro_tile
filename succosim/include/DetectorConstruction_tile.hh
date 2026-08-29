@@ -226,6 +226,7 @@ class fullTileCalModule {
             // global construction settings - to be set, mandatory
             G4int n_periods; // number of longitudinal periods
             G4int n_layers; // number of radial layers
+            G4int coarse_ro; // readout granularity
             G4bool b_place_support; // if true (false), place (hide) external support
 
             // single-element thicknesses which define the period thickness - to be set, optional
@@ -289,6 +290,9 @@ class fullTileCalModule {
         );
 
         // defined in DetectorConstruction_tile.cc
+        static fullTileCalModule* GetModule(G4int i);
+
+        // defined in DetectorConstruction_tile.cc
         void PlaceLog(
             G4LogicalVolume* worldLog,
             G4Transform3D& stack_pos_rot,
@@ -302,34 +306,26 @@ class fullTileCalModule {
 
         // defined in DetectorConstruction_tile.cc
         void CreateAllSDs(
-            G4SDManager* sdm,
-            G4int coarse_ro
+            G4SDManager* sdm
         );
 
         // defined in DetectorConstruction_tile.cc
-        static void CreateNtupleColumns(
-            G4AnalysisManager* analysis,
-            G4int coarse_ro,
-            G4String mod_id,
-            G4int n_periods,
-            G4int n_layers
+        void CreateNtupleColumns(
+            G4AnalysisManager* analysis
         );
 
         // defined in DetectorConstruction_tile.cc
-        static G4int FillNtupleColumns(
+        G4int FillNtupleColumns(
             G4AnalysisManager* analysis,
             G4SDManager* sdm,
-            G4int coarse_ro,
             G4HCofThisEvent* hcofEvent,
-            G4int col,
-            G4String mod_id,
-            G4int n_periods,
-            G4int n_layers
+            G4int col
         );
 
         // global construction settings - to be set, mandatory
         G4int GetNPeriods() { return n_periods; } // number of longitudinal periods
         G4int GetNLayers() { return n_layers; } // number of radial layers
+        G4int GetCoarseRO() { return coarse_ro; } // readout granularity
         G4bool GetBPlaceSupport() { return b_place_support; } // if true (false), place (hide) external support
 
         // single-element thicknesses which define the period thickness - to be set, optional
@@ -401,9 +397,11 @@ class fullTileCalModule {
         void CreateLog();
 
         // global construction settings - to be set, mandatory
+        static fullTileCalModule* registered_modules[NSTACKEDMODSMAX]; // registry of constructed module objects, indexed by module number
         G4String mod_id; // module name (will be used in all volume names)
         G4int n_periods; // number of longitudinal periods
         G4int n_layers; // number of radial layers
+        G4int coarse_ro; // readout granularity
         G4bool b_place_support; // if true (false), place (hide) external support
 
         // module creation logical volumes, internal (i.e. placed in the envelope) - output
