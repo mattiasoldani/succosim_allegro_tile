@@ -158,6 +158,11 @@ private:
     G4bool b_cher_det = false; // redefined in DetectorConstruction.cc (from custom macro parameter)
     G4bool b_hodo_det = true; // redefined in DetectorConstruction.cc (from custom macro parameter)
 
+    // materials of specific components
+    G4Material* plastic_ancillary = plastic; // plastic for ancillary detectors
+    G4Material* plastic_fibre = plastic; // plastic for WLS fibres
+    G4Material* cherGas = co2; // gas for Cherenkov pipes
+
     // misc general stuff
     G4double gen_gap = 1*mm; // gap between adjacent tiles (longitudinal, transverse)
     G4double gen_fibreradius = 0.5*mm; // radius of the WLS fibres
@@ -185,7 +190,7 @@ private:
     G4double passive_S6_shift = 47.17*mm; // relative vertical shift between passive layers and S6 (half) tiles in CERN stack
     G4double passive_trig_shift = 59*mm; // relative vertical shift between passive layers and S2 trigger (half) tiles in CERN stack
 
-	// tile shapes - CERN S2
+	// tile shapes - FZU
 	G4double FZU_ang_x = -90*deg; // angle wrt original x axis
 	G4double FZU_ang_y = 0*deg; // angle wrt original y axis
 	G4double FZU_ang_z = 0*deg; // angle wrt original z axis

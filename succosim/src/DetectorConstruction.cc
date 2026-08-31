@@ -38,11 +38,6 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 	
     // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
     // define all the setup stuff (materials, volumes) here, or...
-	
-    // materials of specific components
-    G4Material* plastic_ancillary = plastic; // plastic for ancillary detectors
-    G4Material* plastic_fibre = plastic; // plastic for WLS fibres
-    G4Material* cherGas = co2; // gas for Cherenkov pipes
 
     // custom parameters
     id_config = CustomMessenger::Instance()->IdConfig();
