@@ -762,12 +762,12 @@ G4int DetectorConstruction::fullTileCalModule::FillNtupleColumns(
     };
 
     auto FillModuleEkinOut = [analysis, GetEntryKineticEnergy](G4int col, const G4String& mod_prefix) {
-        G4double eKinFront = GetEntryKineticEnergy(mod_prefix + "_CatcherFront", 0.);
-        G4double eKinBack = GetEntryKineticEnergy(mod_prefix + "_CatcherBack", 0.);
-        G4double eKinSide0 = GetEntryKineticEnergy(mod_prefix + "_CatcherSide0", 0.);
-        G4double eKinSide1 = GetEntryKineticEnergy(mod_prefix + "_CatcherSide1", 0.);
-        G4double eKinPhi0 = GetEntryKineticEnergy(mod_prefix + "_CatcherPhi0", 0.);
-        G4double eKinPhi1 = GetEntryKineticEnergy(mod_prefix + "_CatcherPhi1", 0.);
+        G4double eKinFront = GetEntryKineticEnergy(mod_prefix + "_CatcherFront", -1. * GeV);
+        G4double eKinBack = GetEntryKineticEnergy(mod_prefix + "_CatcherBack", -1. * GeV);
+        G4double eKinSide0 = GetEntryKineticEnergy(mod_prefix + "_CatcherSide0", -1. * GeV);
+        G4double eKinSide1 = GetEntryKineticEnergy(mod_prefix + "_CatcherSide1", -1. * GeV);
+        G4double eKinPhi0 = GetEntryKineticEnergy(mod_prefix + "_CatcherPhi0", -1. * GeV);
+        G4double eKinPhi1 = GetEntryKineticEnergy(mod_prefix + "_CatcherPhi1", -1. * GeV);
 
         analysis->FillNtupleDColumn(0, col++, eKinFront / GeV);
         analysis->FillNtupleDColumn(0, col++, eKinBack / GeV);
