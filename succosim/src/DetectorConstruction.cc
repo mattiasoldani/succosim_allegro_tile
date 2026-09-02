@@ -39,26 +39,13 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
     // define all the setup stuff (materials, volumes) here, or...
 
-    // custom parameters
-    id_config = CustomMessenger::Instance()->IdConfig();
-    b_config_calib = id_config == 0;
-    b_config_BB = id_config == 1;
-    b_config_CERN_S2 = id_config == 2;
-    b_config_CERN_S6 = id_config == 3;
-    b_config_CERN_S6_upstr1 = id_config == 4;
-    b_config_CERN_S6_upstr2 = id_config == 5;
-    b_config_CERN_S6_upstr4 = id_config == 6;
-    b_CERN_any = b_config_CERN_S2 || b_config_CERN_S6 || b_config_CERN_S6_upstr1 || b_config_CERN_S6_upstr2 || b_config_CERN_S6_upstr4;
-    b_FZU = b_config_BB || b_CERN_any;
-    b_CERN_trig = b_config_BB || b_CERN_any;
-    b_CERN_S2 = b_config_CERN_S2;
-    b_CERN_S6 = b_config_CERN_S6 || b_config_CERN_S6_upstr1 || b_config_CERN_S6_upstr2 || b_config_CERN_S6_upstr4;
-    b_PbGl = !b_config_BB;
-    b_scinti_small = CustomMessenger::Instance()->BPlaceUpstream();
-    b_cher = CustomMessenger::Instance()->BPlaceUpstream();
-    b_scinti_small_det = CustomMessenger::Instance()->BScintiSmallDet();
-    b_cher_det = CustomMessenger::Instance()->BCherDet();
-    b_hodo_det = CustomMessenger::Instance()->BHodoDet();
+    // detector availability based on configuraton custom parameter
+    b_CERN_any = IsConfigCERNS2() || IsConfigCERNS6() || IsConfigCERNS6Upstr1() || IsConfigCERNS6Upstr2() || IsConfigCERNS6Upstr4();
+    b_FZU = IsConfigBB() || b_CERN_any;
+    b_CERN_trig = IsConfigBB() || b_CERN_any;
+    b_CERN_S2 = IsConfigCERNS2();
+    b_CERN_S6 = b_CERN_any && !IsConfigCERNS2();
+    b_PbGl = !IsConfigBB();
 
     ///////////////////
     //// FZU stack ////
@@ -81,14 +68,14 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 
             // tiles...
 
-            pos_temp = G4ThreeVector(0, FZU_beamref_shift, z_FZU_front + i*(FZU_thk + FZU_zgap) + FZU_thk/2);
+            pos_temp = G4ThreeVector(0, FZU_beamref_shift, z_FZU_front + FZU_fzrel(i));
             pos_rot_temp = G4Translate3D(pos_temp) * G4Rotate3D(FZU_ang_x, G4Vector3D(1,0,0)) * G4Rotate3D(FZU_ang_y, G4Vector3D(0,1,0)) * G4Rotate3D(FZU_ang_z, G4Vector3D(0,0,1));
             FZU_lvols[i] = fLogTile(FZUName, plastic, cyan, FZU_geom, FZU_thk, 0, FZU_holeradius, FZU_holex, FZU_holey);
             new G4PVPlacement(pos_rot_temp, FZU_lvols[i], FZUName + "_Phys", worldLog, false, i);
 
             // ... + fibres - keeping left and right separate
-            FZU_lvols_fibres[2*i] = fLogPlaceFibreCirc(FZUfibreName, plastic_fibre, green, FZU_geom, worldLog, FZU_fibreradius, 2., 200., pos_rot_temp, -1);
-            FZU_lvols_fibres[2*i+1] = fLogPlaceFibreCirc(FZUfibreName, plastic_fibre, green, FZU_geom, worldLog, FZU_fibreradius, 2., 200., pos_rot_temp, 1);
+            FZU_lvols_fibres[2*i] = fLogPlaceFibreCirc(FZUfibreName, plastic_fibre, green, FZU_geom, worldLog, FZU_fibreradius, gen_extrafibrelength, 0., pos_rot_temp, -1);
+            FZU_lvols_fibres[2*i+1] = fLogPlaceFibreCirc(FZUfibreName, plastic_fibre, green, FZU_geom, worldLog, FZU_fibreradius, gen_extrafibrelength, 0., pos_rot_temp, 1);
         }
 
         FZU_geom->RmHorGaps();
@@ -127,7 +114,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
             new G4PVPlacement(pos_rot_temp, tileCernTrigger_lvols[i], tileTriggerName + "_Phys", worldLog, false, i);
 
             // ... + fibres
-            tileCernTrigger_lvols_fibres[i] = fLogPlaceFibreCirc(fibreTriggerName, plastic_fibre, green, tileCernTrigger_geom, worldLog, S2_fibreradius, 2., 200., pos_rot_temp, tileCernTrigger_sign);
+            tileCernTrigger_lvols_fibres[i] = fLogPlaceFibreCirc(fibreTriggerName, plastic_fibre, green, tileCernTrigger_geom, worldLog, S2_fibreradius, 0., gen_extrafibrelength, pos_rot_temp, tileCernTrigger_sign);
 
         }
 
@@ -226,7 +213,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
             new G4PVPlacement(pos_rot_temp, tileCern_lvols[i], tileName + "_Phys", worldLog, false, i);
 
             // ... + fibres
-            tileCern_lvols_fibres[i] = fLogPlaceFibreCirc(fibreName, plastic_fibre, green, tileCern_geom, worldLog, tileCern_fibreradius, 2., 200., pos_rot_temp, tileCern_sign);
+            tileCern_lvols_fibres[i] = fLogPlaceFibreCirc(fibreName, plastic_fibre, green, tileCern_geom, worldLog, tileCern_fibreradius, 0., gen_extrafibrelength, pos_rot_temp, tileCern_sign);
         }
 
         tileCern_geom->RmHorGaps();
@@ -256,45 +243,45 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 
     ////////////////////////////
     //// scintillating pads ////
-    if (IsScintiSmall()) {
-        G4double scintiSmallThickness = 0.5*cm;
-        G4double scintiSmallWidth = 10.5*cm;
-        G4double scintiSmallHeight = 11.5*cm;
+    if (IsScintiSmall()||IsScintiBig()) {
+        if (IsScintiSmall()) {
+            G4double scintiSmallThickness = 0.5*cm;
+            G4double scintiSmallWidth = 10.5*cm;
+            G4double scintiSmallHeight = 11.5*cm;
 
-        G4double scintiSmall0OffsetHorizontal = 0*cm;
-        G4double scintiSmall0OffsetVertical = 0*cm;
-        G4VSolid* scintiSmall0Box = new G4Box("scintiSmall0", scintiSmallWidth / 2, scintiSmallHeight / 2, scintiSmallThickness / 2);
-        G4LogicalVolume* scintiSmall0Log = new G4LogicalVolume(scintiSmall0Box, plastic_ancillary, "scintiSmall0_Log");
-        scintiSmall0Log->SetVisAttributes(blue);
-        new G4PVPlacement(nullptr, G4ThreeVector(scintiSmall0OffsetHorizontal, scintiSmall0OffsetVertical, z_scintiSmall0_front + scintiSmallThickness / 2), scintiSmall0Log, "scintiSmall0_Phys", worldLog, false, 0);
+            G4double scintiSmall0OffsetHorizontal = 0*cm;
+            G4double scintiSmall0OffsetVertical = 0*cm;
+            G4VSolid* scintiSmall0Box = new G4Box("scintiSmall0", scintiSmallWidth / 2, scintiSmallHeight / 2, scintiSmallThickness / 2);
+            G4LogicalVolume* scintiSmall0Log = new G4LogicalVolume(scintiSmall0Box, plastic_ancillary, "scintiSmall0_Log");
+            scintiSmall0Log->SetVisAttributes(blue);
+            new G4PVPlacement(nullptr, G4ThreeVector(scintiSmall0OffsetHorizontal, scintiSmall0OffsetVertical, z_scintiSmall0_front + scintiSmallThickness / 2), scintiSmall0Log, "scintiSmall0_Phys", worldLog, false, 0);
 
-        G4double scintiSmall1OffsetHorizontal = 0*cm;
-        G4double scintiSmall1OffsetVertical = -0.25*cm;
-        G4VSolid* scintiSmall1Box = new G4Box("scintiSmall1", scintiSmallWidth / 2, scintiSmallHeight / 2, scintiSmallThickness / 2);
-        G4LogicalVolume* scintiSmall1Log = new G4LogicalVolume(scintiSmall1Box, plastic_ancillary, "scintiSmall1_Log");
-        scintiSmall1Log->SetVisAttributes(blue);
-        new G4PVPlacement(nullptr, G4ThreeVector(scintiSmall1OffsetHorizontal, scintiSmall1OffsetVertical, z_scintiSmall1_front + scintiSmallThickness / 2), scintiSmall1Log, "scintiSmall1_Phys", worldLog, false, 0);
-    }
+            G4double scintiSmall1OffsetHorizontal = 0*cm;
+            G4double scintiSmall1OffsetVertical = -0.25*cm;
+            G4VSolid* scintiSmall1Box = new G4Box("scintiSmall1", scintiSmallWidth / 2, scintiSmallHeight / 2, scintiSmallThickness / 2);
+            G4LogicalVolume* scintiSmall1Log = new G4LogicalVolume(scintiSmall1Box, plastic_ancillary, "scintiSmall1_Log");
+            scintiSmall1Log->SetVisAttributes(blue);
+            new G4PVPlacement(nullptr, G4ThreeVector(scintiSmall1OffsetHorizontal, scintiSmall1OffsetVertical, z_scintiSmall1_front + scintiSmallThickness / 2), scintiSmall1Log, "scintiSmall1_Phys", worldLog, false, 0);
+        }
+        if (IsScintiBig()) {
+            G4double scintiBigThickness = 1*cm;
+            G4double scintiBigWidth = 12*cm;
+            G4double scintiBigHeight = 11*cm;
 
-    if (IsScintiBig()) {
-        G4double scintiBigThickness = 1*cm;
-        G4double scintiBigWidth = 12*cm;
-        G4double scintiBigHeight = 11*cm;
+            G4double scintiBig0OffsetHorizontal = 0*cm;
+            G4double scintiBig0OffsetVertical = -0.4*cm;
+            G4VSolid* scintiBig0Box = new G4Box("scintiBig0", scintiBigWidth / 2, scintiBigHeight / 2, scintiBigThickness / 2);
+            G4LogicalVolume* scintiBig0Log = new G4LogicalVolume(scintiBig0Box, plastic_ancillary, "scintiBig0_Log");
+            scintiBig0Log->SetVisAttributes(blue);
+            new G4PVPlacement(nullptr, G4ThreeVector(scintiBig0OffsetHorizontal, scintiBig0OffsetVertical, z_scintiBig0_front + scintiBigThickness / 2), scintiBig0Log, "scintiBig0_Phys", worldLog, false, 0);
 
-        G4double scintiBig0OffsetHorizontal = 0*cm;
-        G4double scintiBig0OffsetVertical = -0.4*cm;
-        G4VSolid* scintiBig0Box = new G4Box("scintiBig0", scintiBigWidth / 2, scintiBigHeight / 2, scintiBigThickness / 2);
-        G4LogicalVolume* scintiBig0Log = new G4LogicalVolume(scintiBig0Box, plastic_ancillary, "scintiBig0_Log");
-        scintiBig0Log->SetVisAttributes(blue);
-        new G4PVPlacement(nullptr, G4ThreeVector(scintiBig0OffsetHorizontal, scintiBig0OffsetVertical, z_scintiBig0_front + scintiBigThickness / 2), scintiBig0Log, "scintiBig0_Phys", worldLog, false, 0);
-
-        G4double scintiBig1OffsetHorizontal = 0*cm;
-        G4double scintiBig1OffsetVertical = 0*cm;
-        G4VSolid* scintiBig1Box = new G4Box("scintiBig1", scintiBigWidth / 2, scintiBigHeight / 2, scintiBigThickness / 2);
-        G4LogicalVolume* scintiBig1Log = new G4LogicalVolume(scintiBig1Box, plastic_ancillary, "scintiBig1_Log");
-        scintiBig1Log->SetVisAttributes(blue);
-        new G4PVPlacement(nullptr, G4ThreeVector(scintiBig1OffsetHorizontal, scintiBig1OffsetVertical, z_scintiBig1_front + scintiBigThickness / 2), scintiBig1Log, "scintiBig1_Phys", worldLog, false, 0);
-
+            G4double scintiBig1OffsetHorizontal = 0*cm;
+            G4double scintiBig1OffsetVertical = 0*cm;
+            G4VSolid* scintiBig1Box = new G4Box("scintiBig1", scintiBigWidth / 2, scintiBigHeight / 2, scintiBigThickness / 2);
+            G4LogicalVolume* scintiBig1Log = new G4LogicalVolume(scintiBig1Box, plastic_ancillary, "scintiBig1_Log");
+            scintiBig1Log->SetVisAttributes(blue);
+            new G4PVPlacement(nullptr, G4ThreeVector(scintiBig1OffsetHorizontal, scintiBig1OffsetVertical, z_scintiBig1_front + scintiBigThickness / 2), scintiBig1Log, "scintiBig1_Phys", worldLog, false, 0);
+        }
     }
     //// scintillating pads ////
     ////////////////////////////
@@ -531,14 +518,19 @@ void DetectorConstruction::ConstructSDandField()
 
 // DetectorConstruction methods ///////////////////////////////
 
+// tile shapes - FZU - declared in DetectorConstruction.hh
+G4double DetectorConstruction::FZU_fzrel(G4int i){ // longitudinal position of single tiles, relative to front
+    return i*(FZU_thk + FZU_zgap) + FZU_thk/2 + 0.5*mm*floor(i/4); // add 0.5 mm every 4 tiles
+}
+
 // tile shapes - CERN S2 - declared in DetectorConstruction.hh
 G4double DetectorConstruction::S2_fzrel(G4int i){ // longitudinal position of single tiles, relative to front
 	return floor(i/2)*(passive_thk_gross + S2_thk) + passive_thk_gross + S2_thk/2;
 } 
-G4double DetectorConstruction::S2_fxrel(G4int i){ // transverse (x) position of single tiles, relative to centre
+G4double DetectorConstruction::S2_fxrel(G4int i){ // transverse (x) position of single tiles, relative to centre of steel stack
 	return ((i+1)%2 ? -1 : 1) * S2_xgap/2;
 }
-G4double DetectorConstruction::S2_fyrel(G4int i){ // transverse (y) position of single tiles, relative to centre
+G4double DetectorConstruction::S2_fyrel(G4int i){ // transverse (y) position of single tiles, relative to centre of steel stack
 	return 0;
 }
 
@@ -546,9 +538,9 @@ G4double DetectorConstruction::S2_fyrel(G4int i){ // transverse (y) position of 
 G4double DetectorConstruction::S6_fzrel(G4int i) { // longitudinal position of single tiles, relative to front
 	return i*(passive_thk_gross + S6_thk) + passive_thk_gross + S6_thk/2;
 } 
-G4double DetectorConstruction::S6_fxrel(G4int i){ // transverse (x) position of single tiles, relative to centre
+G4double DetectorConstruction::S6_fxrel(G4int i){ // transverse (x) position of single tiles, relative to centre of steel stack
 	return 0;
 }
-G4double DetectorConstruction::S6_fyrel(G4int i){ // transverse (y) position of single tiles, relative to centre
+G4double DetectorConstruction::S6_fyrel(G4int i){ // transverse (y) position of single tiles, relative to centre of steel stack
 	return - passive_h/2 + passive_S6_shift;
 }

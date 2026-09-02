@@ -53,13 +53,13 @@ public:
 	//// application-specific stuff ////
 
     // getters related to private booleans defined below
-    G4bool IsConfigCalib() const { return b_config_calib; }
-    G4bool IsConfigBB() const { return b_config_BB; }
-    G4bool IsConfigCERNS2() const { return b_config_CERN_S2; }
-    G4bool IsConfigCERNS6() const { return b_config_CERN_S6; }
-    G4bool IsConfigCERNS6Upstr1() const { return b_config_CERN_S6_upstr1; }
-    G4bool IsConfigCERNS6Upstr2() const { return b_config_CERN_S6_upstr2; }
-    G4bool IsConfigCERNS6Upstr4() const { return b_config_CERN_S6_upstr4; }
+    G4bool IsConfigCalib() const { return custom->IdConfig() == 0; }
+    G4bool IsConfigBB() const { return custom->IdConfig() == 1; }
+    G4bool IsConfigCERNS2() const { return custom->IdConfig() == 2; }
+    G4bool IsConfigCERNS6() const { return custom->IdConfig() == 3; }
+    G4bool IsConfigCERNS6Upstr1() const { return custom->IdConfig() == 4; }
+    G4bool IsConfigCERNS6Upstr2() const { return custom->IdConfig() == 5; }
+    G4bool IsConfigCERNS6Upstr4() const { return custom->IdConfig() == 6; }
     G4bool IsCERNAny() const { return b_CERN_any; }
     G4bool IsFZU() const { return b_FZU; }
     G4bool IsCERNTrig() const { return b_CERN_trig; }
@@ -133,23 +133,15 @@ private:
     // e.g. void ConstructCalo(G4LogicalVolume* worldLog);
 
     // configuration boleans and other settings
-    G4bool b_CERN_any = true;
-    G4bool b_FZU = true;
-    G4bool b_CERN_trig = true;
-    G4bool b_CERN_S2 = true;
-    G4bool b_CERN_S6 = false;
-    G4bool b_PbGl = true;
-    G4bool b_scinti_big = true;
-    G4bool b_hodo = true;
+    G4bool b_CERN_any;
+    G4bool b_FZU;
+    G4bool b_CERN_trig;
+    G4bool b_CERN_S2;
+    G4bool b_CERN_S6;
+    G4bool b_PbGl;
+    G4bool b_scinti_big;
+    G4bool b_hodo;
 
-    G4int id_config = 0; // redefined in DetectorConstruction.cc (from custom macro parameter)
-    G4bool b_config_calib = true; // redefined in DetectorConstruction.cc (from custom macro parameter)
-    G4bool b_config_BB = false; // redefined in DetectorConstruction.cc (from custom macro parameter)
-    G4bool b_config_CERN_S2 = false; // redefined in DetectorConstruction.cc (from custom macro parameter)
-    G4bool b_config_CERN_S6 = false; // redefined in DetectorConstruction.cc (from custom macro parameter)
-    G4bool b_config_CERN_S6_upstr1 = false; // redefined in DetectorConstruction.cc (from custom macro parameter)
-    G4bool b_config_CERN_S6_upstr2 = false; // redefined in DetectorConstruction.cc (from custom macro parameter)
-    G4bool b_config_CERN_S6_upstr4 = false; // redefined in DetectorConstruction.cc (from custom macro parameter)
     G4bool b_scinti_small = false; // redefined in DetectorConstruction.cc (from custom macro parameter)
     G4bool b_cher = false; // redefined in DetectorConstruction.cc (from custom macro parameter)
 
@@ -167,8 +159,7 @@ private:
     G4double gen_gap = 1*mm; // gap between adjacent tiles (longitudinal, transverse)
     G4double gen_fibreradius = 0.5*mm; // radius of the WLS fibres
     G4double gen_thk = 3*mm; // thickness
-    G4double gen_holeradius = 0*mm; // radius of the pipe/rod hole
-    G4double gen_sidegap = 0*mm; // side reduction to account for the fibres
+    G4double gen_extrafibrelength= 1*cm; // extra length of the WLS fibres outside the tiles
     G4double thk_cher0_cap = 1.4 * mm; // thickness of front/rear caps of 1st Cherenkov
     G4double thk_cher1_cap = 0.25 * mm; // thickness of front/rear caps of 2nd Cherenkov
 
@@ -191,33 +182,34 @@ private:
     G4double passive_trig_shift = 59*mm; // relative vertical shift between passive layers and S2 trigger (half) tiles in CERN stack
 
 	// tile shapes - FZU
-	G4double FZU_ang_x = -90*deg; // angle wrt original x axis
+	G4double FZU_ang_x = 90*deg; // angle wrt original x axis
 	G4double FZU_ang_y = 0*deg; // angle wrt original y axis
 	G4double FZU_ang_z = 0*deg; // angle wrt original z axis
-    G4double FZU_w = 70.5*mm; // short-side width (half-module)
-    G4double FZU_W = 75*mm; // long-side width (half-module)
+    G4double FZU_w = 219*mm/2; // short-side width (half-module)
+    G4double FZU_W = 228.5*mm/2; // long-side width (half-module)
     G4double FZU_h = 97*mm; // height
     G4double FZU_thk = gen_thk; // thickness
     G4double FZU_fibreradius = gen_fibreradius; // radius of the WLS fibres
-    G4double FZU_sidegap = gen_sidegap; // side reduction to account for the fibres
-    G4double FZU_holeradius = gen_holeradius; // radius of the pipe/rod hole
-    G4double FZU_holey = 0; // pipe/rod hole centre y (relative to full-module tile centre)
+    G4double FZU_sidegap = 0.; // side reduction to account for the fibres
+    G4double FZU_holeradius = 4.5*mm; // radius of the pipe/rod hole
+    G4double FZU_holey = 35*mm; // pipe/rod hole centre y (relative to full-module tile centre)
     G4double FZU_holex = 0; // pipe/rod hole centre x (relative to full-module tile centre)
-    G4double FZU_zgap = gen_gap; // longitudinal gap between successive tiles, FZU only
+    G4double FZU_zgap = 1.2*mm; // longitudinal gap between successive tiles, FZU only
+    G4double FZU_fzrel(G4int i); // function for iterative tile placing, defined in DetectorConstruction.cc
 
 	// tile shapes - CERN S2
 	G4double S2_ang_x = 90*deg; // angle wrt original x axis
 	G4double S2_ang_y = 180*deg; // angle wrt original y axis 
 	G4double S2_ang_z = 0*deg; // angle wrt original z axis
-    G4double S2_w = 70.5*mm; // short-side width (half-module)
-    G4double S2_W = 75*mm; // long-side width (half-module)
+    G4double S2_w = 70.7*mm; // short-side width (half-module)
+    G4double S2_W = 75.2*mm; // long-side width (half-module)
     G4double S2_h = 97*mm; // height
     G4double S2_thk = gen_thk; // thickness
     G4double S2_fibreradius = gen_fibreradius; // radius of the WLS fibres
-    G4double S2_sidegap = gen_sidegap; // side reduction to account for the fibres
-    G4double S2_holeradius = gen_holeradius; // radius of the pipe/rod hole
-    G4double S2_holey = S2_h/2 - 6*mm; // pipe/rod hole centre y (relative to full-module tile centre)
-    G4double S2_holex = 6*mm; // pipe/rod hole centre x (relative to full-module tile centre)
+    G4double S2_sidegap = 0.; // side reduction to account for the fibres
+    G4double S2_holeradius = 0.; // radius of the pipe/rod hole
+    G4double S2_holey = 0.; // pipe/rod hole centre y (relative to full-module tile centre)
+    G4double S2_holex = 0.; // pipe/rod hole centre x (relative to full-module tile centre)
     G4double S2_xgap = gen_gap; // transverse (horizontal) gap between adjacent tiles, S2 only 
 	G4double S2_fzrel(G4int i), S2_fxrel(G4int i), S2_fyrel(G4int i); // functions for iterative tile placing, defined in DetectorConstruction.cc
 
@@ -225,15 +217,15 @@ private:
 	G4double S6_ang_x = 90*deg; // angle wrt original x axis
 	G4double S6_ang_y = -90*deg; // angle wrt original y axis
 	G4double S6_ang_z = 0*deg; // angle wrt original z axis
-    G4double S6_w = 91*mm; // short-side width (half-module)
-    G4double S6_W = 100*mm; // long-side width (half-module)
+    G4double S6_w = 91.2*mm; // short-side width (half-module)
+    G4double S6_W = 100.2*mm; // long-side width (half-module)
     G4double S6_h = 187*mm; // height
     G4double S6_thk = gen_thk; // thickness
     G4double S6_fibreradius = gen_fibreradius; // radius of the WLS fibres
-    G4double S6_sidegap = gen_sidegap; // side reduction to account for the fibres
-    G4double S6_holeradius = gen_holeradius; // radius of the pipe/rod hole
-    G4double S6_holey = S6_h/2 - 6*mm; // pipe/rod hole centre y (relative to full-module tile centre)
-    G4double S6_holex = 6*mm; // pipe/rod hole centre x (relative to full-module tile centre)
+    G4double S6_sidegap = 0.; // side reduction to account for the fibres
+    G4double S6_holeradius = 0.; // radius of the pipe/rod hole
+    G4double S6_holey = 0.; // pipe/rod hole centre y (relative to full-module tile centre)
+    G4double S6_holex = 0.; // pipe/rod hole centre x (relative to full-module tile centre)
 	G4double S6_fzrel(G4int i), S6_fxrel(G4int i), S6_fyrel(G4int i); // functions for iterative tile placing, defined in DetectorConstruction.cc
 
     // steel tile shapes

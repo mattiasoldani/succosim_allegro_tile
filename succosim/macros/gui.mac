@@ -1,6 +1,6 @@
 # SET - issue custom commands here
 # vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-
+/custom/IdConfig 1
 # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 # initialise the simulation
@@ -14,6 +14,6 @@
 
 # SET - optional graphical commands (can be commented)
 # --> cartesian reference (at the centre of the world)
-/vis/scene/add/axes 0 0 0
+#/vis/scene/add/axes 0 0 0
 
 # don't shoot anything --> waiting for manual input from the GUI
