@@ -15,5 +15,7 @@
 # SET - optional graphical commands (can be commented)
 # --> cartesian reference (at the centre of the world)
 /vis/scene/add/axes 0 0 0
+# --> default direction of view
+/vis/viewer/set/viewpointVector 1 1 -1
 
 # don't shoot anything --> waiting for manual input from the GUI
