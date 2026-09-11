@@ -4,11 +4,11 @@
 /custom/NPeriods 13
 /custom/NStackedMods 1
 /custom/CoarseRO 3
-/custom/BShowInner false
+/custom/BShowInner true
 /custom/BShowSupport true
-/custom/BShowCatcherFrontBack true
-/custom/BShowCatcherSide true
-/custom/BShowCatcherPhi true
+/custom/BShowCatcherFrontBack false
+/custom/BShowCatcherSide false
+/custom/BShowCatcherPhi false
 # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 # initialise the simulation
@@ -22,6 +22,8 @@
 
 # SET - optional graphical commands (can be commented)
 # --> cartesian reference (at the centre of the world)
-/vis/scene/add/axes 0 0 0
+#/vis/scene/add/axes 0 0 0
+# --> default direction of view
+/vis/viewer/set/viewpointVector 1 1 -1
 
 # don't shoot anything --> waiting for manual input from the GUI
