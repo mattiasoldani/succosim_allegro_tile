@@ -9,6 +9,10 @@
 /custom/BShowCatcherFrontBack false
 /custom/BShowCatcherSide false
 /custom/BShowCatcherPhi false
+/custom/StackRotationY 0
+/custom/StackTranslationX 0
+/custom/StackTranslationY 0
+/custom/StackTranslationZ 0
 # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 # initialise the simulation

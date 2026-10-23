@@ -26,6 +26,10 @@ public:
     G4int NPeriods() const { return n_periods; }
     G4int NLayers() const { return n_layers; }
     G4int NStackedMods() const { return n_stacked_mods; }
+    G4double StackRotationY() const { return stack_rotation_y; }
+    G4double StackTranslationX() const { return stack_translation_x; }
+    G4double StackTranslationY() const { return stack_translation_y; }
+    G4double StackTranslationZ() const { return stack_translation_z; }
     G4int CoarseRO() const { return coarse_ro; }
     G4bool BPlaceSupport() const { return b_place_support; }
     G4bool BShowInner() const { return b_show_inner; }
@@ -47,6 +51,10 @@ private:
     G4int n_periods = 13;
     G4int n_layers = 13;
     G4int n_stacked_mods = 1;
+    G4double stack_rotation_y = 0.;
+    G4double stack_translation_x = 0.;
+    G4double stack_translation_y = 0.;
+    G4double stack_translation_z = 0.;
     G4int coarse_ro = 3;
     G4bool b_place_support = true;
     G4bool b_show_inner = true;

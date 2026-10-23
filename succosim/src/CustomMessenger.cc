@@ -52,6 +52,26 @@ CustomMessenger::CustomMessenger()
         "nr. of modules stacked on top of each other beamtest style - int"
     );
 
+    fMessenger->DeclarePropertyWithUnit(
+        "StackRotationY", "deg", stack_rotation_y,
+        "whole-stack rotation about world y through the envelope centre; positive angles turn +z towards +x - deg"
+    ).SetStates(G4State_PreInit);
+
+    fMessenger->DeclarePropertyWithUnit(
+        "StackTranslationX", "mm", stack_translation_x,
+        "whole-stack translation along world x, applied after StackRotationY - mm"
+    ).SetStates(G4State_PreInit);
+
+    fMessenger->DeclarePropertyWithUnit(
+        "StackTranslationY", "mm", stack_translation_y,
+        "whole-stack translation along world y, applied after StackTranslationX - mm"
+    ).SetStates(G4State_PreInit);
+
+    fMessenger->DeclarePropertyWithUnit(
+        "StackTranslationZ", "m", stack_translation_z,
+        "additional whole-stack shift along world z, applied after StackTranslationY; positive values move downstream - m"
+    ).SetStates(G4State_PreInit);
+
     // readout granularity of each module:
     // - 0: single-element readout, support read out separately
     // - 1: scintillator-only single-element readout, support read out separately

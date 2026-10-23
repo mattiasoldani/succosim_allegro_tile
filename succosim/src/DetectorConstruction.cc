@@ -76,8 +76,19 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     for (G4int i = 0; i < n_stacked_mods; i++) {
         modules[i] = new fullTileCalModule("M" + std::to_string(i), module_config);
 
+        // rotate stack around central vertical axis --> translate along world x, y --> add longitudinal shift (world z)
+        const G4ThreeVector stack_centre(0, 0, zshift + modules[i]->GetModRadialEnv()/2);
+        const G4Transform3D stack_transform =
+            G4Translate3D(G4ThreeVector(0, 0, custom->StackTranslationZ()))*
+            G4Translate3D(G4ThreeVector(0, custom->StackTranslationY(), 0))*
+            G4Translate3D(G4ThreeVector(custom->StackTranslationX(), 0, 0))*
+            G4Translate3D(stack_centre)*
+            G4Rotate3D(custom->StackRotationY(), G4Vector3D(0,1,0))*
+            G4Translate3D(-stack_centre);
+
         G4double ang_x_temp = ((2*i - n_stacked_mods + 1) / 2.) * modules[i]->GetModDPhi();
         pos_rot_temp =     
+            stack_transform*
             G4Translate3D(G4ThreeVector(0, 0, zshift))*
             G4Translate3D(G4ThreeVector(0, -sin(ang_x_temp) * modules[i]->GetModRadialEnv()/2, cos(ang_x_temp) * modules[i]->GetModRadialEnv()/2))*   
             G4Translate3D(G4ThreeVector(0, 0, -modules[i]->GetModRMinEnv()))*
