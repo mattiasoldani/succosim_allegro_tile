@@ -354,12 +354,14 @@ DetectorConstruction::fullTileCalModule::fullTileCalModule(
       hole_x(config.hole_x), // x position of the pipe/rod holes in the tiles
       hole_y(config.hole_y), // y position of the pipe/rod holes in the tiles
       l_fibre_extra(config.l_fibre_extra), // out-of-tile extra length of the fibre towards the drawer
+      tyvek_thk(config.tyvek_thk), // thickness of the Tyvek sheets
 
       // material settings - to be set, optional
       mat_passive(config.mat_passive),
       mat_support(config.mat_support),
       mat_scintillator(config.mat_scintillator),
       mat_fibre(config.mat_fibre),
+      mat_tyvek(config.mat_tyvek),
       mat_envelope(config.mat_envelope),
       mat_catcher(config.mat_catcher),
 
@@ -368,6 +370,7 @@ DetectorConstruction::fullTileCalModule::fullTileCalModule(
       col_support(config.col_support),
       col_scintillator(config.col_scintillator),
       col_fibre(config.col_fibre),
+      col_tyvek(config.col_tyvek),
       col_envelope(config.col_envelope),
       col_catcher_front_back(config.col_catcher_front_back),
       col_catcher_side(config.col_catcher_side),
@@ -581,7 +584,7 @@ void DetectorConstruction::fullTileCalModule::CreateLog(){
                     new G4PVPlacement(nullptr, pos_temp, tilLogTemp, til_name, modEnvLog, false, 2*(i*n_layers+j)+k);
                     sciLogs[q_sci] = tilLogTemp;
                     fibreLogs[q_sci++] = DetectorConstruction::fLogPlaceFibreCirc(fibre_name, mat_fibre, col_fibre, tilGeom, modEnvLog, fibre_r, 0, l_fibre_extra, pos_temp, nullptr, til_sign);
-                    tyvekLogs[q_sci++] = DetectorConstruction::fLogPlaceTyvekSleeve(tyvek_name, mat_support, col_support, tilGeom, modEnvLog, fibre_profile_thk, 0.1*mm, pos_temp, nullptr, til_sign);
+                    tyvekLogs[q_sci++] = DetectorConstruction::fLogPlaceTyvekSleeve(tyvek_name, mat_tyvek, col_tyvek, tilGeom, modEnvLog, til_thk, tyvek_thk, pos_temp, nullptr, til_sign);
                 }
             }
             tilGeom->RmHorGaps();

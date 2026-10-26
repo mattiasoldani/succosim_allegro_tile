@@ -295,7 +295,8 @@ class fullTileCalModule {
             G4Material* mat_passive = G4NistManager::Instance()->FindOrBuildMaterial("G4_STAINLESS-STEEL");
             G4Material* mat_support = G4NistManager::Instance()->FindOrBuildMaterial("G4_STAINLESS-STEEL");
             G4Material* mat_scintillator = G4NistManager::Instance()->FindOrBuildMaterial("G4_POLYSTYRENE");
-            G4Material* mat_fibre = G4NistManager::Instance()->FindOrBuildMaterial("G4_POLYSTYRENE");
+            G4Material* mat_fibre = G4NistManager::Instance()->FindOrBuildMaterial("G4_POLYSTYRENE"); // note: this is rather basic, should be improved when creating an instance
+            G4Material* mat_tyvek = G4NistManager::Instance()->FindOrBuildMaterial("G4_POLYETHYLENE"); // note: this is rather basic, should be improved when creating an instance
             G4Material* mat_envelope = G4NistManager::Instance()->FindOrBuildMaterial("G4_Galactic");
             G4Material* mat_catcher = G4NistManager::Instance()->FindOrBuildMaterial("G4_Galactic");
 
@@ -304,6 +305,7 @@ class fullTileCalModule {
             G4VisAttributes* col_support = new G4VisAttributes(G4Colour::Grey());
             G4VisAttributes* col_scintillator = new G4VisAttributes(G4Colour::Cyan());
             G4VisAttributes* col_fibre = new G4VisAttributes(G4Colour::Green());
+            G4VisAttributes* col_tyvek = new G4VisAttributes(G4Colour::White());
             G4VisAttributes* col_envelope = new G4VisAttributes(false);
             G4VisAttributes* col_catcher_front_back = new G4VisAttributes(false);
             G4VisAttributes* col_catcher_side = new G4VisAttributes(false);
@@ -417,6 +419,7 @@ class fullTileCalModule {
         G4double GetHoleX() { return hole_x; } // x position of the pipe/rod holes in the tiles
         G4double GetHoleY() { return hole_y; } // y position of the pipe/rod holes in the tiles
         G4double GetLFibreExtra() { return l_fibre_extra; } // out-of-tile extra length of the fibre towards the drawer
+        G4double GetTyvekThk() { return tyvek_thk; } // thickness of the Tyvek sheets
 
     private:
         // defined in DetectorConstruction_tile.cc
@@ -531,12 +534,14 @@ class fullTileCalModule {
         G4double hole_x; // x position of the pipe/rod holes in the tiles
         G4double hole_y; // y position of the pipe/rod holes in the tiles
         G4double l_fibre_extra; // out-of-tile extra length of the fibre towards the drawer
+        G4double tyvek_thk; // thickness of the Tyvek sheets
 
         // material settings - to be set, optional
         G4Material* mat_passive;
         G4Material* mat_support;
         G4Material* mat_scintillator;
         G4Material* mat_fibre;
+        G4Material* mat_tyvek;
         G4Material* mat_envelope;
         G4Material* mat_catcher;
 
@@ -545,6 +550,7 @@ class fullTileCalModule {
         G4VisAttributes* col_support;
         G4VisAttributes* col_scintillator;
         G4VisAttributes* col_fibre;
+        G4VisAttributes* col_tyvek;
         G4VisAttributes* col_envelope;
         G4VisAttributes* col_catcher_front_back;
         G4VisAttributes* col_catcher_side;
