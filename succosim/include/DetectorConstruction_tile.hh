@@ -187,6 +187,31 @@ static G4LogicalVolume* fLogPlaceFibreCirc( // defined in DetectorConstruction_t
     G4int signHalf
 );
 
+static G4LogicalVolume* fLogPlaceTyvekSleeve( // defined in DetectorConstruction_tile.cc
+    G4String name,
+    G4Material* pMaterial,
+    G4VisAttributes* pColour,
+    geomTrapezoid* pTileGeom,
+    G4LogicalVolume* pEnvelope,
+    G4double dThk,
+    G4double thkSheet,
+    G4ThreeVector tilePos,
+    G4RotationMatrix* pTileRot,
+    G4int signHalf
+);
+
+static G4LogicalVolume* fLogPlaceTyvekSleeve( // defined in DetectorConstruction_tile.cc
+    G4String name,
+    G4Material* pMaterial,
+    G4VisAttributes* pColour,
+    geomTrapezoid* pTileGeom,
+    G4LogicalVolume* pEnvelope,
+    G4double dThk,
+    G4double thkSheet,
+    G4Transform3D tilePosRot,
+    G4int signHalf
+);
+
 // all about full TileCal modules
 class fullTileCalModule {
     public:
@@ -264,6 +289,7 @@ class fullTileCalModule {
             G4double hole_x = 0; // x position of the pipe/rod holes in the tiles
             G4double hole_y = 0; // y position of the pipe/rod holes in the tiles
             G4double l_fibre_extra = 0.5*cm; // out-of-tile extra length of the fibre towards the drawer
+            G4double tyvek_thk = 185*um; // thickness of the Tyvek sheets
 
             // material settings - to be set, optional
             G4Material* mat_passive = G4NistManager::Instance()->FindOrBuildMaterial("G4_STAINLESS-STEEL");
@@ -412,6 +438,7 @@ class fullTileCalModule {
         G4LogicalVolume* spcLogs[NPERIODSMAX*NLAYERSMAX] = {};
         G4LogicalVolume* sciLogs[NPERIODSMAX*NLAYERSMAX*2] = {};
         G4LogicalVolume* fibreLogs[NPERIODSMAX*NLAYERSMAX*2] = {};
+        G4LogicalVolume* tyvekLogs[NPERIODSMAX*NLAYERSMAX*2] = {};
 
         // module creation logical volumes, envelope and external catchers - output
         geomTrapezoid* modEnvGeom = nullptr;

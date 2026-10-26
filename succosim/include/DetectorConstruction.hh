@@ -84,8 +84,11 @@ private:
     G4Material* silicon = nist->FindOrBuildMaterial("G4_Si"); 
     G4Material* iron = nist->FindOrBuildMaterial("G4_Fe");
     G4Material* tungsten = nist->FindOrBuildMaterial("G4_W");
+
+    // default manual materials (created here)
     G4Material* co2 = new G4Material("CO2", 1.977*273.*mg/cm3/293., 2); // default manual material: CO2 - elements added in DetectorConstruction.cc
     G4Material* bc400 = new G4Material("BC400", 1.032*g/cm3, 2); // default manual material: BC400 (plastic scintillator) - elements added in DetectorConstruction.cc
+    G4Material* tyvek = new G4Material("Tyvek1060B", 0.330*g/cm3, 2); // default manual material: Tyvek 1060B (polyethylene-based) - elements added in DetectorConstruction.cc - https://www.dupont.co.uk/content/dam/dupont/amer/us/en/performance-building-solutions/public/documents/en/UK-en-TDS-1060B.pdf
 
 	// generic translation and roto-translation, for element-by-element use
 	G4ThreeVector pos_temp;
@@ -114,6 +117,7 @@ private:
     G4double rot_x_ang = -90*deg;
     G4double rot_y_ang = 0*deg;
     G4double rot_z_ang = 0*deg;
+    G4double tyvekthickness = 185*um;
 	
     // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 	
