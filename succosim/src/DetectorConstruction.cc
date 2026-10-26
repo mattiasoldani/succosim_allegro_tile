@@ -29,6 +29,10 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     bc400->AddElement(elH, 0.085);
     bc400->AddElement(elC, 0.915);
 
+    // adding elements to default manual material: Tyvek 1060B (polyethylene-based) - created in DetectorConstruction.hh
+    tyvek->AddElement(elC, 1);
+    tyvek->AddElement(elH, 2);
+
     // world
     G4RotationMatrix* worldRotation = new G4RotationMatrix();
     G4VSolid* worldBox = new G4Box("world_Shape", worldSizeX / 2, worldSizeY / 2, worldSizeZ / 2);
@@ -52,6 +56,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     G4VisAttributes* col_support = custom->BShowSupport() ? magenta : invisible;
     G4VisAttributes* col_scintillator = custom->BShowInner() ? cyan : invisible;
     G4VisAttributes* col_fibre = custom->BShowInner() ? green : invisible;
+    G4VisAttributes* col_tyvek = custom->BShowInner() ? white : invisible;
     G4VisAttributes* col_envelope = invisible;
     G4VisAttributes* col_catcher_front_back = custom->BShowCatcherFrontBack() ? green : invisible;
     G4VisAttributes* col_catcher_side = custom->BShowCatcherSide() ? green : invisible;
@@ -60,15 +65,24 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     G4Material* mat_support = SS;
     G4Material* mat_scintillator = plastic;
     G4Material* mat_fibre = plastic;
+    G4Material* mat_tyvek = tyvek;
     G4Material* mat_envelope = vacuum;
     G4Material* mat_catcher = vacuum;
 
     // actual creation and placement of prototype stack
     fullTileCalModule::ModConfig module_config = {n_periods, n_layers, coarse_ro, b_place_support};
+    module_config.mat_passive = mat_passive;
+    module_config.mat_support = mat_support;
+    module_config.mat_scintillator = mat_scintillator;
+    module_config.mat_fibre = mat_fibre;
+    module_config.mat_tyvek = mat_tyvek;
+    module_config.mat_envelope = mat_envelope;
+    module_config.mat_catcher = mat_catcher;
     module_config.col_passive = col_passive;
     module_config.col_support = col_support;
     module_config.col_scintillator = col_scintillator;
     module_config.col_fibre = col_fibre;
+    module_config.col_tyvek = col_tyvek;
     module_config.col_catcher_front_back = col_catcher_front_back;
     module_config.col_catcher_side = col_catcher_side;
     module_config.col_catcher_phi = col_catcher_phi;
