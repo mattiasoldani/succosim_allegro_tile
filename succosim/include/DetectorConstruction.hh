@@ -115,8 +115,12 @@ private:
     G4Material* silicon = nist->FindOrBuildMaterial("G4_Si"); 
     G4Material* iron = nist->FindOrBuildMaterial("G4_Fe");
     G4Material* tungsten = nist->FindOrBuildMaterial("G4_W");
+
+    // default manual materials (created here)
     G4Material* co2 = new G4Material("CO2", 1.977*273.*mg/cm3/293., 2); // default manual material: CO2 - elements added in DetectorConstruction.cc
     G4Material* bc400 = new G4Material("BC400", 1.032*g/cm3, 2); // default manual material: BC400 (plastic scintillator) - elements added in DetectorConstruction.cc
+    G4Material* tyvek = new G4Material("Tyvek1060B", 0.330*g/cm3, 2); // default manual material: Tyvek 1060B (polyethylene-based) - elements added in DetectorConstruction.cc - https://www.dupont.co.uk/content/dam/dupont/amer/us/en/performance-building-solutions/public/documents/en/UK-en-TDS-1060B.pdf
+
 
 	// generic translation and roto-translation, for element-by-element use
 	G4ThreeVector pos_temp;
@@ -158,8 +162,9 @@ private:
     // misc general stuff
     G4double gen_gap = 1*mm; // gap between adjacent tiles (longitudinal, transverse)
     G4double gen_fibreradius = 0.5*mm; // radius of the WLS fibres
+    G4double gen_tyvekthk = 0.185*mm; // thickness of the Tyvek sheets
     G4double gen_thk = 3*mm; // thickness
-    G4double gen_extrafibrelength= 1*cm; // extra length of the WLS fibres outside the tiles
+    G4double gen_extrafibrelength = 1*cm; // extra length of the WLS fibres outside the tiles
     G4double thk_cher0_cap = 1.4 * mm; // thickness of front/rear caps of 1st Cherenkov
     G4double thk_cher1_cap = 0.25 * mm; // thickness of front/rear caps of 2nd Cherenkov
 
@@ -190,6 +195,7 @@ private:
     G4double FZU_h = 97*mm; // height
     G4double FZU_thk = gen_thk; // thickness
     G4double FZU_fibreradius = gen_fibreradius; // radius of the WLS fibres
+    G4double FZU_tyvekthk = gen_tyvekthk; // thickness of the Tyvek sheets
     G4double FZU_sidegap = 0.; // side reduction to account for the fibres
     G4double FZU_holeradius = 4.5*mm; // radius of the pipe/rod hole
     G4double FZU_holey = 35*mm; // pipe/rod hole centre y (relative to full-module tile centre)
@@ -206,6 +212,7 @@ private:
     G4double S2_h = 97*mm; // height
     G4double S2_thk = gen_thk; // thickness
     G4double S2_fibreradius = gen_fibreradius; // radius of the WLS fibres
+    G4double S2_tyvekthk = gen_tyvekthk; // thickness of the Tyvek sheets
     G4double S2_sidegap = 0.; // side reduction to account for the fibres
     G4double S2_holeradius = 0.; // radius of the pipe/rod hole
     G4double S2_holey = 0.; // pipe/rod hole centre y (relative to full-module tile centre)
@@ -222,6 +229,7 @@ private:
     G4double S6_h = 187*mm; // height
     G4double S6_thk = gen_thk; // thickness
     G4double S6_fibreradius = gen_fibreradius; // radius of the WLS fibres
+    G4double S6_tyvekthk = gen_tyvekthk; // thickness of the Tyvek sheets
     G4double S6_sidegap = 0.; // side reduction to account for the fibres
     G4double S6_holeradius = 0.; // radius of the pipe/rod hole
     G4double S6_holey = 0.; // pipe/rod hole centre y (relative to full-module tile centre)

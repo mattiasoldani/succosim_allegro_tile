@@ -29,6 +29,10 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
     bc400->AddElement(elH, 0.085);
     bc400->AddElement(elC, 0.915);
 
+    // adding elements to default manual material: Tyvek 1060B (polyethylene-based) - created in DetectorConstruction.hh
+    tyvek->AddElement(elC, 1);
+    tyvek->AddElement(elH, 2);
+
     // world
     G4RotationMatrix* worldRotation = new G4RotationMatrix();
     G4VSolid* worldBox = new G4Box("world_Shape", worldSizeX / 2, worldSizeY / 2, worldSizeZ / 2);
@@ -58,6 +62,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 
         G4LogicalVolume* FZU_lvols[TILEFZU_N];
         G4LogicalVolume* FZU_lvols_fibres[2*TILEFZU_N];
+        G4LogicalVolume* FZU_lvols_tyvek[TILEFZU_N];
 
         FZU_geom->AddHorGaps(FZU_sidegap);
 
@@ -65,6 +70,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 
             G4String FZUName = "FZU" + std::to_string(i);
             G4String FZUfibreName = "FZU_fibre" + std::to_string(i);
+            G4String FZUtyvekName = "FZU_tyvek" + std::to_string(i);
 
             // tiles...
 
@@ -76,6 +82,9 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
             // ... + fibres - keeping left and right separate
             FZU_lvols_fibres[2*i] = fLogPlaceFibreCirc(FZUfibreName, plastic_fibre, green, FZU_geom, worldLog, FZU_fibreradius, gen_extrafibrelength, 0., pos_rot_temp, -1);
             FZU_lvols_fibres[2*i+1] = fLogPlaceFibreCirc(FZUfibreName, plastic_fibre, green, FZU_geom, worldLog, FZU_fibreradius, gen_extrafibrelength, 0., pos_rot_temp, 1);
+
+            // ... + Tyvek sleeves
+            FZU_lvols_tyvek[i] = fLogPlaceTyvekSleeve(FZUtyvekName, tyvek, white, FZU_geom, worldLog, FZU_thk, FZU_tyvekthk, pos_rot_temp, 0);
         }
 
         FZU_geom->RmHorGaps();
@@ -97,6 +106,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 
         G4LogicalVolume* tileCernTrigger_lvols[2];
         G4LogicalVolume* tileCernTrigger_lvols_fibres[2];
+        G4LogicalVolume* tileCernTrigger_lvols_tyvek[2];
 
         tileCernTrigger_geom->AddHorGaps(S2_sidegap);
 
@@ -104,6 +114,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 
             G4String tileTriggerName = "tileCernTrigger" + std::to_string(i);
             G4String fibreTriggerName = "tileCernTrigger_fibre" + std::to_string(i);
+            G4String tyvekTriggerName = "tileCernTrigger_tyvek" + std::to_string(i);
 
             G4double z_temp = (IsConfigBB()) ? z_FZU_rear + (i==0 ? 17.5*cm : 51.5*cm) : (z_tileCern_front - i*(S2_thk + gen_gap) - S2_thk/2);
 
@@ -116,6 +127,8 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
             // ... + fibres
             tileCernTrigger_lvols_fibres[i] = fLogPlaceFibreCirc(fibreTriggerName, plastic_fibre, green, tileCernTrigger_geom, worldLog, S2_fibreradius, 0., gen_extrafibrelength, pos_rot_temp, tileCernTrigger_sign);
 
+            // ... + Tyvek sleeves
+            tileCernTrigger_lvols_tyvek[i] = fLogPlaceTyvekSleeve(tyvekTriggerName, tyvek, white, tileCernTrigger_geom, worldLog, S2_thk, S2_tyvekthk, pos_rot_temp, tileCernTrigger_sign);
         }
 
         tileCernTrigger_geom->RmHorGaps();
@@ -138,6 +151,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
         G4double tileCern_h;
         G4double tileCern_thk;
         G4double tileCern_fibreradius;
+        G4double tileCern_tyvekthk;
         G4double tileCern_sidegap;
         G4double tileCern_holeradius;
         G4double tileCern_holey;
@@ -155,6 +169,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
             tileCern_h = S6_h;
             tileCern_thk = S6_thk;
             tileCern_fibreradius = S6_fibreradius;
+            tileCern_tyvekthk = S6_tyvekthk;
             tileCern_sidegap = S6_sidegap;
             tileCern_holeradius = S6_holeradius;
             tileCern_holey = S6_holey;
@@ -168,6 +183,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
             tileCern_h = S2_h;
             tileCern_thk = S2_thk;
             tileCern_fibreradius = S2_fibreradius;
+            tileCern_tyvekthk = S2_tyvekthk;
             tileCern_sidegap = S2_sidegap;
             tileCern_holeradius = S2_holeradius;
             tileCern_holey = S2_holey;
@@ -184,6 +200,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
         G4LogicalVolume* tileCern_lvols[TILECERN_N];
         G4LogicalVolume* tileCern_lvols_fibres[TILECERN_N];
         G4LogicalVolume* tileCern_lvols_passive[2*TILECERN_N];
+        G4LogicalVolume* tileCern_lvols_tyvek[TILECERN_N];
 
         tileCern_geom->AddHorGaps(tileCern_sidegap);
 
@@ -194,6 +211,7 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
             G4String passiveName = "tileCern_passive" + std::to_string(i);
             G4String tileName = "tileCern" + std::to_string(i);
             G4String fibreName = "tileCern_fibre" + std::to_string(i);
+            G4String tyvekName = "tileCern_tyvek" + std::to_string(i);
 
             // passive layers
             pos_temp = G4ThreeVector(0, tileCern_beamref_shift, z_tileCern_front + tileCern_fzrel(i) - (passive_thk_gross + tileCern_thk)/2 - (passive_thk_gross - 2*passive_thk_gap - passive_thk_u)/2);
@@ -214,6 +232,9 @@ G4VPhysicalVolume* DetectorConstruction::Construct()
 
             // ... + fibres
             tileCern_lvols_fibres[i] = fLogPlaceFibreCirc(fibreName, plastic_fibre, green, tileCern_geom, worldLog, tileCern_fibreradius, 0., gen_extrafibrelength, pos_rot_temp, tileCern_sign);
+
+            // ... + Tyvek sleeves
+            tileCern_lvols_tyvek[i] = fLogPlaceTyvekSleeve(tyvekName, tyvek, white, tileCern_geom, worldLog, tileCern_thk, tileCern_tyvekthk, pos_rot_temp, tileCern_sign);
         }
 
         tileCern_geom->RmHorGaps();

@@ -18,6 +18,7 @@
 #include <G4StepPoint.hh>
 #include <G4StepStatus.hh>
 
+#include <algorithm>
 #include <cstdlib>
 #include <cmath>
 #include <iomanip>
@@ -200,10 +201,6 @@ G4LogicalVolume* DetectorConstruction::fLogPlaceFibreCirc(
     G4LogicalVolume* logvol = new G4LogicalVolume(shape, pMaterial, name_log);
     logvol->SetVisAttributes(pColour);
 
-    // placement of the physical volume
-    G4NistManager* nist = G4NistManager::Instance();
-	G4Material* air = nist->FindOrBuildMaterial("G4_AIR");
-
     G4String name_phys = name + "_Phys";
 
     G4double tilt = pTileGeom->GetTheta()/2;
@@ -216,9 +213,7 @@ G4LogicalVolume* DetectorConstruction::fLogPlaceFibreCirc(
     G4int sign;
     G4int sign0 = signHalf ? ((signHalf > 0) ? 1 : -1) : 0;
     G4int isignlim = signHalf ? 0 : 1;
-
-    // G4VSolid* envelopeInternalBox = new G4Box(name + "_Shape_EnvIntNoRot", 0.5*(pTileGeom->GetDHor_t() + sectionR), sectionR/2, length_total/2);
-    // G4LogicalVolume* pEnvelopeInternal = new G4LogicalVolume(envelopeInternalBox, air, name + "_Log_EnvIntNoRot");
+    
     geomTrapezoid pTileGeomExtended = *pTileGeom;
     pTileGeomExtended.SetDHor_b(true, pTileGeom->GetDHor_b() + sectionR/cos(tilt) * (signHalf ? 2 : 4));
     pTileGeomExtended.SetDHor_t(true, pTileGeom->GetDHor_t() + sectionR/cos(tilt) * (signHalf ? 2 : 4));
@@ -243,6 +238,67 @@ G4LogicalVolume* DetectorConstruction::fLogPlaceFibreCirc(
     new G4PVPlacement(tilePosRot, pEnvelopeInternal, name_phys, pEnvelope, false, 0);
 
     return logvol;
+}
+
+// create and place the Tyvek sleeve around the tile
+// overloaded version using G4ThreeVector+G4RotationMatrix* for envelope roto-translation instead of G4Transform3D, for back-compatibility
+G4LogicalVolume* DetectorConstruction::fLogPlaceTyvekSleeve(
+    G4String name,
+    G4Material* pMaterial,
+    G4VisAttributes* pColour,
+    geomTrapezoid* pTileGeom,
+    G4LogicalVolume* pEnvelope,
+    G4double dThk,
+    G4double thkSheet,
+    G4ThreeVector tilePos,
+    G4RotationMatrix* pTileRot = nullptr,    G4int signHalf = 0
+){
+	G4Transform3D tilePosRot = pTileRot
+        ? G4Translate3D(tilePos) * G4Rotate3D(*pTileRot)
+        : G4Translate3D(tilePos);
+		
+	return fLogPlaceTyvekSleeve(name, pMaterial, pColour, pTileGeom, pEnvelope, dThk, thkSheet, tilePosRot, signHalf);
+}
+
+// create and place the Tyvek sleeve around the tile
+G4LogicalVolume* DetectorConstruction::fLogPlaceTyvekSleeve(
+    G4String name,
+    G4Material* pMaterial,
+    G4VisAttributes* pColour,
+    geomTrapezoid* pTileGeom,
+    G4LogicalVolume* pEnvelope,
+    G4double dThk,
+    G4double thkSheet,
+    G4Transform3D tilePosRot,
+    G4int signHalf = 0
+){
+    const G4int sign0 = signHalf ? ((signHalf > 0) ? 1 : -1) : 0;
+    const G4double halfThickness = dThk/2 + thkSheet;
+    const G4double halfHeight = pTileGeom->GetDVer()/2;
+    const G4double halfWidthBottom = pTileGeom->GetDHor_b()/2;
+    const G4double halfWidthTop = pTileGeom->GetDHor_t()/2;
+    const G4double slope = (halfWidthTop - halfWidthBottom)/(2*halfHeight);
+
+    G4VSolid* shapeOuter = new G4Trd(name + "_Outer", halfWidthBottom - slope*thkSheet, halfWidthTop + slope*thkSheet, halfThickness, halfThickness, halfHeight + thkSheet);
+
+    const G4double cutterWidth = 2*(std::max(halfWidthBottom, halfWidthTop) + std::abs(slope)*thkSheet + thkSheet);
+    G4VSolid* shapeCavity;
+    G4ThreeVector cavityPosition;
+    if (sign0) { // if half module, also cover the tile-tile contact edge
+        G4VSolid* halfBox = new G4Box(name + "_HalfClip", (cutterWidth + thkSheet)/2, halfThickness + thkSheet, halfHeight + 2*thkSheet);
+        shapeOuter = new G4IntersectionSolid(name + "_HalfOuter", shapeOuter, halfBox, nullptr, G4ThreeVector(sign0*(cutterWidth - thkSheet)/2, 0., 0.));
+        shapeCavity = new G4Box(name + "_Cavity", cutterWidth/2, dThk/2, halfHeight);
+        cavityPosition = G4ThreeVector(sign0*cutterWidth/2, 0., 0.);
+    } else {
+        shapeCavity = new G4Box(name + "_Cavity", cutterWidth, dThk/2, halfHeight);
+    }
+    G4VSolid* shapeTot = new G4SubtractionSolid(name + "_Shape", shapeOuter, shapeCavity, nullptr, cavityPosition);
+
+    G4LogicalVolume* sleeveLog = new G4LogicalVolume(shapeTot, pMaterial, name + "_Log");
+    sleeveLog->SetVisAttributes(pColour);
+
+    new G4PVPlacement(tilePosRot, sleeveLog, name + "_Sleeve_Phys", pEnvelope, false, 0, true);
+    return sleeveLog;
 }
 
 // fullTileCalModule methods //////////////////////////////////
@@ -298,12 +354,14 @@ DetectorConstruction::fullTileCalModule::fullTileCalModule(
       hole_x(config.hole_x), // x position of the pipe/rod holes in the tiles
       hole_y(config.hole_y), // y position of the pipe/rod holes in the tiles
       l_fibre_extra(config.l_fibre_extra), // out-of-tile extra length of the fibre towards the drawer
+      tyvek_thk(config.tyvek_thk), // thickness of the Tyvek sheets
 
       // material settings - to be set, optional
       mat_passive(config.mat_passive),
       mat_support(config.mat_support),
       mat_scintillator(config.mat_scintillator),
       mat_fibre(config.mat_fibre),
+      mat_tyvek(config.mat_tyvek),
       mat_envelope(config.mat_envelope),
       mat_catcher(config.mat_catcher),
 
@@ -312,6 +370,7 @@ DetectorConstruction::fullTileCalModule::fullTileCalModule(
       col_support(config.col_support),
       col_scintillator(config.col_scintillator),
       col_fibre(config.col_fibre),
+      col_tyvek(config.col_tyvek),
       col_envelope(config.col_envelope),
       col_catcher_front_back(config.col_catcher_front_back),
       col_catcher_side(config.col_catcher_side),
@@ -504,8 +563,7 @@ void DetectorConstruction::fullTileCalModule::CreateLog(){
             til_mat = b_spc ? mat_passive : mat_scintillator;
 
             geomTrapezoid* tilGeom = new geomTrapezoid(til_r, til_hgt, mod_dphi);
-            G4String til_name;
-            G4String fibre_name;
+            G4String til_name, fibre_name, tyvek_name;
 
             G4double til_sidegap_extra = b_spc ? 0 : inner_gap/2; // extra side gap for scintillating tiles to account for central gap
             tilGeom->AddHorGaps(til_sidegap + til_sidegap_extra*cos(tilGeom->GetTheta()));
@@ -520,11 +578,13 @@ void DetectorConstruction::fullTileCalModule::CreateLog(){
                     G4int til_sign = k ? -1 : 1;
                     til_name = mod_id + "_L" + std::to_string(j) + "_P" + std::to_string(iperiod) + "_Scintillator" + std::to_string(k);
                     fibre_name = mod_id + "_L" + std::to_string(j) + "_P" + std::to_string(iperiod) + "_Fibre" + std::to_string(k);
+                    tyvek_name = mod_id + "_L" + std::to_string(j) + "_P" + std::to_string(iperiod) + "_Tyvek" + std::to_string(k);
                     tilLogTemp = DetectorConstruction::fLogTile(til_name, til_mat , til_col, tilGeom, til_thk, til_sign, hole_r, hole_x, hole_y);
                     pos_temp = G4ThreeVector(til_sign*inner_gap/2, til_transv(i), til_r_rel);
                     new G4PVPlacement(nullptr, pos_temp, tilLogTemp, til_name, modEnvLog, false, 2*(i*n_layers+j)+k);
                     sciLogs[q_sci] = tilLogTemp;
                     fibreLogs[q_sci++] = DetectorConstruction::fLogPlaceFibreCirc(fibre_name, mat_fibre, col_fibre, tilGeom, modEnvLog, fibre_r, 0, l_fibre_extra, pos_temp, nullptr, til_sign);
+                    tyvekLogs[q_sci++] = DetectorConstruction::fLogPlaceTyvekSleeve(tyvek_name, mat_tyvek, col_tyvek, tilGeom, modEnvLog, til_thk, tyvek_thk, pos_temp, nullptr, til_sign);
                 }
             }
             tilGeom->RmHorGaps();
